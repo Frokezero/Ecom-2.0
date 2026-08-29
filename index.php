@@ -1,0 +1,53 @@
+<?php
+$page_title='หน้าแรก - ร้านอุปกรณ์ครัว';
+require_once __DIR__.'/includes/header.php';
+require_once __DIR__.'/config/database.php';
+$db=(new Database())->getConnection();$categories=[];$featured_products=[];$best_sellers=[];
+if($db){
+ $categories=$db->query('SELECT * FROM categories ORDER BY id')->fetchAll();
+ $featured_products=$db->query('SELECT p.*,c.name category_name,(SELECT COUNT(*) FROM product_reviews r WHERE r.product_id=p.id) review_count,(SELECT COALESCE(AVG(rating),0) FROM product_reviews r WHERE r.product_id=p.id) average_rating FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.is_featured=1 ORDER BY p.id DESC LIMIT 8')->fetchAll();
+ $best_sellers=$db->query('SELECT p.*,c.name category_name,COALESCE(SUM(oi.quantity),0) sold_count,(SELECT COUNT(*) FROM product_reviews r WHERE r.product_id=p.id) review_count,(SELECT COALESCE(AVG(rating),0) FROM product_reviews r WHERE r.product_id=p.id) average_rating FROM products p LEFT JOIN categories c ON c.id=p.category_id LEFT JOIN order_items oi ON oi.product_id=p.id GROUP BY p.id,c.name ORDER BY sold_count DESC,p.id DESC LIMIT 4')->fetchAll();
+}
+?>
+<div class="container home-page">
+    <section class="hero-banner">
+        <div class="hero-copy">
+            <p class="eyebrow">KITCHEN ESSENTIALS · 2026</p>
+            <h1>ครัวที่ดี<br>เริ่มจากของที่ใช้ถนัด</h1>
+            <p>เราเลือกอุปกรณ์ที่ทน ใช้ง่าย และดูแลไม่ยุ่งยาก เพื่อให้การทำอาหารทุกวันเป็นเรื่องน่าสนุกขึ้น</p>
+            <div class="hero-actions"><a href="<?php echo BASE_URL; ?>products.php" class="btn btn-primary">เลือกซื้อสินค้า <i class="fa-solid fa-arrow-right"></i></a><a href="#categories" class="text-link">ดูตามหมวดหมู่</a></div>
+        </div>
+        <div class="hero-feature">
+            <span>ของแนะนำประจำครัว</span>
+            <img src="<?php echo BASE_URL; ?>assets/images/products/pots.svg" alt="ชุดหม้อและกระทะ KitchenMart">
+            <div><strong>เริ่มต้น ฿890</strong><a href="<?php echo BASE_URL; ?>products.php?category=1">ดูหม้อและกระทะ →</a></div>
+        </div>
+    </section>
+    <section class="service-strip" aria-label="บริการของร้าน"><div><i class="fa-solid fa-truck-fast"></i><span><strong>ส่งฟรี ฿1,000+</strong><small>ทั่วประเทศ</small></span></div><div><i class="fa-solid fa-box-open"></i><span><strong>แพ็กอย่างดี</strong><small>ลดความเสียหายระหว่างส่ง</small></span></div><div><i class="fa-solid fa-shield-halved"></i><span><strong>ชำระปลอดภัย</strong><small>PromptPay หรือ COD</small></span></div></section>
+
+    <section class="quick-paths" aria-label="เลือกซื้อตามงาน">
+        <a href="<?php echo BASE_URL; ?>products.php?category=1"><span><i class="fa-solid fa-fire-burner"></i></span><div><small>ทำอาหารทุกวัน</small><strong>อุปกรณ์ปรุงอาหาร</strong><em>เลือกดูสินค้า <i class="fa-solid fa-arrow-right"></i></em></div></a>
+        <a href="<?php echo BASE_URL; ?>products.php?category=2"><span><i class="fa-solid fa-utensils"></i></span><div><small>เตรียมวัตถุดิบ</small><strong>มีด เขียง และอุปกรณ์</strong><em>เลือกดูสินค้า <i class="fa-solid fa-arrow-right"></i></em></div></a>
+        <a href="<?php echo BASE_URL; ?>products.php?category=5"><span><i class="fa-solid fa-cookie-bite"></i></span><div><small>ทำขนมที่บ้าน</small><strong>อุปกรณ์เบเกอรี</strong><em>เลือกดูสินค้า <i class="fa-solid fa-arrow-right"></i></em></div></a>
+    </section>
+
+    <section id="categories" class="home-section">
+        <header class="section-header"><div><p class="eyebrow">SHOP BY CATEGORY</p><h2 class="section-title">เลือกของให้ตรงงาน</h2></div><a href="<?php echo BASE_URL; ?>products.php" class="text-link">ดูทั้งหมด →</a></header>
+        <div class="category-grid"><?php foreach($categories as $cat): ?><a href="<?php echo BASE_URL; ?>products.php?category=<?php echo (int)$cat['id']; ?>" class="category-card"><span class="category-icon"><i class="fa-solid <?php echo e($cat['icon']); ?>"></i></span><span><strong><?php echo e($cat['name']); ?></strong><small>เลือกดูสินค้า</small></span><i class="fa-solid fa-arrow-right"></i></a><?php endforeach; ?></div>
+    </section>
+
+    <section class="home-section">
+        <header class="section-header"><div><p class="eyebrow">CUSTOMER FAVORITES</p><h2 class="section-title">ของที่ลูกค้าเลือกบ่อย</h2></div></header>
+        <div class="product-grid compact-grid"><?php foreach($best_sellers as $p): ?>
+            <article class="product-card"><span class="product-badge">ขายดี</span><a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>" class="product-img-wrapper"><img src="<?php echo e(productImageUrl($p['image_url'])); ?>" alt="<?php echo e($p['name']); ?>" class="product-img"></a><div class="product-info"><span class="product-category"><?php echo e($p['category_name']); ?></span><a class="product-title" href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>"><?php echo e($p['name']); ?></a><div class="product-rating"><span>★</span> <?php echo number_format((float)$p['average_rating'],1); ?> <small>(<?php echo (int)$p['review_count']; ?> รีวิว)</small></div><div class="product-meta"><strong class="product-price"><?php echo formatCurrency($p['price']); ?></strong><span class="stock-text in-stock"><i class="fa-solid fa-circle-check"></i> พร้อมส่ง</span></div><button class="btn btn-cart" onclick="addToCart(<?php echo (int)$p['id']; ?>,1)" <?php echo $p['stock_quantity']<1?'disabled':''; ?>><i class="fa-solid fa-plus"></i> เพิ่มลงตะกร้า</button></div></article>
+        <?php endforeach; ?></div>
+    </section>
+
+    <section id="featured" class="home-section featured-section">
+        <header class="section-header"><div><p class="eyebrow">EDITOR'S PICKS</p><h2 class="section-title">คัดมาให้แล้วสำหรับครัวบ้าน</h2></div><a href="<?php echo BASE_URL; ?>products.php" class="text-link">ดูสินค้าทั้งหมด →</a></header>
+        <div class="product-grid"><?php foreach($featured_products as $p): ?>
+            <article class="product-card"><span class="product-badge badge-soft">แนะนำ</span><a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>" class="product-img-wrapper"><img src="<?php echo e(productImageUrl($p['image_url'])); ?>" alt="<?php echo e($p['name']); ?>" class="product-img"></a><div class="product-info"><span class="product-category"><?php echo e($p['category_name']); ?></span><a class="product-title" href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>"><?php echo e($p['name']); ?></a><div class="product-rating"><span>★</span> <?php echo number_format((float)$p['average_rating'],1); ?> <small>(<?php echo (int)$p['review_count']; ?> รีวิว)</small></div><div class="product-meta"><strong class="product-price"><?php echo formatCurrency($p['price']); ?></strong><span class="stock-text in-stock"><i class="fa-solid fa-circle-check"></i> พร้อมส่ง</span></div><div class="card-actions"><a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>" class="btn btn-outline">รายละเอียด</a><button class="btn btn-primary" onclick="addToCart(<?php echo (int)$p['id']; ?>,1)">ใส่ตะกร้า</button></div></div></article>
+        <?php endforeach; ?></div>
+    </section>
+</div>
+<?php require_once __DIR__.'/includes/footer.php'; ?>

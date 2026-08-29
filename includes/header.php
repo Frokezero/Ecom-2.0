@@ -1,0 +1,65 @@
+<?php
+require_once __DIR__ . '/functions.php';
+$cart_count = array_sum(array_map(fn($item) => (int)($item['quantity'] ?? 0), $_SESSION['cart'] ?? []));
+$current_page = basename($_SERVER['PHP_SELF']);
+?>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#173f32">
+    <title><?php echo isset($page_title) ? e($page_title).' - '.APP_NAME : APP_NAME; ?></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
+</head>
+<body>
+    <div class="announcement"><div class="container"><span><i class="fa-solid fa-truck-fast"></i> จัดส่งฟรีเมื่อสั่งซื้อครบ ฿1,000</span><span class="announcement-detail"><i class="fa-solid fa-shield-heart"></i> ชำระปลอดภัย · ตรวจสอบคำสั่งซื้อได้ทุกขั้นตอน</span></div></div>
+    <header class="site-header">
+        <div class="container header-main">
+            <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo" aria-label="KitchenMart หน้าแรก">
+                <span class="brand-mark"><i class="fa-solid fa-kitchen-set"></i></span>
+                <span><strong>KitchenMart</strong><small>ของดีสำหรับทุกครัว</small></span>
+            </a>
+            <form action="<?php echo BASE_URL; ?>products.php" method="GET" class="search-box" role="search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" name="q" aria-label="ค้นหาสินค้า" placeholder="ค้นหาสินค้า เช่น กระทะ มีด หม้อทอด..." value="<?php echo e($_GET['q'] ?? ''); ?>">
+                <button type="submit">ค้นหา</button>
+            </form>
+            <div class="header-actions">
+                <?php if (isLoggedIn()): ?>
+                    <a href="<?php echo BASE_URL; ?>my-orders.php" class="icon-link" aria-label="คำสั่งซื้อของฉัน"><i class="fa-regular fa-user"></i><span><?php echo e($_SESSION['username']); ?></span></a>
+                <?php else: ?>
+                    <a href="<?php echo BASE_URL; ?>login.php" class="icon-link"><i class="fa-regular fa-user"></i><span>เข้าสู่ระบบ</span></a>
+                <?php endif; ?>
+                <a href="<?php echo BASE_URL; ?>cart.php" class="cart-link" aria-label="ตะกร้า มี <?php echo $cart_count; ?> ชิ้น"><i class="fa-solid fa-basket-shopping"></i><span>ตะกร้า</span><b id="cartCountBadge"><?php echo $cart_count; ?></b></a>
+                <button class="mobile-toggle" type="button" onclick="document.getElementById('siteNav').classList.toggle('open')" aria-label="เปิดเมนู"><i class="fa-solid fa-bars"></i></button>
+            </div>
+        </div>
+        <nav class="site-nav" id="siteNav" aria-label="เมนูหลัก">
+            <div class="container">
+                <div class="category-menu">
+                    <button type="button" class="category-menu-trigger" aria-expanded="false"><i class="fa-solid fa-bars-staggered"></i> เลือกหมวดสินค้า <i class="fa-solid fa-chevron-down"></i></button>
+                    <div class="category-dropdown">
+                        <a href="<?php echo BASE_URL; ?>products.php?category=1"><i class="fa-solid fa-fire-burner"></i><span>หม้อและกระทะ<small>อุปกรณ์ปรุงอาหาร</small></span></a>
+                        <a href="<?php echo BASE_URL; ?>products.php?category=2"><i class="fa-solid fa-utensils"></i><span>มีดและเขียง<small>เตรียมวัตถุดิบอย่างมั่นใจ</small></span></a>
+                        <a href="<?php echo BASE_URL; ?>products.php?category=3"><i class="fa-solid fa-bowl-food"></i><span>จาน ชาม และช้อนส้อม<small>สำหรับทุกมื้ออาหาร</small></span></a>
+                        <a href="<?php echo BASE_URL; ?>products.php?category=4"><i class="fa-solid fa-blender"></i><span>เครื่องใช้ไฟฟ้า<small>ตัวช่วยประหยัดเวลา</small></span></a>
+                        <a href="<?php echo BASE_URL; ?>products.php?category=5"><i class="fa-solid fa-cookie-bite"></i><span>อุปกรณ์เบเกอรี<small>ครบสำหรับสายอบ</small></span></a>
+                        <a href="<?php echo BASE_URL; ?>products.php"><i class="fa-solid fa-border-all"></i><span>ดูสินค้าทั้งหมด<small>เลือกจากทุกหมวดหมู่</small></span></a>
+                    </div>
+                </div>
+                <a href="<?php echo BASE_URL; ?>index.php" class="<?php echo $current_page==='index.php'?'active':''; ?>">หน้าแรก</a>
+                <a href="<?php echo BASE_URL; ?>products.php" class="<?php echo $current_page==='products.php'?'active':''; ?>">สินค้าทั้งหมด</a>
+                <a href="<?php echo BASE_URL; ?>products.php?sort=price_asc">สินค้าราคาคุ้ม</a>
+                <a href="<?php echo BASE_URL; ?>index.php#featured">สินค้าแนะนำ</a>
+                <?php if (isLoggedIn()): ?><a href="<?php echo BASE_URL; ?>my-orders.php">คำสั่งซื้อของฉัน</a><?php endif; ?>
+                <?php if (isAdmin()): ?><a href="<?php echo BASE_URL; ?>admin/index.php">จัดการร้าน</a><?php endif; ?>
+                <?php if (isLoggedIn()): ?><button type="button" onclick="secureLogout()">ออกจากระบบ</button><?php else: ?><a class="mobile-account" href="<?php echo BASE_URL; ?>register.php">สมัครสมาชิก</a><?php endif; ?>
+            </div>
+        </nav>
+    </header>
+    <main>
+    <script>
+    async function secureLogout(){const body=new FormData();body.append('action','logout');body.append('csrf_token','<?php echo e(getCsrfToken()); ?>');const response=await fetch('<?php echo BASE_URL; ?>api/auth.php',{method:'POST',body});const result=await response.json();if(result.status==='success')location.href=result.data.redirect;}
+    </script>

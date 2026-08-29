@@ -1,0 +1,6 @@
+/config/local.php
+/.runtime-sessions/
+/assets/images/products/uploads/
+*.log
+.DS_Store
+Thumbs.db

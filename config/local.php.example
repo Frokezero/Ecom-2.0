@@ -1,0 +1,14 @@
+<?php
+return [
+    'DB_HOST' => '127.0.0.1',
+    'DB_PORT' => '3306',
+    'DB_NAME' => 'kitchenmart_db',
+    'DB_USER' => 'root',
+    'DB_PASS' => '',
+    // ปกติ XAMPP ไม่ต้องกำหนดค่านี้ ใช้เมื่อ PHP ไม่มีสิทธิ์เขียน session path เริ่มต้น
+    'SESSION_SAVE_PATH' => '',
+    'STORE_NAME' => 'KitchenMart',
+    'STORE_TAGLINE' => 'ครบทุกเรื่องครัว เพื่อทุกมื้อที่คุณรัก',
+    'PROMPTPAY_ID' => '0812345678',
+    'PROMPTPAY_NAME' => 'KitchenMart Demo Store',
+];

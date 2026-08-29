@@ -1,0 +1,17 @@
+<?php
+$page_title='รายละเอียดคำสั่งซื้อ';
+require_once __DIR__.'/../includes/auth_check.php';requireAdmin();require_once __DIR__.'/../config/database.php';
+$db=(new Database())->getConnection();$id=(int)($_GET['id']??0);$order=null;$items=[];
+if($db&&$id>0){$stmt=$db->prepare('SELECT o.*,u.username,u.email FROM orders o LEFT JOIN users u ON u.id=o.user_id WHERE o.id=?');$stmt->execute([$id]);$order=$stmt->fetch();if($order){$stmt=$db->prepare('SELECT * FROM order_items WHERE order_id=? ORDER BY id');$stmt->execute([$id]);$items=$stmt->fetchAll();}}
+if(!$order){http_response_code(404);exit('ไม่พบคำสั่งซื้อ');}
+require_once __DIR__.'/../includes/admin_header.php';
+?>
+<header class="admin-page-header"><div><p class="eyebrow">ORDER DETAIL</p><h1><?php echo e($order['order_no']); ?></h1><p>สร้างเมื่อ <?php echo date('d/m/Y เวลา H:i',strtotime($order['created_at'])); ?></p></div><div class="admin-actions"><a href="<?php echo BASE_URL; ?>admin/orders.php" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> กลับไปคำสั่งซื้อ</a></div></header>
+<div class="admin-detail-grid"><div>
+    <section class="admin-detail-card"><h2>สินค้าในคำสั่งซื้อ</h2><?php foreach($items as $item): ?><div class="detail-line"><div><strong><?php echo e($item['product_name']); ?></strong><small style="display:block"><?php echo formatCurrency($item['price']); ?> × <?php echo (int)$item['quantity']; ?></small></div><strong><?php echo formatCurrency($item['subtotal']); ?></strong></div><?php endforeach; ?><div class="detail-line" style="font-size:16px"><strong>ยอดรวมสุทธิ</strong><strong style="color:var(--green)"><?php echo formatCurrency($order['total_amount']); ?></strong></div></section>
+    <section class="admin-detail-card" style="margin-top:18px"><h2>ที่อยู่จัดส่ง</h2><div class="detail-line"><small>ชื่อผู้รับ</small><strong><?php echo e($order['shipping_name']); ?></strong></div><div class="detail-line"><small>เบอร์โทร</small><strong><?php echo e($order['shipping_phone']); ?></strong></div><div class="detail-line"><small>ที่อยู่</small><strong style="max-width:70%;text-align:right"><?php echo nl2br(e($order['shipping_address'])); ?></strong></div></section>
+</div><aside>
+    <section class="admin-detail-card"><h2>สถานะคำสั่งซื้อ</h2><div class="detail-line"><small>การจัดส่ง</small><span class="status-badge <?php echo e($order['order_status']); ?>"><?php echo e(adminStatusLabel($order['order_status'])); ?></span></div><div class="detail-line"><small>การชำระเงิน</small><span class="status-badge <?php echo e($order['payment_status']); ?>"><?php echo e(adminStatusLabel($order['payment_status'])); ?></span></div><div class="detail-line"><small>วิธีชำระ</small><strong><?php echo $order['payment_method']==='promptpay'?'PromptPay':'เก็บเงินปลายทาง'; ?></strong></div><a href="<?php echo BASE_URL; ?>admin/orders.php?q=<?php echo urlencode($order['order_no']); ?>" class="btn btn-primary" style="width:100%;margin-top:16px"><i class="fa-solid fa-pen-to-square"></i> แก้ไขสถานะ</a></section>
+    <section class="admin-detail-card" style="margin-top:18px"><h2>ข้อมูลลูกค้า</h2><div class="detail-line"><small>บัญชี</small><strong><?php echo e($order['username']??'-'); ?></strong></div><div class="detail-line"><small>อีเมล</small><strong style="font-size:10px"><?php echo e($order['email']??'-'); ?></strong></div></section>
+</aside></div>
+<?php require_once __DIR__.'/../includes/admin_footer.php'; ?>
