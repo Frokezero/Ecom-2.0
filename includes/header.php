@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/functions.php';
-$cart_count = array_sum(array_map(fn($item) => (int)($item['quantity'] ?? 0), $_SESSION['cart'] ?? []));
+$cart_items = array_values($_SESSION['cart'] ?? []);
+$cart_count = array_sum(array_map(fn($item) => (int)($item['quantity'] ?? 0), $cart_items));
+$cart_total = array_sum(array_map(fn($item) => (float)($item['price'] ?? 0) * (int)($item['quantity'] ?? 0), $cart_items));
+$cart_preview_items = array_slice($cart_items, 0, 3);
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 <!DOCTYPE html>
@@ -28,11 +31,35 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </form>
             <div class="header-actions">
                 <?php if (isLoggedIn()): ?>
-                    <a href="<?php echo BASE_URL; ?>my-orders.php" class="icon-link" aria-label="คำสั่งซื้อของฉัน"><i class="fa-regular fa-user"></i><span><?php echo e($_SESSION['username']); ?></span></a>
+                    <div class="account-menu">
+                        <a href="<?php echo BASE_URL; ?>profile.php" class="icon-link account-trigger" aria-label="โปรไฟล์ของฉัน"><i class="fa-regular fa-user"></i><span><?php echo e($_SESSION['username']); ?></span><i class="fa-solid fa-chevron-down account-chevron"></i></a>
+                        <div class="account-dropdown">
+                            <div class="account-dropdown-head"><span class="account-mini-avatar"><?php echo e(strtoupper(mb_substr(trim($_SESSION['full_name'] ?: $_SESSION['username']),0,1))); ?></span><span><strong><?php echo e($_SESSION['full_name'] ?: $_SESSION['username']); ?></strong><small><?php echo e($_SESSION['email'] ?? ''); ?></small></span></div>
+                            <a href="<?php echo BASE_URL; ?>profile.php"><i class="fa-regular fa-user"></i> ข้อมูลส่วนตัว</a>
+                            <a href="<?php echo BASE_URL; ?>profile.php#address"><i class="fa-solid fa-location-dot"></i> ที่อยู่จัดส่ง</a>
+                            <a href="<?php echo BASE_URL; ?>profile.php#payment"><i class="fa-regular fa-credit-card"></i> วิธีชำระเงิน</a>
+                            <a href="<?php echo BASE_URL; ?>profile.php#security"><i class="fa-solid fa-shield-halved"></i> ความปลอดภัย</a>
+                            <a href="<?php echo BASE_URL; ?>my-orders.php" class="account-orders-link"><i class="fa-solid fa-box"></i> คำสั่งซื้อของฉัน <i class="fa-solid fa-arrow-right"></i></a>
+                            <button type="button" onclick="secureLogout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ออกจากระบบ</button>
+                        </div>
+                    </div>
                 <?php else: ?>
                     <a href="<?php echo BASE_URL; ?>login.php" class="icon-link"><i class="fa-regular fa-user"></i><span>เข้าสู่ระบบ</span></a>
                 <?php endif; ?>
-                <a href="<?php echo BASE_URL; ?>cart.php" class="cart-link" aria-label="ตะกร้า มี <?php echo $cart_count; ?> ชิ้น"><i class="fa-solid fa-basket-shopping"></i><span>ตะกร้า</span><b id="cartCountBadge"><?php echo $cart_count; ?></b></a>
+                <div class="cart-menu">
+                    <a href="<?php echo BASE_URL; ?>cart.php" class="cart-link" aria-label="ตะกร้า มี <?php echo $cart_count; ?> ชิ้น"><i class="fa-solid fa-basket-shopping"></i><span>ตะกร้า</span><b id="cartCountBadge"><?php echo $cart_count; ?></b></a>
+                    <div class="cart-dropdown">
+                        <header><strong>ตะกร้าสินค้าของคุณ</strong><span><?php echo $cart_count; ?> ชิ้น</span></header>
+                        <?php if ($cart_preview_items): ?>
+                            <div class="cart-preview-list"><?php foreach ($cart_preview_items as $item): ?><a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$item['id']; ?>" class="cart-preview-item"><img src="<?php echo e(productImageUrl($item['image_url'])); ?>" alt="<?php echo e($item['name']); ?>"><span><strong><?php echo e($item['name']); ?></strong><small><?php echo (int)$item['quantity']; ?> ชิ้น · <?php echo formatCurrency($item['price']); ?></small></span><b><?php echo formatCurrency((float)$item['price'] * (int)$item['quantity']); ?></b></a><?php endforeach; ?></div>
+                            <?php if (count($cart_items) > count($cart_preview_items)): ?><p class="cart-more-items">และอีก <?php echo count($cart_items) - count($cart_preview_items); ?> รายการ</p><?php endif; ?>
+                            <div class="cart-preview-total"><span>ยอดรวม</span><strong><?php echo formatCurrency($cart_total); ?></strong></div>
+                            <div class="cart-dropdown-actions"><a href="<?php echo BASE_URL; ?>cart.php" class="cart-view-link">ดูตะกร้าสินค้า</a><a href="<?php echo BASE_URL; ?>checkout.php" class="cart-checkout-link">ชำระเงิน <i class="fa-solid fa-arrow-right"></i></a></div>
+                        <?php else: ?>
+                            <div class="cart-preview-empty"><i class="fa-solid fa-basket-shopping"></i><strong>ตะกร้ายังว่างอยู่</strong><p>เลือกของดีเข้าครัวได้เลย</p><a href="<?php echo BASE_URL; ?>products.php">เลือกซื้อสินค้า</a></div>
+                        <?php endif; ?>
+                    </div>
+                </div>
                 <button class="mobile-toggle" type="button" onclick="document.getElementById('siteNav').classList.toggle('open')" aria-label="เปิดเมนู"><i class="fa-solid fa-bars"></i></button>
             </div>
         </div>
@@ -53,7 +80,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <a href="<?php echo BASE_URL; ?>products.php" class="<?php echo $current_page==='products.php'?'active':''; ?>">สินค้าทั้งหมด</a>
                 <a href="<?php echo BASE_URL; ?>products.php?sort=price_asc">สินค้าราคาคุ้ม</a>
                 <a href="<?php echo BASE_URL; ?>index.php#featured">สินค้าแนะนำ</a>
-                <?php if (isLoggedIn()): ?><a href="<?php echo BASE_URL; ?>my-orders.php">คำสั่งซื้อของฉัน</a><?php endif; ?>
+                <?php if (isLoggedIn()): ?><a href="<?php echo BASE_URL; ?>profile.php">โปรไฟล์ของฉัน</a><?php endif; ?>
                 <?php if (isAdmin()): ?><a href="<?php echo BASE_URL; ?>admin/index.php">จัดการร้าน</a><?php endif; ?>
                 <?php if (isLoggedIn()): ?><button type="button" onclick="secureLogout()">ออกจากระบบ</button><?php else: ?><a class="mobile-account" href="<?php echo BASE_URL; ?>register.php">สมัครสมาชิก</a><?php endif; ?>
             </div>

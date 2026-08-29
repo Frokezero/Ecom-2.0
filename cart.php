@@ -10,7 +10,7 @@ foreach ($cart as $item) {
 }
 ?>
 
-<div class="container" style="margin-top: 36px; margin-bottom: 60px;">
+<div class="container cart-page" style="margin-top: 36px; margin-bottom: 60px;">
     <h1 style="font-size: 1.8rem; font-weight: 700; color: var(--secondary); margin-bottom: 24px;"><i class="fa-solid fa-cart-shopping" style="color: var(--primary);"></i> ตะกร้าสินค้าของคุณ</h1>
 
     <?php if (empty($cart)): ?>
@@ -21,10 +21,10 @@ foreach ($cart as $item) {
             <a href="<?php echo BASE_URL; ?>products.php" class="btn btn-primary" style="margin-top: 24px; padding: 12px 28px;">ไปเลือกซื้อสินค้า</a>
         </div>
     <?php else: ?>
-        <div style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 32px;">
+        <div class="cart-layout" style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 32px;">
             <!-- Cart Table -->
-            <div style="background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 24px; box-shadow: var(--shadow-sm);">
-                <table style="width: 100%; border-collapse: collapse;">
+            <div class="cart-items-card" style="background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 24px; box-shadow: var(--shadow-sm);">
+                <table class="cart-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="border-bottom: 2px solid var(--border-color); text-align: left; font-size: 0.9rem; color: var(--text-muted);">
                             <th style="padding-bottom: 12px;">สินค้า</th>
@@ -64,7 +64,7 @@ foreach ($cart as $item) {
             </div>
 
             <!-- Order Summary Card -->
-            <div style="background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 24px; height: fit-content; box-shadow: var(--shadow-sm);">
+            <div class="cart-summary" style="background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 24px; height: fit-content; box-shadow: var(--shadow-sm);">
                 <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--secondary); margin-bottom: 20px;">สรุปยอดสั่งซื้อ</h3>
                 
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px; color: var(--text-muted);">

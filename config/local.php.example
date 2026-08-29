@@ -11,4 +11,16 @@ return [
     'STORE_TAGLINE' => 'ครบทุกเรื่องครัว เพื่อทุกมื้อที่คุณรัก',
     'PROMPTPAY_ID' => '0812345678',
     'PROMPTPAY_NAME' => 'KitchenMart Demo Store',
+    // คงค่า 0 ไว้ขณะแชร์ผ่าน Quick Tunnel เพื่อไม่เปิดหลังบ้านสู่สาธารณะ
+    'ALLOW_PUBLIC_ADMIN' => '0',
+    // URL สาธารณะที่ผู้รับอีเมลเปิดถึงได้ เช่น https://shop.example.com/
+    'APP_URL' => 'http://127.0.0.1:8000/',
+    'MAIL_TRANSPORT' => 'smtp',
+    'SMTP_HOST' => 'smtp.gmail.com',
+    'SMTP_PORT' => '465',
+    'SMTP_ENCRYPTION' => 'ssl',
+    'SMTP_USER' => 'froketv@gmail.com',
+    'SMTP_PASS' => 'Gmail App Password 16 หลัก (ห้ามใช้รหัสผ่าน Google ปกติ)',
+    'SMTP_FROM_EMAIL' => 'froketv@gmail.com',
+    'SMTP_FROM_NAME' => 'KitchenMart',
 ];

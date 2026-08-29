@@ -24,6 +24,14 @@ KitchenMart เป็นระบบ E-Commerce ภาษาไทยสำห�
 
 ระบบสร้าง QR จาก `https://promptpay.io/{PROMPTPAY_ID}/{AMOUNT}.png` หลัง backend สร้างคำสั่งซื้อแล้วเท่านั้น ยอดเงินมาจาก `orders.total_amount` ในฐานข้อมูล การโหลดหรือแสดง QR จะไม่เปลี่ยนสถานะเป็นชำระแล้ว เพราะยังไม่มีระบบตรวจสอบธุรกรรมธนาคาร
 
+### การยืนยันอีเมลสมาชิก
+
+สมาชิกใหม่ต้องกดลิงก์ยืนยันอีเมลภายใน 30 นาทีก่อนเข้าสู่ระบบ ตั้งค่า SMTP ใน `config/local.php` หรือ environment variables โดยใช้ `APP_URL`, `MAIL_TRANSPORT`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_ENCRYPTION`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM_EMAIL` และ `SMTP_FROM_NAME` ตามตัวอย่างใน `config/local.php.example`
+
+ตัวอย่างในโปรเจกต์ใช้ Cloudflare Email Service: host `smtp.mx.cloudflare.net`, port `465`, encryption `ssl`, username ต้องเป็น `api_token` และ password คือ Cloudflare API Token ที่มีสิทธิ์ `Email Sending: Edit` โดเมนของอีเมลผู้ส่งต้องผ่าน Onboard Domain ใน Cloudflare Email Sending ก่อน ห้าม commit API Token สำหรับระบบที่อัปเกรดจากเวอร์ชันเดิม ให้รัน `database/migrations/001_email_verification.sql` หนึ่งครั้ง บัญชีเดิมจะยังเข้าใช้งานได้ตามปกติ
+
+`APP_URL` ต้องเป็น URL ที่ผู้รับอีเมลเปิดถึงได้ เช่น URL production ของร้าน ไม่ควรใช้ `127.0.0.1` เมื่อส่งให้ผู้ใช้บนอุปกรณ์อื่น
+
 ## บัญชีตัวอย่าง
 
 | สิทธิ์ | ชื่อผู้ใช้ | อีเมล | รหัสผ่าน |

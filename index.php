@@ -43,11 +43,51 @@ if($db){
         <?php endforeach; ?></div>
     </section>
 
-    <section id="featured" class="home-section featured-section">
+    <section id="featured" class="home-section featured-section" data-featured-carousel>
         <header class="section-header"><div><p class="eyebrow">EDITOR'S PICKS</p><h2 class="section-title">คัดมาให้แล้วสำหรับครัวบ้าน</h2></div><a href="<?php echo BASE_URL; ?>products.php" class="text-link">ดูสินค้าทั้งหมด →</a></header>
-        <div class="product-grid"><?php foreach($featured_products as $p): ?>
+        <div class="featured-carousel-controls" aria-label="ควบคุมสินค้าแนะนำ">
+            <button type="button" class="carousel-control" data-carousel-prev aria-label="ดูสินค้าแนะนำก่อนหน้า" disabled><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+            <span class="featured-carousel-status" data-carousel-status aria-live="polite">1 / <?php echo count($featured_products); ?></span>
+            <button type="button" class="carousel-control" data-carousel-next aria-label="ดูสินค้าแนะนำถัดไป"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+        </div>
+        <div class="featured-carousel-track" data-carousel-track tabindex="0" aria-label="รายการสินค้าแนะนำ"><?php foreach($featured_products as $p): ?>
             <article class="product-card"><span class="product-badge badge-soft">แนะนำ</span><a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>" class="product-img-wrapper"><img src="<?php echo e(productImageUrl($p['image_url'])); ?>" alt="<?php echo e($p['name']); ?>" class="product-img"></a><div class="product-info"><span class="product-category"><?php echo e($p['category_name']); ?></span><a class="product-title" href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>"><?php echo e($p['name']); ?></a><div class="product-rating"><span>★</span> <?php echo number_format((float)$p['average_rating'],1); ?> <small>(<?php echo (int)$p['review_count']; ?> รีวิว)</small></div><div class="product-meta"><strong class="product-price"><?php echo formatCurrency($p['price']); ?></strong><span class="stock-text in-stock"><i class="fa-solid fa-circle-check"></i> พร้อมส่ง</span></div><div class="card-actions"><a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>" class="btn btn-outline">รายละเอียด</a><button class="btn btn-primary" onclick="addToCart(<?php echo (int)$p['id']; ?>,1)">ใส่ตะกร้า</button></div></div></article>
         <?php endforeach; ?></div>
     </section>
 </div>
+<script>
+document.querySelectorAll('[data-featured-carousel]').forEach((carousel) => {
+    const track = carousel.querySelector('[data-carousel-track]');
+    const previous = carousel.querySelector('[data-carousel-prev]');
+    const next = carousel.querySelector('[data-carousel-next]');
+    const status = carousel.querySelector('[data-carousel-status]');
+    if (!track) return;
+    const cards = Array.from(track.querySelectorAll('.product-card'));
+    if (cards.length < 2) {
+        if (previous) previous.hidden = true;
+        if (next) next.hidden = true;
+        return;
+    }
+
+    const step = () => {
+        const cardWidth = cards[0].getBoundingClientRect().width;
+        const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap || 0) || 0;
+        return cardWidth + gap;
+    };
+    const updateControls = () => {
+        const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
+        const atStart = track.scrollLeft <= 2;
+        const atEnd = track.scrollLeft >= maxScroll - 2;
+        previous.disabled = atStart;
+        next.disabled = atEnd;
+        const active = Math.min(cards.length, Math.max(1, Math.round(track.scrollLeft / step()) + 1));
+        status.textContent = `${active} / ${cards.length}`;
+    };
+    previous.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
+    next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: 'smooth' }));
+    track.addEventListener('scroll', () => requestAnimationFrame(updateControls), { passive: true });
+    window.addEventListener('resize', updateControls);
+    updateControls();
+});
+</script>
 <?php require_once __DIR__.'/includes/footer.php'; ?>

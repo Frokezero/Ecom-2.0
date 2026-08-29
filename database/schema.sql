@@ -6,8 +6,11 @@ SET NAMES utf8mb4;
 CREATE TABLE IF NOT EXISTS users (
  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) NOT NULL UNIQUE, email VARCHAR(100) NOT NULL UNIQUE,
  password_hash VARCHAR(255) NOT NULL, full_name VARCHAR(100) NOT NULL, phone VARCHAR(20), address TEXT,
- role ENUM('customer','admin') NOT NULL DEFAULT 'customer', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
- INDEX idx_users_role(role)
+ preferred_payment_method ENUM('promptpay','cod') NOT NULL DEFAULT 'promptpay',
+ role ENUM('customer','admin') NOT NULL DEFAULT 'customer', email_verified_at DATETIME NULL,
+ email_verification_token_hash CHAR(64) NULL, email_verification_expires_at DATETIME NULL, email_verification_sent_at DATETIME NULL,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ INDEX idx_users_role(role), INDEX idx_users_verification_token(email_verification_token_hash)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS categories (
@@ -64,9 +67,9 @@ INSERT INTO categories(id,name,slug,icon) VALUES
 ON DUPLICATE KEY UPDATE name=VALUES(name),slug=VALUES(slug),icon=VALUES(icon);
 
 -- รหัสผ่านตัวอย่างของทั้งสองบัญชีคือ password123
-INSERT INTO users(id,username,email,password_hash,full_name,phone,address,role) VALUES
-(1,'admin','admin@kitchenmart.local','$2y$10$yDu0LUfEA6LPFvwgzhw.6eJaueV0bSyJf4/s0/0XYnRhsHNpaGxi2','ผู้ดูแล KitchenMart','0812345678','กรุงเทพมหานคร','admin'),
-(2,'customer','customer@kitchenmart.local','$2y$10$yDu0LUfEA6LPFvwgzhw.6eJaueV0bSyJf4/s0/0XYnRhsHNpaGxi2','ลูกค้าทดลอง','0898765432','99/9 ถนนสุขุมวิท กรุงเทพมหานคร 10110','customer')
+INSERT INTO users(id,username,email,password_hash,full_name,phone,address,role,email_verified_at) VALUES
+(1,'admin','admin@kitchenmart.local','$2y$10$yDu0LUfEA6LPFvwgzhw.6eJaueV0bSyJf4/s0/0XYnRhsHNpaGxi2','ผู้ดูแล KitchenMart','0812345678','กรุงเทพมหานคร','admin',NOW()),
+(2,'customer','customer@kitchenmart.local','$2y$10$yDu0LUfEA6LPFvwgzhw.6eJaueV0bSyJf4/s0/0XYnRhsHNpaGxi2','ลูกค้าทดลอง','0898765432','99/9 ถนนสุขุมวิท กรุงเทพมหานคร 10110','customer',NOW())
 ON DUPLICATE KEY UPDATE username=username;
 
 INSERT INTO products(id,category_id,name,description,price,stock_quantity,image_url,is_featured) VALUES

@@ -3,6 +3,7 @@
 $page_title = "ชำระเงิน";
 require_once __DIR__ . '/includes/auth_check.php';
 requireLogin();
+require_once __DIR__ . '/config/database.php';
 
 require_once __DIR__ . '/includes/header.php';
 
@@ -18,6 +19,13 @@ foreach ($cart as $item) {
 }
 
 $user = getCurrentUser();
+$checkoutProfile = ['phone' => '', 'address' => '', 'preferred_payment_method' => 'promptpay'];
+$profileDb = (new Database())->getConnection();
+if ($profileDb) {
+    $profileStmt = $profileDb->prepare('SELECT phone,address,preferred_payment_method FROM users WHERE id=? LIMIT 1');
+    $profileStmt->execute([(int)$user['id']]);
+    $checkoutProfile = array_merge($checkoutProfile, $profileStmt->fetch() ?: []);
+}
 ?>
 
 <div class="container" style="margin-top: 36px; margin-bottom: 60px;">
@@ -38,7 +46,7 @@ $user = getCurrentUser();
 
                     <div style="margin-bottom: 16px;">
                         <label style="display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px;">เบอร์โทรศัพท์ติดต่อ *</label>
-                        <input type="text" name="shipping_phone" value="0898765432" required style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.95rem;">
+                        <input type="text" name="shipping_phone" value="<?php echo e($checkoutProfile['phone']); ?>" required style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.95rem;">
                     </div>
 
                     <div>
@@ -50,18 +58,18 @@ $user = getCurrentUser();
                 <div class="checkout-card">
                     <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 18px; color: var(--secondary);"><i class="fa-solid fa-wallet" style="color: var(--primary);"></i> เลือกวิธีการชำระเงิน</h3>
                     
-                    <input type="hidden" name="payment_method" id="paymentMethodInput" value="promptpay">
+                    <input type="hidden" name="payment_method" id="paymentMethodInput" value="<?php echo e($checkoutProfile['preferred_payment_method']); ?>">
                     <input type="hidden" name="action" value="create_order">
                     <input type="hidden" name="csrf_token" value="<?php echo getCsrfToken(); ?>">
 
                     <div class="payment-method-selector">
-                        <div class="payment-option active" data-method="promptpay">
+                        <div class="payment-option <?php echo $checkoutProfile['preferred_payment_method']==='promptpay'?'active':''; ?>" data-method="promptpay">
                             <i class="fa-solid fa-qrcode"></i>
                             <div class="payment-option-title">PromptPay QR Code</div>
                             <span style="font-size: 0.8rem; color: var(--text-muted);">รับ QR หลังยืนยันคำสั่งซื้อ</span>
                         </div>
 
-                        <div class="payment-option" data-method="cod">
+                        <div class="payment-option <?php echo $checkoutProfile['preferred_payment_method']==='cod'?'active':''; ?>" data-method="cod">
                             <i class="fa-solid fa-hand-holding-dollar"></i>
                             <div class="payment-option-title">ชำระเงินปลายทาง (COD)</div>
                             <span style="font-size: 0.8rem; color: var(--text-muted);">จ่ายเมื่อได้รับสินค้า</span>
@@ -120,6 +128,11 @@ $user = getCurrentUser();
 </div>
 
 <script>
+const savedCheckoutAddress=<?php echo json_encode((string)$checkoutProfile['address'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+const savedPaymentMethod=<?php echo json_encode((string)$checkoutProfile['preferred_payment_method']); ?>;
+const shippingAddressField=document.querySelector('[name="shipping_address"]');
+if(shippingAddressField&&savedCheckoutAddress!=='')shippingAddressField.value=savedCheckoutAddress;
+if(savedPaymentMethod==='cod'){document.getElementById('promptPayDetails').style.display='none';document.getElementById('codDetails').style.display='block';}
 async function handleCheckoutSubmit(e) {
     e.preventDefault();
     const btn = document.getElementById('placeOrderBtn');

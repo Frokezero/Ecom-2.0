@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__.'/includes/functions.php';
 if(isLoggedIn()){header('Location: '.BASE_URL.(isAdmin()?'admin/index.php':'index.php'));exit;}
+$requestHost=$_SERVER['HTTP_HOST'] ?? '';
+$isLocalRequest=(bool)preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/i',$requestHost);
 $page_title='เข้าสู่ระบบ';
 require_once __DIR__.'/includes/header.php';
 ?>
@@ -15,6 +17,7 @@ require_once __DIR__.'/includes/header.php';
     <div class="auth-card">
         <header class="auth-heading"><p class="eyebrow">MEMBER SIGN IN</p><h2>เข้าสู่ระบบ</h2><p>กรอกชื่อผู้ใช้หรืออีเมลที่ลงทะเบียนไว้</p></header>
         <div class="auth-error" id="authError" role="alert" aria-live="polite"><i class="fa-solid fa-circle-exclamation"></i><span></span></div>
+        <a class="verification-help" id="verificationHelp" href="<?php echo BASE_URL; ?>check-email.php" hidden><i class="fa-regular fa-envelope"></i> ส่งอีเมลยืนยันอีกครั้ง</a>
         <form class="auth-form" id="loginForm" novalidate>
             <div class="auth-field"><label for="loginIdentity">ชื่อผู้ใช้หรืออีเมล</label><div class="auth-input"><i class="fa-regular fa-user"></i><input id="loginIdentity" name="username_email" required autocomplete="username" autofocus placeholder="เช่น somchai99 หรือ email@example.com"></div></div>
             <div class="auth-field"><label for="loginPassword">รหัสผ่าน</label><div class="auth-input"><i class="fa-solid fa-key"></i><input type="password" id="loginPassword" name="password" required minlength="8" autocomplete="current-password" placeholder="กรอกรหัสผ่าน"><button class="password-toggle" type="button" data-password-toggle="loginPassword" aria-label="แสดงรหัสผ่าน"><i class="fa-regular fa-eye"></i></button></div></div>
@@ -22,13 +25,13 @@ require_once __DIR__.'/includes/header.php';
             <button type="submit" id="loginBtn" class="btn btn-primary auth-submit"><span>เข้าสู่ระบบ</span><i class="fa-solid fa-arrow-right"></i></button>
         </form>
         <p class="auth-switch">ยังไม่มีบัญชี? <a href="<?php echo BASE_URL; ?>register.php">สมัครสมาชิกฟรี</a></p>
-        <details class="demo-access"><summary>ใช้บัญชีทดลองระบบ</summary><div class="demo-buttons"><button type="button" onclick="fillDemo('admin')"><i class="fa-solid fa-user-shield"></i> ทดลองเป็น Admin</button><button type="button" onclick="fillDemo('customer')"><i class="fa-solid fa-user"></i> ทดลองเป็นลูกค้า</button></div></details>
+        <?php if($isLocalRequest): ?><details class="demo-access"><summary>ใช้บัญชีทดลองระบบ</summary><div class="demo-buttons"><button type="button" onclick="fillDemo('admin')"><i class="fa-solid fa-user-shield"></i> ทดลองเป็น Admin</button><button type="button" onclick="fillDemo('customer')"><i class="fa-solid fa-user"></i> ทดลองเป็นลูกค้า</button></div></details><?php endif; ?>
     </div>
 </section></div>
 <script>
 document.querySelectorAll('[data-password-toggle]').forEach(button=>button.addEventListener('click',()=>{const input=document.getElementById(button.dataset.passwordToggle),show=input.type==='password';input.type=show?'text':'password';button.innerHTML=`<i class="fa-regular fa-eye${show?'-slash':''}"></i>`;button.setAttribute('aria-label',show?'ซ่อนรหัสผ่าน':'แสดงรหัสผ่าน')}));
 function fillDemo(role){document.getElementById('loginIdentity').value=role==='admin'?'admin@kitchenmart.local':'customer@kitchenmart.local';document.getElementById('loginPassword').value='password123';document.getElementById('loginIdentity').focus()}
-function showAuthError(message,field){const box=document.getElementById('authError');box.querySelector('span').textContent=message;box.classList.add('show');document.querySelectorAll('.auth-field').forEach(el=>el.classList.remove('invalid'));if(field){const input=document.querySelector(`[name="${field}"]`);if(input){input.closest('.auth-field')?.classList.add('invalid');input.focus()}}}
-document.getElementById('loginForm').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,button=document.getElementById('loginBtn'),errorBox=document.getElementById('authError');errorBox.classList.remove('show');if(!form.reportValidity())return;button.disabled=true;button.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจสอบ';try{const response=await fetch(`${BASE_URL}api/auth.php`,{method:'POST',body:new FormData(form)});const result=await response.json();if(!response.ok||result.status!=='success')throw Object.assign(new Error(result.message||'ไม่สามารถเข้าสู่ระบบได้'),{field:result.data?.field,retryAfter:result.data?.retry_after});showToast(result.message,'success');setTimeout(()=>location.href=result.data.redirect,350)}catch(error){showAuthError(error.message,error.field);button.disabled=false;button.innerHTML='<span>เข้าสู่ระบบ</span><i class="fa-solid fa-arrow-right"></i>'}});
+function showAuthError(message,field,email){const box=document.getElementById('authError'),help=document.getElementById('verificationHelp');box.querySelector('span').textContent=message;box.classList.add('show');help.hidden=!email;if(email)help.href=`${BASE_URL}check-email.php?email=${encodeURIComponent(email)}`;document.querySelectorAll('.auth-field').forEach(el=>el.classList.remove('invalid'));if(field){const input=document.querySelector(`[name="${field}"]`);if(input){input.closest('.auth-field')?.classList.add('invalid');input.focus()}}}
+document.getElementById('loginForm').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,button=document.getElementById('loginBtn'),errorBox=document.getElementById('authError');errorBox.classList.remove('show');document.getElementById('verificationHelp').hidden=true;if(!form.reportValidity())return;button.disabled=true;button.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจสอบ';try{const response=await fetch(`${BASE_URL}api/auth.php`,{method:'POST',body:new FormData(form)});const result=await response.json();if(!response.ok||result.status!=='success')throw Object.assign(new Error(result.message||'ไม่สามารถเข้าสู่ระบบได้'),{field:result.data?.field,retryAfter:result.data?.retry_after,email:result.data?.verification_required?result.data?.email:null});showToast(result.message,'success');setTimeout(()=>location.href=result.data.redirect,350)}catch(error){showAuthError(error.message,error.field,error.email);button.disabled=false;button.innerHTML='<span>เข้าสู่ระบบ</span><i class="fa-solid fa-arrow-right"></i>'}});
 </script>
 <?php require_once __DIR__.'/includes/footer.php'; ?>

@@ -8,7 +8,7 @@
         <a href="<?php echo BASE_URL; ?>products.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='products.php'?'active':''; ?>"><i class="fa-solid fa-border-all"></i><span>หมวดสินค้า</span></a>
         <a href="<?php echo BASE_URL; ?>products.php" class="mobile-search-link"><i class="fa-solid fa-magnifying-glass"></i><span>ค้นหา</span></a>
         <a href="<?php echo BASE_URL; ?>cart.php" class="<?php echo basename($_SERVER['PHP_SELF'])==='cart.php'?'active':''; ?>"><i class="fa-solid fa-basket-shopping"></i><span>ตะกร้า</span><?php if ($cart_count > 0): ?><b><?php echo $cart_count; ?></b><?php endif; ?></a>
-        <a href="<?php echo isLoggedIn() ? BASE_URL.'my-orders.php' : BASE_URL.'login.php'; ?>"><i class="fa-regular fa-user"></i><span>บัญชี</span></a>
+        <a href="<?php echo isLoggedIn() ? BASE_URL.'profile.php' : BASE_URL.'login.php'; ?>"><i class="fa-regular fa-user"></i><span>บัญชี</span></a>
     </nav>
 
     <footer>
