@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) NOT NULL UNIQUE, email VARCHAR(100) NOT NULL UNIQUE,
  password_hash VARCHAR(255) NOT NULL, full_name VARCHAR(100) NOT NULL, phone VARCHAR(20), address TEXT,
  preferred_payment_method ENUM('promptpay','cod') NOT NULL DEFAULT 'promptpay',
- role ENUM('customer','admin') NOT NULL DEFAULT 'customer', email_verified_at DATETIME NULL,
+ role ENUM('customer','seller','admin') NOT NULL DEFAULT 'customer', email_verified_at DATETIME NULL,
  email_verification_token_hash CHAR(64) NULL, email_verification_expires_at DATETIME NULL, email_verification_sent_at DATETIME NULL,
  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
  INDEX idx_users_role(role), INDEX idx_users_verification_token(email_verification_token_hash)
@@ -19,17 +19,17 @@ CREATE TABLE IF NOT EXISTS categories (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS products (
- id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, category_id INT UNSIGNED NOT NULL, name VARCHAR(200) NOT NULL, description TEXT,
+ id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, category_id INT UNSIGNED NOT NULL, seller_id INT UNSIGNED NULL, name VARCHAR(200) NOT NULL, description TEXT,
  price DECIMAL(10,2) UNSIGNED NOT NULL, stock_quantity INT UNSIGNED NOT NULL DEFAULT 0,
- image_url VARCHAR(255) DEFAULT 'assets/images/products/placeholder.svg', is_featured TINYINT(1) NOT NULL DEFAULT 0,
+ image_url VARCHAR(255) DEFAULT 'assets/images/products/placeholder.svg', is_featured TINYINT(1) NOT NULL DEFAULT 0, approval_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'approved', admin_note VARCHAR(500) NULL,
  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
- CONSTRAINT fk_products_category FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE RESTRICT,
- INDEX idx_products_category(category_id), INDEX idx_products_featured(is_featured), INDEX idx_products_name(name)
+ CONSTRAINT fk_products_category FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE RESTRICT, CONSTRAINT fk_products_seller FOREIGN KEY(seller_id) REFERENCES users(id) ON DELETE SET NULL,
+ INDEX idx_products_category(category_id), INDEX idx_products_featured(is_featured), INDEX idx_products_name(name), INDEX idx_products_seller_approval(seller_id,approval_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS orders (
  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, order_no VARCHAR(30) NOT NULL UNIQUE, user_id INT UNSIGNED NOT NULL,
- total_amount DECIMAL(10,2) UNSIGNED NOT NULL, shipping_name VARCHAR(100) NOT NULL, shipping_phone VARCHAR(20) NOT NULL,
+ total_amount DECIMAL(10,2) UNSIGNED NOT NULL, coupon_id INT UNSIGNED NULL, coupon_code VARCHAR(40) NULL, discount_amount DECIMAL(10,2) UNSIGNED NOT NULL DEFAULT 0, shipping_name VARCHAR(100) NOT NULL, shipping_phone VARCHAR(20) NOT NULL,
  shipping_address TEXT NOT NULL, payment_method ENUM('promptpay','cod') NOT NULL,
  payment_status ENUM('pending','paid','cod_pending') NOT NULL DEFAULT 'pending',
  order_status ENUM('pending','processing','shipped','completed','cancelled') NOT NULL DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -57,6 +57,27 @@ CREATE TABLE IF NOT EXISTS product_reviews (
  UNIQUE KEY uq_review_product_user(product_id,user_id),
  INDEX idx_reviews_product_created(product_id,created_at),
  INDEX idx_reviews_rating(rating)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS seller_profiles (
+ user_id INT UNSIGNED PRIMARY KEY, shop_name VARCHAR(80) NOT NULL, primary_category_id INT UNSIGNED NOT NULL, shop_description TEXT NULL, shop_logo VARCHAR(255) NULL, cover_image VARCHAR(255) NULL, promo_image VARCHAR(255) NULL, promo_title VARCHAR(120) NULL, promo_text VARCHAR(250) NULL, promo_url VARCHAR(500) NULL,
+ phone VARCHAR(20) NOT NULL, payout_method ENUM('promptpay','bank','both') NOT NULL, promptpay_owner VARCHAR(100) NULL, promptpay_number VARCHAR(100) NULL, payout_bank_name VARCHAR(80) NULL, payout_account_name VARCHAR(100) NOT NULL, payout_account_number VARCHAR(100) NOT NULL,
+ return_address TEXT NOT NULL, status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending', admin_note VARCHAR(500) NULL,
+ submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, reviewed_at DATETIME NULL, reviewed_by INT UNSIGNED NULL, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+ CONSTRAINT fk_seller_profile_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, CONSTRAINT fk_seller_profile_category FOREIGN KEY(primary_category_id) REFERENCES categories(id) ON DELETE RESTRICT,
+ CONSTRAINT fk_seller_profile_reviewer FOREIGN KEY(reviewed_by) REFERENCES users(id) ON DELETE SET NULL, INDEX idx_seller_profile_status(status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS seller_payout_requests (
+ id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, seller_id INT UNSIGNED NOT NULL, amount DECIMAL(10,2) UNSIGNED NOT NULL, payout_method ENUM('promptpay','bank','both') NOT NULL, promptpay_owner VARCHAR(100) NULL, promptpay_number VARCHAR(100) NULL, payout_bank_name VARCHAR(80) NULL,
+ payout_account_name VARCHAR(100) NOT NULL, payout_account_number VARCHAR(100) NOT NULL, status ENUM('requested','paid','rejected') NOT NULL DEFAULT 'requested', admin_note VARCHAR(500) NULL,
+ transfer_reference VARCHAR(100) NULL, requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, processed_at DATETIME NULL, processed_by INT UNSIGNED NULL,
+ CONSTRAINT fk_payout_seller FOREIGN KEY(seller_id) REFERENCES users(id) ON DELETE CASCADE, CONSTRAINT fk_payout_processor FOREIGN KEY(processed_by) REFERENCES users(id) ON DELETE SET NULL,
+ INDEX idx_payout_seller_status(seller_id,status), INDEX idx_payout_status(status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS notifications (
+ id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT UNSIGNED NOT NULL, type VARCHAR(40) NOT NULL DEFAULT 'system', title VARCHAR(160) NOT NULL, body VARCHAR(500) NULL, link VARCHAR(500) NULL, is_read TINYINT(1) NOT NULL DEFAULT 0, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, expires_at DATETIME NULL,
+ CONSTRAINT fk_notifications_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE, INDEX idx_notifications_user_read(user_id,is_read,created_at), INDEX idx_notifications_expiry(expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO categories(id,name,slug,icon) VALUES

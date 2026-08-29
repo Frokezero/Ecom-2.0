@@ -5,13 +5,13 @@ require_once __DIR__ . '/includes/auth_check.php';
 requireLogin();
 require_once __DIR__ . '/config/database.php';
 
-require_once __DIR__ . '/includes/header.php';
-
 $cart = $_SESSION['cart'] ?? [];
 if (empty($cart)) {
     header("Location: " . BASE_URL . "cart.php");
     exit;
 }
+
+require_once __DIR__ . '/includes/header.php';
 
 $grand_total = 0;
 foreach ($cart as $item) {
@@ -20,11 +20,15 @@ foreach ($cart as $item) {
 
 $user = getCurrentUser();
 $checkoutProfile = ['phone' => '', 'address' => '', 'preferred_payment_method' => 'promptpay'];
+$savedAddresses = [];
 $profileDb = (new Database())->getConnection();
 if ($profileDb) {
     $profileStmt = $profileDb->prepare('SELECT phone,address,preferred_payment_method FROM users WHERE id=? LIMIT 1');
     $profileStmt->execute([(int)$user['id']]);
     $checkoutProfile = array_merge($checkoutProfile, $profileStmt->fetch() ?: []);
+    $addressStmt=$profileDb->prepare('SELECT * FROM user_addresses WHERE user_id=? ORDER BY is_default DESC,id DESC');$addressStmt->execute([(int)$user['id']]);$savedAddresses=$addressStmt->fetchAll();
+    $selectedAddressId=(int)($_GET['address_id']??0);$selectedAddress=null;foreach($savedAddresses as $saved){if(($selectedAddressId>0&&(int)$saved['id']===$selectedAddressId)||($selectedAddressId===0&&!$selectedAddress&&$saved['is_default']))$selectedAddress=$saved;}
+    if($selectedAddress){$checkoutProfile['phone']=$selectedAddress['phone'];$checkoutProfile['address']=$selectedAddress['address_line'];$user['full_name']=$selectedAddress['recipient_name'];}
 }
 ?>
 
@@ -38,6 +42,7 @@ if ($profileDb) {
             <div>
                 <div class="checkout-card" style="margin-bottom: 24px;">
                     <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 18px; color: var(--secondary);"><i class="fa-solid fa-truck" style="color: var(--primary);"></i> ข้อมูลผู้รับและที่อยู่จัดส่ง</h3>
+                    <?php if($savedAddresses):?><div style="margin-bottom:16px"><label style="display:block;font-weight:700;margin-bottom:6px">เลือกจากสมุดที่อยู่</label><select onchange="location.href='?address_id='+this.value" style="width:100%;padding:10px"><option value="0">เลือกที่อยู่</option><?php foreach($savedAddresses as $saved):?><option value="<?php echo (int)$saved['id'];?>" <?php echo isset($selectedAddress)&&(int)$selectedAddress['id']===(int)$saved['id']?'selected':'';?>><?php echo e($saved['label'].' — '.$saved['recipient_name'].' '.$saved['postal_code']);?></option><?php endforeach;?></select></div><?php else:?><p style="margin-bottom:16px"><a href="<?php echo BASE_URL;?>address-book.php">+ บันทึกที่อยู่เพื่อเลือกใช้งานครั้งต่อไป</a></p><?php endif;?>
                     
                     <div style="margin-bottom: 16px;">
                         <label style="display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px;">ชื่อ-นามสกุล ผู้รับ *</label>
@@ -51,7 +56,7 @@ if ($profileDb) {
 
                     <div>
                         <label style="display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px;">ที่อยู่จัดส่งโดยละเอียด *</label>
-                        <textarea name="shipping_address" rows="3" required style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.95rem;">99/9 ถนนสุขุมวิท เขตวัฒนา กรุงเทพมหานคร 10110</textarea>
+                        <textarea name="shipping_address" rows="3" required style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.95rem;"><?php echo e($checkoutProfile['address']);?></textarea>
                     </div>
                 </div>
 
@@ -111,10 +116,19 @@ if ($profileDb) {
                         <?php endforeach; ?>
                     </div>
 
+                    <div class="coupon-box" data-coupon-selector data-subtotal="<?php echo (float)$grand_total; ?>" data-total-target="checkoutTotal" data-discount-target="couponDiscount" data-discount-row="couponDiscountRow" style="margin-bottom:18px;padding:14px;background:#fff8ef;border:1px dashed var(--orange);">
+                        <label style="display:block;font-weight:700;font-size:12px;margin-bottom:7px;">เลือกคูปองที่ต้องการใช้</label>
+                        <select data-coupon-select style="width:100%;padding:9px;margin-bottom:8px;"><option value="">ไม่ใช้คูปอง</option></select>
+                        <div style="display:flex;gap:7px;"><input data-coupon-input name="coupon_code" value="<?php echo e($_SESSION['coupon_code']??''); ?>" placeholder="หรือกรอกรหัสคูปอง" style="min-width:0;flex:1;padding:9px;"><button type="button" data-coupon-apply class="btn btn-outline" style="padding:7px 10px;font-size:11px;">ใช้โค้ด</button></div>
+                        <small data-coupon-message style="display:block;margin-top:6px;color:var(--muted);"></small>
+                    </div>
+
                     <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-bottom: 24px;">
+                        <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;"><span>ยอดสินค้า</span><span><?php echo formatCurrency($grand_total); ?></span></div>
+                        <div id="couponDiscountRow" style="display:none;justify-content:space-between;color:#b85b2c;font-size:12px;margin-top:7px;"><span>ส่วนลดคูปอง</span><span id="couponDiscount">-฿0.00</span></div>
                         <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.3rem; color: var(--secondary);">
                             <span>ยอดชำระทั้งหมด</span>
-                            <span style="color: var(--primary);"><?php echo formatCurrency($grand_total); ?></span>
+                            <span id="checkoutTotal" style="color: var(--primary);"><?php echo formatCurrency($grand_total); ?></span>
                         </div>
                     </div>
 

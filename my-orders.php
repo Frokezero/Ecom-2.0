@@ -60,6 +60,7 @@ if ($db) {
                             <div style="font-size: 1.4rem; font-weight: 700; color: var(--primary);"><?php echo formatCurrency($o['total_amount']); ?></div>
                             <a href="<?php echo BASE_URL; ?>order-detail.php?id=<?php echo $o['id']; ?>" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; margin-top: 8px;">ดูรายละเอียดคำสั่งซื้อ &rarr;</a>
                             <?php if($o['order_status']==='pending'): ?><button type="button" onclick="cancelOrder(<?php echo (int)$o['id']; ?>)" class="btn btn-danger" style="padding:6px 14px;font-size:.85rem;margin-top:8px">ยกเลิกออเดอร์</button><?php endif; ?>
+                            <?php if(in_array($o['order_status'],['shipped','completed'],true)): ?><button type="button" onclick="requestReturn(<?php echo (int)$o['id']; ?>)" class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;margin-top:8px">ขอคืนสินค้า</button><?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -67,6 +68,6 @@ if ($db) {
         </div>
     <?php endif; ?>
 </div>
-<script>async function cancelOrder(id){if(!confirm('ยืนยันยกเลิกคำสั่งซื้อ? สินค้าจะถูกคืนเข้าสต็อก'))return;const data=new FormData();data.append('action','cancel');data.append('order_id',id);data.append('csrf_token',CSRF_TOKEN);const response=await fetch(`${BASE_URL}api/orders.php`,{method:'POST',body:data});const result=await response.json();showToast(result.message,result.status==='success'?'success':'error');if(result.status==='success')setTimeout(()=>location.reload(),600)}</script>
+<script>async function cancelOrder(id){if(!confirm('ยืนยันยกเลิกคำสั่งซื้อ? สินค้าจะถูกคืนเข้าสต็อก'))return;const data=new FormData();data.append('action','cancel');data.append('order_id',id);data.append('csrf_token',CSRF_TOKEN);const response=await fetch(`${BASE_URL}api/orders.php`,{method:'POST',body:data});const result=await response.json();showToast(result.message,result.status==='success'?'success':'error');if(result.status==='success')setTimeout(()=>location.reload(),600)}async function requestReturn(id){const reason=prompt('กรุณาระบุเหตุผลการคืนสินค้าอย่างน้อย 10 ตัวอักษร');if(!reason)return;const d=new FormData();d.append('action','create');d.append('order_id',id);d.append('reason',reason);d.append('csrf_token',CSRF_TOKEN);const r=await fetch(`${BASE_URL}api/returns.php`,{method:'POST',body:d}),j=await r.json();showToast(j.message,j.status==='success'?'success':'error');if(j.status==='success')setTimeout(()=>location.href=`${BASE_URL}my-returns.php`,600)}</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

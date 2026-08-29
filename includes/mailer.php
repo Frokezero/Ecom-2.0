@@ -107,3 +107,15 @@ function sendVerificationEmail(PDO $db, int $userId, string $email, string $full
     $safeUrl = htmlspecialchars(mailAppUrl() . 'verify-email.php?token=' . rawurlencode($token), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     sendAppMail($email, 'ยืนยันอีเมลสำหรับบัญชี KitchenMart', verificationEmailHtml($safeName, $safeUrl));
 }
+
+function sendPasswordResetEmail(string $email, string $fullName, string $token): void {
+    $safeName=htmlspecialchars($fullName,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+    $url=mailAppUrl().'reset-password.php?token='.rawurlencode($token);
+    $safeUrl=htmlspecialchars($url,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+    $html='<!doctype html><html lang="th"><meta charset="UTF-8"><body style="margin:0;background:#f4f1e9;font-family:Arial,Tahoma,sans-serif;color:#23332e"><table width="100%" role="presentation"><tr><td align="center" style="padding:32px 14px"><table width="600" role="presentation" style="max-width:600px;background:#fff;border:1px solid #e3dfd2"><tr><td style="padding:26px 32px;background:#173f32;color:#fff;font-size:24px;font-weight:700">KitchenMart</td></tr><tr><td style="padding:38px 32px"><p style="color:#b45c28;font-size:12px;font-weight:700">ACCOUNT SECURITY</p><h1 style="font-family:Georgia,serif;color:#173f32">ตั้งรหัสผ่านใหม่</h1><p>สวัสดี '.$safeName.' มีคำขอตั้งรหัสผ่านใหม่สำหรับบัญชีของคุณ ลิงก์นี้ใช้ได้ 30 นาทีและใช้ได้เพียงครั้งเดียว</p><p style="margin:28px 0"><a href="'.$safeUrl.'" style="background:#173f32;color:#fff;padding:14px 22px;text-decoration:none;font-weight:700">ตั้งรหัสผ่านใหม่ →</a></p><p style="font-size:12px;color:#68746f">หากคุณไม่ได้เป็นผู้ร้องขอ ให้ละเว้นอีเมลนี้และรหัสผ่านเดิมจะยังใช้งานได้</p></td></tr></table></td></tr></table></body></html>';
+    sendAppMail($email,'ตั้งรหัสผ่านใหม่สำหรับบัญชี KitchenMart',$html);
+}
+function sendTwoFactorCode(string $email,string $fullName,string $code):void{
+    $safeName=htmlspecialchars($fullName,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');$safeCode=htmlspecialchars($code,ENT_QUOTES,'UTF-8');
+    sendAppMail($email,'รหัสยืนยันการเข้าสู่ระบบ KitchenMart','<!doctype html><html lang="th"><meta charset="UTF-8"><body style="background:#f4f1e9;font-family:Arial,Tahoma,sans-serif;padding:30px"><div style="max-width:560px;margin:auto;background:#fff;padding:32px;border-top:8px solid #173f32"><h1 style="color:#173f32">ยืนยันการเข้าสู่ระบบ</h1><p>สวัสดี '.$safeName.' รหัสยืนยันของคุณคือ</p><div style="font-size:34px;font-weight:800;letter-spacing:9px;padding:20px;background:#f4f1e9;text-align:center">'.$safeCode.'</div><p>รหัสใช้ได้ 10 นาที หากคุณไม่ได้เข้าสู่ระบบ กรุณาเปลี่ยนรหัสผ่านทันที</p></div></body></html>');
+}

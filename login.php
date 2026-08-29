@@ -21,6 +21,7 @@ require_once __DIR__.'/includes/header.php';
         <form class="auth-form" id="loginForm" novalidate>
             <div class="auth-field"><label for="loginIdentity">ชื่อผู้ใช้หรืออีเมล</label><div class="auth-input"><i class="fa-regular fa-user"></i><input id="loginIdentity" name="username_email" required autocomplete="username" autofocus placeholder="เช่น somchai99 หรือ email@example.com"></div></div>
             <div class="auth-field"><label for="loginPassword">รหัสผ่าน</label><div class="auth-input"><i class="fa-solid fa-key"></i><input type="password" id="loginPassword" name="password" required minlength="8" autocomplete="current-password" placeholder="กรอกรหัสผ่าน"><button class="password-toggle" type="button" data-password-toggle="loginPassword" aria-label="แสดงรหัสผ่าน"><i class="fa-regular fa-eye"></i></button></div></div>
+            <p style="text-align:right;margin:-8px 0 12px"><a href="<?php echo BASE_URL; ?>forgot-password.php">ลืมรหัสผ่าน?</a></p>
             <input type="hidden" name="action" value="login"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>">
             <button type="submit" id="loginBtn" class="btn btn-primary auth-submit"><span>เข้าสู่ระบบ</span><i class="fa-solid fa-arrow-right"></i></button>
         </form>

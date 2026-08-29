@@ -1,0 +1,3 @@
+USE `kitchenmart_db`;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled TINYINT(1) NOT NULL DEFAULT 0 AFTER email_verified_at;
+CREATE TABLE IF NOT EXISTS auth_challenges(id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,user_id INT UNSIGNED NOT NULL,token_hash CHAR(64) NOT NULL,code_hash VARCHAR(255) NOT NULL,expires_at DATETIME NOT NULL,attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,used_at DATETIME NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,UNIQUE KEY uq_auth_challenge_token(token_hash),INDEX idx_auth_challenge_user(user_id,expires_at),CONSTRAINT fk_auth_challenge_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

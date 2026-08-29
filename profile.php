@@ -10,7 +10,7 @@ if (!$db) {
 }
 
 $userId = (int)$_SESSION['user_id'];
-$stmt = $db->prepare('SELECT id,username,email,full_name,phone,address,preferred_payment_method,email_verified_at,created_at FROM users WHERE id=? LIMIT 1');
+$stmt = $db->prepare('SELECT id,username,email,full_name,phone,address,preferred_payment_method,email_verified_at,two_factor_enabled,role,created_at FROM users WHERE id=? LIMIT 1');
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
 if (!$user) {
@@ -42,6 +42,8 @@ require_once __DIR__ . '/includes/header.php';
             <button type="button" data-profile-tab="payment"><i class="fa-solid <?php echo $user['preferred_payment_method'] === 'promptpay' ? 'fa-qrcode' : 'fa-truck-ramp-box'; ?>"></i><span><small>วิธีชำระเงินหลัก</small><strong><?php echo $user['preferred_payment_method'] === 'promptpay' ? 'PromptPay' : 'เก็บเงินปลายทาง'; ?></strong></span><i class="fa-solid fa-pen"></i></button>
         </section>
 
+        <a class="profile-seller-cta" href="<?php echo BASE_URL; ?><?php echo isSeller() ? 'my-store.php' : 'seller.php'; ?>"><span class="profile-seller-icon"><i class="fa-solid fa-store"></i></span><span><small><?php echo isSeller() ? 'จัดการหน้าร้านและสินค้าของคุณ' : 'อยากเริ่มขายสินค้ากับเรา?'; ?></small><strong><?php echo isSeller() ? 'ร้านค้าของฉัน' : 'เปิดร้านกับ KitchenMart'; ?></strong><em><?php echo isSeller() ? 'แก้ไขสินค้า ตกแต่งร้าน และจัดโปรโมชันได้จากที่เดียว' : 'ใช้บัญชีเดิม สมัครได้ในไม่กี่ขั้นตอน'; ?></em></span><i class="fa-solid fa-arrow-right"></i></a>
+
         <div class="profile-layout">
             <aside class="profile-sidebar">
                 <p class="profile-sidebar-label">จัดการบัญชี</p>
@@ -51,6 +53,7 @@ require_once __DIR__ . '/includes/header.php';
                     <button type="button" data-profile-tab="payment"><i class="fa-regular fa-credit-card"></i> วิธีชำระเงิน</button>
                     <button type="button" data-profile-tab="security"><i class="fa-solid fa-shield-halved"></i> ความปลอดภัย</button>
                     <a href="<?php echo BASE_URL; ?>my-orders.php"><i class="fa-solid fa-box"></i> คำสั่งซื้อของฉัน <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                    <a href="<?php echo BASE_URL; ?>my-coupons.php"><i class="fa-solid fa-ticket"></i> คูปองของฉัน <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                 </nav>
                 <div class="profile-help"><i class="fa-regular fa-circle-question"></i><span><strong>ต้องการความช่วยเหลือ?</strong>ข้อมูลบัญชีของคุณได้รับการปกป้องด้วยการยืนยันอีเมล</span></div>
             </aside>
@@ -83,8 +86,9 @@ require_once __DIR__ . '/includes/header.php';
                 <section class="profile-panel" data-profile-panel="security">
                     <header class="panel-heading"><div><p class="eyebrow">ACCOUNT SECURITY</p><h2>ความปลอดภัยของบัญชี</h2><p>เปลี่ยนรหัสผ่านหรืออีเมลได้อย่างปลอดภัยด้วยการยืนยันรหัสผ่านปัจจุบัน</p></div><i class="fa-solid fa-shield-halved panel-heading-icon"></i></header>
                     <div class="security-grid">
-                        <form class="security-card" data-profile-form="update_password"><header><span class="security-icon"><i class="fa-solid fa-key"></i></span><div><h3>เปลี่ยนรหัสผ่าน</h3><p>ใช้รหัสผ่านอย่างน้อย 8 ตัว พร้อมตัวอักษรและตัวเลข</p></div></header><label>รหัสผ่านปัจจุบัน<input type="password" name="current_password" required autocomplete="current-password"></label><label>รหัสผ่านใหม่<input type="password" name="password" required minlength="8" autocomplete="new-password"></label><label>ยืนยันรหัสผ่านใหม่<input type="password" name="password_confirm" required minlength="8" autocomplete="new-password"></label><input type="hidden" name="action" value="update_password"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>"><button class="btn btn-outline" type="submit">เปลี่ยนรหัสผ่าน</button></form>
+                        <form class="security-card" data-profile-form="update_password"><header><span class="security-icon"><i class="fa-solid fa-key"></i></span><div><h3>เปลี่ยนรหัสผ่าน</h3><p>อย่างน้อย 10 ตัว พร้อมตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข</p></div></header><label>รหัสผ่านปัจจุบัน<input type="password" name="current_password" required autocomplete="current-password"></label><label>รหัสผ่านใหม่<input type="password" name="password" required minlength="10" maxlength="72" autocomplete="new-password"></label><label>ยืนยันรหัสผ่านใหม่<input type="password" name="password_confirm" required minlength="10" maxlength="72" autocomplete="new-password"></label><input type="hidden" name="action" value="update_password"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>"><button class="btn btn-outline" type="submit">เปลี่ยนรหัสผ่าน</button></form>
                         <form class="security-card" data-profile-form="update_email"><header><span class="security-icon"><i class="fa-regular fa-envelope"></i></span><div><h3>เปลี่ยนอีเมล</h3><p>ระบบจะส่งลิงก์ยืนยันไปยังอีเมลใหม่ แล้วให้เข้าสู่ระบบอีกครั้ง</p></div></header><label>อีเมลใหม่<input type="email" name="email" required autocomplete="email" placeholder="name@example.com"></label><label>รหัสผ่านปัจจุบัน<input type="password" name="current_password" required autocomplete="current-password"></label><div class="security-note"><i class="fa-solid fa-circle-info"></i> หลังบันทึก คุณจะออกจากระบบเพื่อยืนยันอีเมลใหม่</div><input type="hidden" name="action" value="update_email"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>"><button class="btn btn-outline" type="submit">ส่งลิงก์ยืนยันอีเมลใหม่</button></form>
+                        <?php if(in_array($user['role'],['seller','admin'],true)):?><form class="security-card" data-profile-form="update_two_factor"><header><span class="security-icon"><i class="fa-solid fa-mobile-screen-button"></i></span><div><h3>ยืนยันสองขั้นตอน</h3><p>รับรหัส 6 หลักทางอีเมลทุกครั้งที่เข้าสู่ระบบ</p></div></header><label>สถานะ<select name="enabled"><option value="1" <?php echo $user['two_factor_enabled']?'selected':'';?>>เปิดใช้งาน</option><option value="0" <?php echo !$user['two_factor_enabled']?'selected':'';?>>ปิดใช้งาน</option></select></label><label>รหัสผ่านปัจจุบัน<input type="password" name="current_password" required autocomplete="current-password"></label><input type="hidden" name="action" value="update_two_factor"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken());?>"><button class="btn btn-outline">บันทึก 2FA</button></form><?php endif;?>
                     </div>
                 </section>
             </div>

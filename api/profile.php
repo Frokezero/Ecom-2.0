@@ -11,12 +11,13 @@ $db = (new Database())->getConnection();
 if (!$db) jsonResponse('error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', [], 503);
 
 $userId = (int)$_SESSION['user_id'];
-$stmt = $db->prepare('SELECT id,username,email,password_hash,full_name,email_verified_at FROM users WHERE id=? LIMIT 1');
+$stmt = $db->prepare('SELECT id,username,email,password_hash,full_name,email_verified_at,two_factor_enabled,role FROM users WHERE id=? LIMIT 1');
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
 if (!$user) jsonResponse('error', 'ไม่พบบัญชีผู้ใช้', [], 404);
 
 $action = $_POST['action'] ?? '';
+if($action==='update_two_factor'){$current=$_POST['current_password']??'';$enabled=($_POST['enabled']??'0')==='1';if(!password_verify($current,$user['password_hash']))jsonResponse('error','รหัสผ่านปัจจุบันไม่ถูกต้อง',['field'=>'current_password'],422);if($enabled&&!in_array($user['role'],['seller','admin'],true))jsonResponse('error','การยืนยันสองขั้นตอนเปิดใช้สำหรับผู้ขายและผู้ดูแลระบบ',[],403);$db->prepare('UPDATE users SET two_factor_enabled=? WHERE id=?')->execute([$enabled?1:0,$userId]);auditLog($db,$enabled?'security.2fa.enable':'security.2fa.disable','user',$userId);jsonResponse('success',$enabled?'เปิดการยืนยันสองขั้นตอนแล้ว':'ปิดการยืนยันสองขั้นตอนแล้ว');}
 
 if ($action === 'update_profile') {
     $fullName = trim($_POST['full_name'] ?? '');
@@ -25,6 +26,7 @@ if ($action === 'update_profile') {
     if (mb_strlen($fullName) < 2 || mb_strlen($fullName) > 100) jsonResponse('error', 'ชื่อ-นามสกุลต้องมี 2–100 ตัวอักษร', ['field' => 'full_name'], 422);
     if ($phone !== '' && !preg_match('/^[0-9+][0-9 -]{8,18}$/', $phone)) jsonResponse('error', 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง', ['field' => 'phone'], 422);
     if (mb_strlen($address) > 1000) jsonResponse('error', 'ที่อยู่ยาวเกิน 1,000 ตัวอักษร', ['field' => 'address'], 422);
+    if ($address !== '' && !preg_match('/\b\d{5}\b/u', $address)) jsonResponse('error', 'กรุณาเลือกตำบลและรหัสไปรษณีย์ให้ครบถ้วน', ['field' => 'address'], 422);
     $update = $db->prepare('UPDATE users SET full_name=?,phone=?,address=? WHERE id=?');
     $update->execute([$fullName, $phone, $address, $userId]);
     $_SESSION['full_name'] = $fullName;
@@ -44,7 +46,7 @@ if ($action === 'update_password') {
     $password = $_POST['password'] ?? '';
     $passwordConfirm = $_POST['password_confirm'] ?? '';
     if (!password_verify($currentPassword, $user['password_hash'])) jsonResponse('error', 'รหัสผ่านปัจจุบันไม่ถูกต้อง', ['field' => 'current_password'], 422);
-    if (strlen($password) < 8 || !preg_match('/[A-Za-z]/', $password) || !preg_match('/\d/', $password)) jsonResponse('error', 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัว และมีตัวอักษรกับตัวเลข', ['field' => 'password'], 422);
+    if (strlen($password)<10 || strlen($password)>72 || !preg_match('/[A-Z]/',$password) || !preg_match('/[a-z]/',$password) || !preg_match('/\d/',$password) || preg_match('/\s|[\x00-\x1F\x7F]/',$password)) jsonResponse('error','รหัสผ่านต้องมี 10–72 ตัว พร้อมตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข โดยห้ามมีช่องว่าง',['field'=>'password'],422);
     if (!hash_equals($password, $passwordConfirm)) jsonResponse('error', 'รหัสผ่านใหม่ทั้งสองช่องไม่ตรงกัน', ['field' => 'password_confirm'], 422);
     $update = $db->prepare('UPDATE users SET password_hash=? WHERE id=?');
     $update->execute([password_hash($password, PASSWORD_DEFAULT), $userId]);

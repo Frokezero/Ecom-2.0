@@ -11,12 +11,16 @@ $review_count = 0;
 $average_rating = 0.0;
 $current_review = null;
 $can_review = false;
+$is_wishlisted = false;
+$variants=[];$product_images=[];
 
 if ($db && $id > 0) {
-    $stmt = $db->prepare("SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?");
+    $stmt = $db->prepare("SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ? AND p.approval_status='approved'");
     $stmt->execute([$id]);
     $product = $stmt->fetch();
     if ($product) {
+        $variantStmt=$db->prepare('SELECT * FROM product_variants WHERE product_id=? AND is_active=1 ORDER BY id');$variantStmt->execute([$id]);$variants=$variantStmt->fetchAll();
+        $imageStmt=$db->prepare('SELECT * FROM product_images WHERE product_id=? ORDER BY sort_order,id');$imageStmt->execute([$id]);$product_images=$imageStmt->fetchAll();
         $summary=$db->prepare('SELECT COUNT(*) review_count,COALESCE(AVG(rating),0) average_rating FROM product_reviews WHERE product_id=?');
         $summary->execute([$id]);$reviewSummary=$summary->fetch();$review_count=(int)$reviewSummary['review_count'];$average_rating=(float)$reviewSummary['average_rating'];
         $stmt=$db->prepare("SELECT r.*,u.username,u.full_name,EXISTS(SELECT 1 FROM order_items oi JOIN orders o ON o.id=oi.order_id WHERE oi.product_id=r.product_id AND o.user_id=r.user_id AND o.order_status<>'cancelled') verified_purchase FROM product_reviews r JOIN users u ON u.id=r.user_id WHERE r.product_id=? ORDER BY r.updated_at DESC");
@@ -25,6 +29,7 @@ if ($db && $id > 0) {
             foreach($reviews as $review){if((int)$review['user_id']===(int)$_SESSION['user_id']){$current_review=$review;break;}}
             $purchase=$db->prepare("SELECT 1 FROM order_items oi JOIN orders o ON o.id=oi.order_id WHERE oi.product_id=? AND o.user_id=? AND o.order_status<>'cancelled' LIMIT 1");
             $purchase->execute([$id,(int)$_SESSION['user_id']]);$can_review=(bool)$purchase->fetchColumn();
+            $wish=$db->prepare('SELECT 1 FROM wishlists WHERE user_id=? AND product_id=?');$wish->execute([(int)$_SESSION['user_id'],$id]);$is_wishlisted=(bool)$wish->fetchColumn();
         }
     }
 }
@@ -44,7 +49,7 @@ require_once __DIR__ . '/includes/header.php';
     <div class="product-detail-shell">
         <div class="product-gallery">
             <?php if ((int)$product['is_featured'] === 1): ?><span class="product-badge badge-soft">สินค้าแนะนำ</span><?php endif; ?>
-            <img src="<?php echo e(productImageUrl($product['image_url'])); ?>" alt="<?php echo e($product['name']); ?>">
+            <img id="mainProductImage" src="<?php echo e(productImageUrl($product['image_url'])); ?>" alt="<?php echo e($product['name']); ?>"><?php if($product_images):?><div style="display:flex;gap:8px;margin-top:10px;overflow:auto"><?php foreach(array_merge([['image_url'=>$product['image_url']]],$product_images) as $image):?><button type="button" onclick="mainProductImage.src=this.dataset.src" data-src="<?php echo e(productImageUrl($image['image_url']));?>"><img src="<?php echo e(productImageUrl($image['image_url']));?>" alt="" style="width:56px;height:56px;object-fit:cover"></button><?php endforeach;?></div><?php endif;?>
             <div class="gallery-note"><i class="fa-solid fa-magnifying-glass-plus"></i> ภาพสินค้าจริงอาจแตกต่างเล็กน้อยตามหน้าจอ</div>
         </div>
 
@@ -61,8 +66,10 @@ require_once __DIR__ . '/includes/header.php';
             </div>
 
             <div class="purchase-actions">
+                <?php if($variants):?><select id="variantSelect" style="padding:10px;min-width:180px" onchange="updateVariant()"><option value="">เลือกตัวเลือกสินค้า</option><?php foreach($variants as $v):?><option value="<?php echo (int)$v['id'];?>" data-price="<?php echo e($v['price']);?>" data-stock="<?php echo (int)$v['stock_quantity'];?>"><?php echo e($v['name'].' · '.$v['sku'].' · '.formatCurrency($v['price']));?></option><?php endforeach;?></select><?php endif;?>
                 <div class="quantity-control" aria-label="เลือกจำนวน"><button type="button" onclick="changeQty(-1)" aria-label="ลดจำนวน">−</button><input type="number" id="detailQty" value="1" min="1" max="<?php echo (int)$product['stock_quantity']; ?>" aria-label="จำนวนสินค้า"><button type="button" onclick="changeQty(1)" aria-label="เพิ่มจำนวน">+</button></div>
-                <button class="btn btn-primary detail-add-button" onclick="addToCart(<?php echo (int)$product['id']; ?>, parseInt(document.getElementById('detailQty').value))" <?php echo (int)$product['stock_quantity']<1?'disabled':''; ?>><i class="fa-solid fa-basket-shopping"></i> เพิ่มลงตะกร้า</button>
+                <button class="btn btn-primary detail-add-button" onclick="addSelectedVariant()" <?php echo (int)$product['stock_quantity']<1&&!$variants?'disabled':''; ?>><i class="fa-solid fa-basket-shopping"></i> เพิ่มลงตะกร้า</button>
+                <button class="btn btn-outline" id="wishlistButton" type="button" onclick="toggleWishlist()"><i class="fa-<?php echo $is_wishlisted?'solid':'regular';?> fa-heart"></i> <?php echo $is_wishlisted?'บันทึกแล้ว':'รายการโปรด';?></button>
             </div>
             <div class="purchase-assurances"><span><i class="fa-solid fa-shield-halved"></i> ชำระเงินปลอดภัย</span><span><i class="fa-solid fa-qrcode"></i> PromptPay</span><span><i class="fa-solid fa-truck-ramp-box"></i> เก็บเงินปลายทาง</span></div>
         </div>
@@ -94,6 +101,8 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <script>
+function addSelectedVariant(){const select=document.getElementById('variantSelect');if(select&&!select.value){showToast('กรุณาเลือกตัวเลือกสินค้า','error');return}addToCart(<?php echo (int)$product['id'];?>,parseInt(document.getElementById('detailQty').value),select?parseInt(select.value):0)}function updateVariant(){const option=document.getElementById('variantSelect')?.selectedOptions[0];if(!option?.value)return;document.querySelector('.detail-price strong').textContent=new Intl.NumberFormat('th-TH',{style:'currency',currency:'THB'}).format(option.dataset.price);document.getElementById('detailQty').max=option.dataset.stock;}
+let wishlistSaved=<?php echo $is_wishlisted?'true':'false';?>;async function toggleWishlist(){<?php if(!isLoggedIn()):?>location.href=`${BASE_URL}login.php`;return;<?php else:?>const d=new FormData();d.append('action',wishlistSaved?'remove':'add');d.append('product_id','<?php echo $id;?>');d.append('csrf_token',CSRF_TOKEN);const r=await fetch(`${BASE_URL}api/wishlist.php`,{method:'POST',body:d}),j=await r.json();if(j.status==='success'){wishlistSaved=j.data.saved;document.getElementById('wishlistButton').innerHTML=`<i class="fa-${wishlistSaved?'solid':'regular'} fa-heart"></i> ${wishlistSaved?'บันทึกแล้ว':'รายการโปรด'}`}showToast(j.message,j.status==='success'?'success':'error');<?php endif;?>}
 function changeQty(delta) {
     const input = document.getElementById('detailQty');
     let val = parseInt(input.value) + delta;

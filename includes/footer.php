@@ -49,6 +49,8 @@
         </div>
     </footer>
 
+    <div id="floatingPromo" class="floating-promo" hidden aria-live="polite"></div>
+
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -68,6 +70,11 @@
         const CSRF_TOKEN = "<?php echo getCsrfToken(); ?>";
     </script>
     <script src="<?php echo BASE_URL; ?>assets/js/app.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/address-picker.js?v=2"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/notifications.js?v=1"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/promotions.js?v=1"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/coupon-selector.js?v=1"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/image-crop.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/cart.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/payment.js"></script>
 </body>

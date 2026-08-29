@@ -13,6 +13,10 @@ return [
     'PROMPTPAY_NAME' => 'KitchenMart Demo Store',
     // คงค่า 0 ไว้ขณะแชร์ผ่าน Quick Tunnel เพื่อไม่เปิดหลังบ้านสู่สาธารณะ
     'ALLOW_PUBLIC_ADMIN' => '0',
+    // สุ่มอย่างน้อย 32 ไบต์ ห้ามใช้ค่าตัวอย่างนี้ในระบบจริง
+    'APP_KEY' => 'change-this-to-a-long-random-secret',
+    // Secret สำหรับตรวจ HMAC-SHA256 ใน X-KitchenMart-Signature
+    'PAYMENT_WEBHOOK_SECRET' => 'change-this-webhook-secret',
     // URL สาธารณะที่ผู้รับอีเมลเปิดถึงได้ เช่น https://shop.example.com/
     'APP_URL' => 'http://127.0.0.1:8000/',
     'MAIL_TRANSPORT' => 'smtp',

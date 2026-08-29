@@ -1,6 +1,10 @@
 /config/local.php
 /.runtime-sessions/
 /assets/images/products/uploads/
+/assets/images/banners/uploads/*
+!/assets/images/banners/uploads/.gitkeep
+!/assets/images/banners/uploads/.htaccess
+/database/backups/
 *.log
 .DS_Store
 Thumbs.db

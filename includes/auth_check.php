@@ -18,3 +18,7 @@ function requireAdmin() {
         exit;
     }
 }
+function requireSeller() {
+    requireLogin();
+    if (!isSeller()) { header("Location: " . BASE_URL . "seller.php"); exit; }
+}

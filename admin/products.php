@@ -3,6 +3,7 @@ $page_title = 'สินค้าและสต็อก';
 require_once __DIR__ . '/../includes/auth_check.php';
 requireAdmin();
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/image_upload.php';
 $db = (new Database())->getConnection();
 $message = '';
 $error = '';
@@ -16,10 +17,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $price = filter_var($_POST['price'] ?? null, FILTER_VALIDATE_FLOAT);
         $stock = filter_var($_POST['stock_quantity'] ?? null, FILTER_VALIDATE_INT);
         $description = trim($_POST['description'] ?? '');
-        $imageUrl = trim($_POST['image_url'] ?? '') ?: 'assets/images/products/placeholder.svg';
+        $imageUrl = 'assets/images/products/placeholder.svg';
+        if ($action === 'edit') { $old=$db?->prepare('SELECT image_url FROM products WHERE id=?'); if($old){$old->execute([(int)($_POST['id']??0)]);$imageUrl=$old->fetchColumn() ?: $imageUrl;} }
         $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
 
         if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] !== UPLOAD_ERR_NO_FILE) {
+            try { $imageUrl = saveProductImageUpload($_FILES['product_image']); $_FILES['product_image']['error'] = UPLOAD_ERR_NO_FILE; }
+            catch (Throwable $uploadError) { $error = $uploadError->getMessage(); }
+        }
+
+        if (!$error && isset($_FILES['product_image']) && $_FILES['product_image']['error'] !== UPLOAD_ERR_NO_FILE) {
             $file = $_FILES['product_image'];
             if ($file['error'] !== UPLOAD_ERR_OK || $file['size'] > 2*1024*1024) $error = 'รูปภาพต้องมีขนาดไม่เกิน 2 MB';
             else {
@@ -96,6 +103,7 @@ require_once __DIR__ . '/../includes/admin_header.php';
 <script>
 function openAddProductModal(){document.getElementById('productModalTitle').textContent='เพิ่มสินค้าใหม่';document.getElementById('productAction').value='add';document.getElementById('productId').value='';document.getElementById('productName').value='';document.getElementById('productPrice').value='';document.getElementById('productStock').value='10';document.getElementById('productImageUrl').value='';document.getElementById('productDesc').value='';document.getElementById('productFeatured').checked=false;openModal('productFormModal')}
 function openEditProductModal(p){document.getElementById('productModalTitle').textContent='แก้ไข: '+p.name;document.getElementById('productAction').value='edit';document.getElementById('productId').value=p.id;document.getElementById('productName').value=p.name;document.getElementById('productCategory').value=p.category_id;document.getElementById('productPrice').value=p.price;document.getElementById('productStock').value=p.stock_quantity;document.getElementById('productImageUrl').value=p.image_url;document.getElementById('productDesc').value=p.description||'';document.getElementById('productFeatured').checked=Number(p.is_featured)===1;openModal('productFormModal')}
+document.getElementById('productImageUrl').removeAttribute('name');document.getElementById('productImageUrl').closest('.admin-form-field').hidden=true;
 if(new URLSearchParams(location.search).get('action')==='add')window.addEventListener('DOMContentLoaded',openAddProductModal);
 </script>
 <?php require_once __DIR__ . '/../includes/admin_footer.php'; ?>

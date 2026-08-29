@@ -15,6 +15,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <title><?php echo isset($page_title) ? e($page_title).' - '.APP_NAME : APP_NAME; ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/address-picker.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notifications.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notification-hover.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/promotions.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/coupons.css">
 </head>
 <body>
     <div class="announcement"><div class="container"><span><i class="fa-solid fa-truck-fast"></i> จัดส่งฟรีเมื่อสั่งซื้อครบ ฿1,000</span><span class="announcement-detail"><i class="fa-solid fa-shield-heart"></i> ชำระปลอดภัย · ตรวจสอบคำสั่งซื้อได้ทุกขั้นตอน</span></div></div>
@@ -37,15 +42,19 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <div class="account-dropdown-head"><span class="account-mini-avatar"><?php echo e(strtoupper(mb_substr(trim($_SESSION['full_name'] ?: $_SESSION['username']),0,1))); ?></span><span><strong><?php echo e($_SESSION['full_name'] ?: $_SESSION['username']); ?></strong><small><?php echo e($_SESSION['email'] ?? ''); ?></small></span></div>
                             <a href="<?php echo BASE_URL; ?>profile.php"><i class="fa-regular fa-user"></i> ข้อมูลส่วนตัว</a>
                             <a href="<?php echo BASE_URL; ?>profile.php#address"><i class="fa-solid fa-location-dot"></i> ที่อยู่จัดส่ง</a>
+                            <a href="<?php echo BASE_URL; ?>address-book.php"><i class="fa-solid fa-address-book"></i> สมุดที่อยู่</a>
                             <a href="<?php echo BASE_URL; ?>profile.php#payment"><i class="fa-regular fa-credit-card"></i> วิธีชำระเงิน</a>
                             <a href="<?php echo BASE_URL; ?>profile.php#security"><i class="fa-solid fa-shield-halved"></i> ความปลอดภัย</a>
+                            <a href="<?php echo BASE_URL; ?>wishlist.php"><i class="fa-regular fa-heart"></i> รายการโปรด</a>
                             <a href="<?php echo BASE_URL; ?>my-orders.php" class="account-orders-link"><i class="fa-solid fa-box"></i> คำสั่งซื้อของฉัน <i class="fa-solid fa-arrow-right"></i></a>
+                            <a href="<?php echo BASE_URL; ?>my-returns.php"><i class="fa-solid fa-arrow-rotate-left"></i> การคืนสินค้า</a>
                             <button type="button" onclick="secureLogout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ออกจากระบบ</button>
                         </div>
                     </div>
                 <?php else: ?>
                     <a href="<?php echo BASE_URL; ?>login.php" class="icon-link"><i class="fa-regular fa-user"></i><span>เข้าสู่ระบบ</span></a>
                 <?php endif; ?>
+                <?php if (isLoggedIn()): ?><div class="notification-menu"><button type="button" class="notification-trigger" id="notificationTrigger" aria-label="การแจ้งเตือน"><i class="fa-regular fa-bell"></i><b id="notificationBadge" hidden>0</b></button><div class="notification-dropdown" id="notificationDropdown"><header><strong>การแจ้งเตือน</strong><a href="<?php echo BASE_URL; ?>notifications.php">ดูทั้งหมด</a></header><div class="notification-preview-list" id="notificationPreviewList"><p class="notification-preview-empty">กำลังโหลด...</p></div></div></div><?php endif; ?>
                 <div class="cart-menu">
                     <a href="<?php echo BASE_URL; ?>cart.php" class="cart-link" aria-label="ตะกร้า มี <?php echo $cart_count; ?> ชิ้น"><i class="fa-solid fa-basket-shopping"></i><span>ตะกร้า</span><b id="cartCountBadge"><?php echo $cart_count; ?></b></a>
                     <div class="cart-dropdown">
@@ -80,7 +89,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <a href="<?php echo BASE_URL; ?>products.php" class="<?php echo $current_page==='products.php'?'active':''; ?>">สินค้าทั้งหมด</a>
                 <a href="<?php echo BASE_URL; ?>products.php?sort=price_asc">สินค้าราคาคุ้ม</a>
                 <a href="<?php echo BASE_URL; ?>index.php#featured">สินค้าแนะนำ</a>
+                <a href="<?php echo BASE_URL; ?>my-coupons.php" class="<?php echo $current_page==='my-coupons.php'?'active':''; ?>"><i class="fa-solid fa-ticket"></i> ศูนย์รวมคูปอง</a>
                 <?php if (isLoggedIn()): ?><a href="<?php echo BASE_URL; ?>profile.php">โปรไฟล์ของฉัน</a><?php endif; ?>
+                <?php if (isSeller()): ?><a href="<?php echo BASE_URL; ?>my-store.php">ร้านค้าของฉัน</a><a href="<?php echo BASE_URL; ?>seller-orders.php">ออเดอร์ร้านค้า</a><a href="<?php echo BASE_URL; ?>seller-wallet.php">ยอดเงินร้านค้า</a><?php endif; ?>
                 <?php if (isAdmin()): ?><a href="<?php echo BASE_URL; ?>admin/index.php">จัดการร้าน</a><?php endif; ?>
                 <?php if (isLoggedIn()): ?><button type="button" onclick="secureLogout()">ออกจากระบบ</button><?php else: ?><a class="mobile-account" href="<?php echo BASE_URL; ?>register.php">สมัครสมาชิก</a><?php endif; ?>
             </div>

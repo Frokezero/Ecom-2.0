@@ -29,15 +29,24 @@ if ($action === 'resend_verification') {
     }
     jsonResponse('success','หากอีเมลนี้รอยืนยัน ระบบได้ส่งลิงก์ฉบับใหม่แล้ว');
 }
+if($action==='verify_2fa'){
+    $token=(string)($_SESSION['two_factor_challenge']??'');$code=preg_replace('/\D/','',(string)($_POST['code']??''));if($token===''||strlen($code)!==6)jsonResponse('error','กรุณากรอกรหัส 6 หลัก',[],422);
+    try{$db->beginTransaction();$stmt=$db->prepare('SELECT c.*,u.username,u.email,u.full_name,u.role FROM auth_challenges c JOIN users u ON u.id=c.user_id WHERE c.token_hash=? AND c.used_at IS NULL AND c.expires_at>NOW() LIMIT 1 FOR UPDATE');$stmt->execute([hash('sha256',$token)]);$c=$stmt->fetch();if(!$c||$c['attempts']>=5||!password_verify($code,$c['code_hash'])){if($c)$db->prepare('UPDATE auth_challenges SET attempts=attempts+1 WHERE id=?')->execute([(int)$c['id']]);$db->commit();jsonResponse('error','รหัสไม่ถูกต้องหรือหมดอายุ',[],401);}$db->prepare('UPDATE auth_challenges SET used_at=NOW() WHERE id=?')->execute([(int)$c['id']]);$db->commit();unset($_SESSION['two_factor_challenge']);session_regenerate_id(true);$_SESSION['user_id']=(int)$c['user_id'];$_SESSION['username']=$c['username'];$_SESSION['full_name']=$c['full_name'];$_SESSION['email']=$c['email'];$_SESSION['user_role']=$c['role'];auditLog($db,'security.2fa.verify','user',(int)$c['user_id']);jsonResponse('success','ยืนยันตัวตนสำเร็จ',['redirect'=>BASE_URL.($c['role']==='admin'?'admin/index.php':'index.php')]);}catch(Throwable $e){if($db->inTransaction())$db->rollBack();jsonResponse('error','ไม่สามารถยืนยันตัวตนได้',[],500);}
+}
 if ($action === 'register') {
     $username=trim($_POST['username'] ?? ''); $email=strtolower(trim($_POST['email'] ?? '')); $password=$_POST['password'] ?? '';
     $passwordConfirm=$_POST['password_confirm'] ?? '';
     $fullName=trim($_POST['full_name'] ?? ''); $phone=trim($_POST['phone'] ?? '');
-    if (!preg_match('/^[A-Za-z0-9_.]{3,50}$/',$username)) jsonResponse('error','ชื่อผู้ใช้ต้องมี 3–50 ตัว และใช้ตัวอักษรอังกฤษ ตัวเลข จุด หรือขีดล่างเท่านั้น',['field'=>'username'],422);
-    if (!filter_var($email,FILTER_VALIDATE_EMAIL) || strlen($email)>100) jsonResponse('error','กรุณากรอกอีเมลให้ถูกต้อง',['field'=>'email'],422);
-    if (mb_strlen($fullName)<2 || mb_strlen($fullName)>100) jsonResponse('error','ชื่อ-นามสกุลต้องมี 2–100 ตัวอักษร',['field'=>'full_name'],422);
-    if ($phone!=='' && !preg_match('/^[0-9+][0-9 -]{8,18}$/',$phone)) jsonResponse('error','กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง',['field'=>'phone'],422);
-    if (strlen($password)<8 || !preg_match('/[A-Za-z]/',$password) || !preg_match('/\d/',$password)) jsonResponse('error','รหัสผ่านต้องมีอย่างน้อย 8 ตัว และประกอบด้วยตัวอักษรกับตัวเลข',['field'=>'password'],422);
+    $reservedUsernames=['admin','administrator','root','system','support','staff','moderator','kitchenmart','official','null','undefined'];
+    if (!preg_match('/^[A-Za-z][A-Za-z0-9]{2,29}$/',$username)) jsonResponse('error','ชื่อผู้ใช้ต้องมี 3–30 ตัว เริ่มด้วยตัวอักษรอังกฤษ และใช้ได้เฉพาะ A–Z กับตัวเลขเท่านั้น ห้ามเว้นวรรคหรือใช้อักขระพิเศษ',['field'=>'username'],422);
+    if (in_array(strtolower($username),$reservedUsernames,true)) jsonResponse('error','ชื่อผู้ใช้นี้เป็นชื่อสงวนของระบบ กรุณาเลือกชื่ออื่น',['field'=>'username'],422);
+    if (preg_match('/[\x00-\x1F\x7F\r\n]/',$email) || !filter_var($email,FILTER_VALIDATE_EMAIL) || strlen($email)>100) jsonResponse('error','กรุณากรอกอีเมลจริงให้ถูกต้อง และห้ามใส่ช่องว่างหรืออักขระควบคุม',['field'=>'email'],422);
+    $fullName=preg_replace('/\s+/u',' ',$fullName) ?? $fullName;
+    if (mb_strlen($fullName)<2 || mb_strlen($fullName)>100 || !preg_match("/^[\\p{L}\\p{M} .'-]+$/u",$fullName)) jsonResponse('error','ชื่อ-นามสกุลใช้ได้เฉพาะตัวอักษร ช่องว่าง จุด ขีดกลาง และเครื่องหมายอัญประกาศเท่านั้น',['field'=>'full_name'],422);
+    if ($phone!=='' && !preg_match('/^(?:0[0-9]{8,9}|\+66[0-9]{8,9})$/',$phone)) jsonResponse('error','เบอร์โทรใช้ได้เฉพาะตัวเลข 9–10 หลัก หรือรูปแบบ +66 โดยห้ามมีช่องว่างและขีดกลาง',['field'=>'phone'],422);
+    $emailLocal=explode('@',$email,2)[0]??'';$commonPasswords=['password123','1234567890','qwerty12345','admin12345'];
+    if (strlen($password)<10 || strlen($password)>72 || !preg_match('/[A-Z]/',$password) || !preg_match('/[a-z]/',$password) || !preg_match('/\d/',$password) || preg_match('/\s|[\x00-\x1F\x7F]/',$password)) jsonResponse('error','รหัสผ่านต้องมี 10–72 ตัว และมีตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข โดยห้ามมีช่องว่าง',['field'=>'password'],422);
+    if (in_array(strtolower($password),$commonPasswords,true) || str_contains(strtolower($password),strtolower($username)) || ($emailLocal!==''&&str_contains(strtolower($password),strtolower($emailLocal)))) jsonResponse('error','รหัสผ่านคาดเดาง่ายเกินไป และต้องไม่มีชื่อผู้ใช้หรือชื่ออีเมลอยู่ภายใน',['field'=>'password'],422);
     if (!hash_equals($password,$passwordConfirm)) jsonResponse('error','รหัสผ่านทั้งสองช่องไม่ตรงกัน',['field'=>'password_confirm'],422);
     if (($_POST['accept_terms'] ?? '')!=='1') jsonResponse('error','กรุณายอมรับเงื่อนไขการใช้งาน',['field'=>'accept_terms'],422);
     $stmt=$db->prepare('SELECT id FROM users WHERE username=? OR email=?'); $stmt->execute([$username,$email]);
@@ -52,17 +61,27 @@ if ($action === 'register') {
 }
 if ($action === 'login') {
     $identity=trim($_POST['username_email'] ?? ''); $password=$_POST['password'] ?? '';
+    $rateKey=appConfig('APP_KEY','kitchenmart-local-rate-key');
+    $identityHash=hash_hmac('sha256',mb_strtolower($identity),$rateKey);
+    $ip=(string)($_SERVER['HTTP_CF_CONNECTING_IP']??$_SERVER['REMOTE_ADDR']??'unknown');
+    $ipHash=hash_hmac('sha256',$ip,$rateKey);
+    $limit=$db->prepare("SELECT SUM(identifier_hash=? AND was_successful=0) identity_failures,SUM(ip_hash=? AND was_successful=0) ip_failures FROM login_attempts WHERE attempted_at>DATE_SUB(NOW(),INTERVAL 15 MINUTE)");
+    $limit->execute([$identityHash,$ipHash]);$rate=$limit->fetch();
+    if((int)($rate['identity_failures']??0)>=8||(int)($rate['ip_failures']??0)>=30)jsonResponse('error','มีการเข้าสู่ระบบผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่',['retry_after'=>900],429);
     $attempts=$_SESSION['login_attempts'] ?? ['count'=>0,'last'=>0];
     if((int)$attempts['count']>=5 && time()-(int)$attempts['last']<60)jsonResponse('error','มีการเข้าสู่ระบบผิดหลายครั้ง กรุณารอ 60 วินาทีแล้วลองใหม่',['retry_after'=>60-(time()-(int)$attempts['last'])],429);
     if(time()-(int)$attempts['last']>=60)$attempts=['count'=>0,'last'=>0];
     if ($identity==='' || $password==='') jsonResponse('error','กรุณากรอกชื่อผู้ใช้หรืออีเมล และรหัสผ่านให้ครบ',['field'=>$identity===''?'username_email':'password'],422);
     $stmt=$db->prepare('SELECT * FROM users WHERE username=? OR email=? LIMIT 1'); $stmt->execute([$identity,$identity]); $user=$stmt->fetch();
-    if (!$user || !password_verify($password,$user['password_hash'])) {$_SESSION['login_attempts']=['count'=>(int)$attempts['count']+1,'last'=>time()];jsonResponse('error','ชื่อผู้ใช้ อีเมล หรือรหัสผ่านไม่ถูกต้อง',[],401);}
+    if (!$user || !password_verify($password,$user['password_hash'])) {$db->prepare('INSERT INTO login_attempts(identifier_hash,ip_hash,was_successful) VALUES(?,?,0)')->execute([$identityHash,$ipHash]);$_SESSION['login_attempts']=['count'=>(int)$attempts['count']+1,'last'=>time()];jsonResponse('error','ชื่อผู้ใช้ อีเมล หรือรหัสผ่านไม่ถูกต้อง',[],401);}
     $requestHost=$_SERVER['HTTP_HOST'] ?? '';
     $isLocalRequest=(bool)preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/i',$requestHost);
     if($user['role']==='admin' && !$isLocalRequest && appConfig('ALLOW_PUBLIC_ADMIN','0')!=='1')jsonResponse('error','ปิดการเข้าสู่ระบบผู้ดูแลผ่านลิงก์สาธารณะเพื่อความปลอดภัย กรุณาเข้าสู่ระบบจากเครื่องเซิร์ฟเวอร์',[],403);
     if (!$user['email_verified_at']) jsonResponse('error','กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ',['field'=>'username_email','email'=>$user['email'],'verification_required'=>true],403);
+    if(!empty($user['two_factor_enabled'])){$code=(string)random_int(100000,999999);$token=bin2hex(random_bytes(32));$db->prepare('UPDATE auth_challenges SET used_at=NOW() WHERE user_id=? AND used_at IS NULL')->execute([(int)$user['id']]);$db->prepare('INSERT INTO auth_challenges(user_id,token_hash,code_hash,expires_at) VALUES(?,?,?,?)')->execute([(int)$user['id'],hash('sha256',$token),password_hash($code,PASSWORD_DEFAULT),date('Y-m-d H:i:s',time()+600)]);try{sendTwoFactorCode($user['email'],$user['full_name'],$code);}catch(Throwable $e){jsonResponse('error','ไม่สามารถส่งรหัสยืนยันได้ กรุณาติดต่อผู้ดูแลระบบ',[],503);}$_SESSION['two_factor_challenge']=$token;jsonResponse('success','ส่งรหัสยืนยันไปยังอีเมลแล้ว',['redirect'=>BASE_URL.'verify-two-factor.php','two_factor_required'=>true]);}
     unset($_SESSION['login_attempts']);
+    $db->prepare('INSERT INTO login_attempts(identifier_hash,ip_hash,was_successful) VALUES(?,?,1)')->execute([$identityHash,$ipHash]);
+    $db->prepare('DELETE FROM login_attempts WHERE attempted_at<DATE_SUB(NOW(),INTERVAL 30 DAY)')->execute();
     session_regenerate_id(true); $_SESSION['user_id']=(int)$user['id']; $_SESSION['username']=$user['username'];
     $_SESSION['full_name']=$user['full_name']; $_SESSION['email']=$user['email']; $_SESSION['user_role']=$user['role'];
     $redirect=BASE_URL.($user['role']==='admin'?'admin/index.php':'index.php');

@@ -2,14 +2,18 @@
 $page_title='หน้าแรก - ร้านอุปกรณ์ครัว';
 require_once __DIR__.'/includes/header.php';
 require_once __DIR__.'/config/database.php';
-$db=(new Database())->getConnection();$categories=[];$featured_products=[];$best_sellers=[];
+$db=(new Database())->getConnection();$categories=[];$featured_products=[];$best_sellers=[];$home_coupons=[];
 if($db){
  $categories=$db->query('SELECT * FROM categories ORDER BY id')->fetchAll();
- $featured_products=$db->query('SELECT p.*,c.name category_name,(SELECT COUNT(*) FROM product_reviews r WHERE r.product_id=p.id) review_count,(SELECT COALESCE(AVG(rating),0) FROM product_reviews r WHERE r.product_id=p.id) average_rating FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.is_featured=1 ORDER BY p.id DESC LIMIT 8')->fetchAll();
- $best_sellers=$db->query('SELECT p.*,c.name category_name,COALESCE(SUM(oi.quantity),0) sold_count,(SELECT COUNT(*) FROM product_reviews r WHERE r.product_id=p.id) review_count,(SELECT COALESCE(AVG(rating),0) FROM product_reviews r WHERE r.product_id=p.id) average_rating FROM products p LEFT JOIN categories c ON c.id=p.category_id LEFT JOIN order_items oi ON oi.product_id=p.id GROUP BY p.id,c.name ORDER BY sold_count DESC,p.id DESC LIMIT 4')->fetchAll();
+ $featured_products=$db->query("SELECT p.*,c.name category_name,(SELECT COUNT(*) FROM product_reviews r WHERE r.product_id=p.id) review_count,(SELECT COALESCE(AVG(rating),0) FROM product_reviews r WHERE r.product_id=p.id) average_rating FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.is_featured=1 AND p.approval_status='approved' ORDER BY p.id DESC LIMIT 8")->fetchAll();
+ $best_sellers=$db->query("SELECT p.*,c.name category_name,COALESCE(SUM(oi.quantity),0) sold_count,(SELECT COUNT(*) FROM product_reviews r WHERE r.product_id=p.id) review_count,(SELECT COALESCE(AVG(rating),0) FROM product_reviews r WHERE r.product_id=p.id) average_rating FROM products p LEFT JOIN categories c ON c.id=p.category_id LEFT JOIN order_items oi ON oi.product_id=p.id WHERE p.approval_status='approved' GROUP BY p.id,c.name ORDER BY sold_count DESC,p.id DESC LIMIT 4")->fetchAll();
+ $uid=isLoggedIn()?(int)$_SESSION['user_id']:0;$couponStmt=$db->prepare('SELECT c.*,uc.claimed_at FROM coupons c LEFT JOIN user_coupons uc ON uc.coupon_id=c.id AND uc.user_id=? WHERE c.is_active=1 AND c.starts_at<=NOW() AND c.ends_at>=NOW() ORDER BY c.ends_at LIMIT 8');$couponStmt->execute([$uid]);$home_coupons=$couponStmt->fetchAll();
 }
+$hero_product=$featured_products[0]??null;
+$promo_banners=$db?activePromotionalBanners($db,'hero'):[];
 ?>
 <div class="container home-page">
+    <?php if($promo_banners): ?><section class="promo-hero-slider" aria-label="โปรโมชั่น"><div class="promo-hero-track"><?php foreach($promo_banners as $banner): ?><a href="<?php echo e($banner['target_url'] ?: '#'); ?>" class="promo-hero-slide"><picture><?php if($banner['image_mobile']): ?><source media="(max-width:720px)" srcset="<?php echo BASE_URL.e($banner['image_mobile']); ?>"><?php endif; ?><img src="<?php echo BASE_URL.e($banner['image_desktop']); ?>" alt="<?php echo e($banner['title']); ?>"></picture><span><strong><?php echo e($banner['title']); ?></strong><?php if($banner['subtitle']): ?><small><?php echo e($banner['subtitle']); ?></small><?php endif; ?><?php if($banner['button_label']): ?><em><?php echo e($banner['button_label']); ?> <i class="fa-solid fa-arrow-right"></i></em><?php endif; ?></span></a><?php endforeach; ?></div></section><?php endif; ?>
     <section class="hero-banner">
         <div class="hero-copy">
             <p class="eyebrow">KITCHEN ESSENTIALS · 2026</p>
@@ -18,9 +22,10 @@ if($db){
             <div class="hero-actions"><a href="<?php echo BASE_URL; ?>products.php" class="btn btn-primary">เลือกซื้อสินค้า <i class="fa-solid fa-arrow-right"></i></a><a href="#categories" class="text-link">ดูตามหมวดหมู่</a></div>
         </div>
         <div class="hero-feature">
-            <span>ของแนะนำประจำครัว</span>
-            <img src="<?php echo BASE_URL; ?>assets/images/products/pots.svg" alt="ชุดหม้อและกระทะ KitchenMart">
-            <div><strong>เริ่มต้น ฿890</strong><a href="<?php echo BASE_URL; ?>products.php?category=1">ดูหม้อและกระทะ →</a></div>
+            <span>สินค้าแนะนำประจำสัปดาห์</span>
+            <?php if($hero_product): ?><a class="hero-feature-image" href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$hero_product['id']; ?>"><img src="<?php echo e(productImageUrl($hero_product['image_url'])); ?>" alt="<?php echo e($hero_product['name']); ?>"></a>
+            <div><strong><?php echo formatCurrency($hero_product['price']); ?></strong><a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$hero_product['id']; ?>">ดูรายละเอียดสินค้า <i class="fa-solid fa-arrow-right"></i></a></div>
+            <?php else: ?><img src="<?php echo BASE_URL; ?>assets/images/products/placeholder.svg" alt="สินค้าแนะนำ KitchenMart"><div><strong>สินค้าใหม่เร็ว ๆ นี้</strong><a href="<?php echo BASE_URL; ?>products.php">ดูสินค้าทั้งหมด <i class="fa-solid fa-arrow-right"></i></a></div><?php endif; ?>
         </div>
     </section>
     <section class="service-strip" aria-label="บริการของร้าน"><div><i class="fa-solid fa-truck-fast"></i><span><strong>ส่งฟรี ฿1,000+</strong><small>ทั่วประเทศ</small></span></div><div><i class="fa-solid fa-box-open"></i><span><strong>แพ็กอย่างดี</strong><small>ลดความเสียหายระหว่างส่ง</small></span></div><div><i class="fa-solid fa-shield-halved"></i><span><strong>ชำระปลอดภัย</strong><small>PromptPay หรือ COD</small></span></div></section>
@@ -30,6 +35,8 @@ if($db){
         <a href="<?php echo BASE_URL; ?>products.php?category=2"><span><i class="fa-solid fa-utensils"></i></span><div><small>เตรียมวัตถุดิบ</small><strong>มีด เขียง และอุปกรณ์</strong><em>เลือกดูสินค้า <i class="fa-solid fa-arrow-right"></i></em></div></a>
         <a href="<?php echo BASE_URL; ?>products.php?category=5"><span><i class="fa-solid fa-cookie-bite"></i></span><div><small>ทำขนมที่บ้าน</small><strong>อุปกรณ์เบเกอรี</strong><em>เลือกดูสินค้า <i class="fa-solid fa-arrow-right"></i></em></div></a>
     </section>
+
+    <?php if($home_coupons): ?><section class="home-coupon-section" data-coupon-carousel><header class="section-header"><div><p class="eyebrow">COUPONS FOR YOU</p><h2 class="section-title">คูปองสำหรับคุณ</h2></div><div class="home-coupon-controls"><button type="button" data-coupon-prev aria-label="คูปองก่อนหน้า"><i class="fa-solid fa-chevron-left"></i></button><button type="button" data-coupon-next aria-label="คูปองถัดไป"><i class="fa-solid fa-chevron-right"></i></button><a href="<?php echo BASE_URL; ?>my-coupons.php" class="text-link">ดูทั้งหมด</a></div></header><div class="home-coupon-track" data-coupon-track><?php foreach($home_coupons as $c): ?><article class="coupon-ticket compact"><span class="coupon-ticket-value"><?php echo e(formatCouponBenefit($c)); ?></span><div><strong><?php echo e($c['title']); ?></strong><small>ขั้นต่ำ <?php echo formatCurrency($c['min_order_amount']); ?> · <?php echo e($c['code']); ?></small></div><?php if($c['claimed_at']): ?><a href="<?php echo BASE_URL; ?>cart.php" class="coupon-action claimed">ใช้ทันที</a><?php else: ?><button class="coupon-action claim-coupon" data-id="<?php echo (int)$c['id']; ?>">รับ</button><?php endif; ?></article><?php endforeach; ?></div></section><?php endif; ?>
 
     <section id="categories" class="home-section">
         <header class="section-header"><div><p class="eyebrow">SHOP BY CATEGORY</p><h2 class="section-title">เลือกของให้ตรงงาน</h2></div><a href="<?php echo BASE_URL; ?>products.php" class="text-link">ดูทั้งหมด →</a></header>
@@ -90,4 +97,5 @@ document.querySelectorAll('[data-featured-carousel]').forEach((carousel) => {
     updateControls();
 });
 </script>
+<script src="<?php echo BASE_URL; ?>assets/js/coupon-center.js?v=1"></script>
 <?php require_once __DIR__.'/includes/footer.php'; ?>

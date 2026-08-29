@@ -1,0 +1,7 @@
+/* Desktop: reveal the notification preview when the pointer rests over the bell. */
+@media (hover: hover) and (pointer: fine) {
+  .notification-menu:hover .notification-dropdown,
+  .notification-menu:focus-within .notification-dropdown {
+    display: block;
+  }
+}

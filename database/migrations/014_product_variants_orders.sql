@@ -1,0 +1,3 @@
+USE `kitchenmart_db`;
+ALTER TABLE order_items ADD COLUMN IF NOT EXISTS variant_id INT UNSIGNED NULL AFTER product_id,ADD COLUMN IF NOT EXISTS variant_sku VARCHAR(80) NULL AFTER product_name,ADD COLUMN IF NOT EXISTS variant_name VARCHAR(160) NULL AFTER variant_sku;
+SET @fk_variant_exists=(SELECT COUNT(*) FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_NAME='fk_order_item_variant');SET @fk_variant_sql=IF(@fk_variant_exists=0,'ALTER TABLE order_items ADD CONSTRAINT fk_order_item_variant FOREIGN KEY(variant_id) REFERENCES product_variants(id) ON DELETE SET NULL','SELECT 1');PREPARE fk_variant_stmt FROM @fk_variant_sql;EXECUTE fk_variant_stmt;DEALLOCATE PREPARE fk_variant_stmt;

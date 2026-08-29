@@ -34,7 +34,7 @@ if ($db) {
         if ((int)$category['id'] === $cat_id) $activeCategory = $category;
     }
 
-    $where = ' FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE 1=1';
+    $where = " FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.approval_status='approved'";
     $params = [];
     if ($q !== '') {
         $where .= ' AND (p.name LIKE ? OR p.description LIKE ?)';
@@ -72,6 +72,7 @@ if ($db) {
 
 $hasFilters = $q !== '' || $cat_id > 0 || $min_price > 0 || $max_price > 0 || $in_stock;
 $baseQuery = ['q'=>$q, 'category'=>$cat_id, 'min_price'=>$min_price ?: '', 'max_price'=>$max_price ?: '', 'in_stock'=>$in_stock ? '1' : '', 'sort'=>$sort];
+$categoryBanners=$db?activePromotionalBanners($db,'category',$cat_id):[];
 ?>
 
 <div class="container catalog-page">
@@ -79,6 +80,7 @@ $baseQuery = ['q'=>$q, 'category'=>$cat_id, 'min_price'=>$min_price ?: '', 'max_
         <a href="<?php echo BASE_URL; ?>index.php">หน้าหลัก</a><i class="fa-solid fa-chevron-right"></i>
         <span><?php echo $activeCategory ? e($activeCategory['name']) : 'สินค้าทั้งหมด'; ?></span>
     </nav>
+    <?php if($categoryBanners):$banner=$categoryBanners[0];?><a class="catalog-promo-banner" href="<?php echo e($banner['target_url']?:'#');?>"><picture><?php if($banner['image_mobile']):?><source media="(max-width:720px)" srcset="<?php echo BASE_URL.e($banner['image_mobile']);?>"><?php endif;?><img src="<?php echo BASE_URL.e($banner['image_desktop']);?>" alt="<?php echo e($banner['title']);?>"></picture><span><strong><?php echo e($banner['title']);?></strong><small><?php echo e($banner['subtitle']);?></small></span></a><?php endif;?>
 
     <header class="catalog-header">
         <div>
