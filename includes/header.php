@@ -37,7 +37,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/promotions.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/coupons.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/accessibility.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/chatbot.css?v=1">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/chatbot.css?v=2">
 </head>
 <body>
     <a class="skip-link" href="#main-content">ข้ามไปยังเนื้อหาหลัก</a>
