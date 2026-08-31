@@ -5,6 +5,7 @@
 !/assets/images/banners/uploads/.gitkeep
 !/assets/images/banners/uploads/.htaccess
 /database/backups/
+/backups/
 *.log
 .DS_Store
 Thumbs.db
