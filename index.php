@@ -1,5 +1,9 @@
 <?php
+require_once __DIR__.'/config/config.php';
 $page_title='หน้าแรก - ร้านอุปกรณ์ครัว';
+$page_description='KitchenMart คัดสรรอุปกรณ์ครัวที่ทน ใช้ง่าย พร้อมโปรโมชั่น รีวิวจากผู้ซื้อ และจัดส่งทั่วประเทศ';
+$page_canonical=BASE_URL.'index.php';
+$structured_data=['@context'=>'https://schema.org','@type'=>'Organization','name'=>APP_NAME,'url'=>$page_canonical,'description'=>$page_description];
 require_once __DIR__.'/includes/header.php';
 require_once __DIR__.'/config/database.php';
 $db=(new Database())->getConnection();$categories=[];$featured_products=[];$best_sellers=[];$home_coupons=[];

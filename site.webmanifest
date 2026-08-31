@@ -1,0 +1,11 @@
+{
+  "name": "KitchenMart",
+  "short_name": "KitchenMart",
+  "description": "ร้านอุปกรณ์ครัวออนไลน์",
+  "start_url": "./index.php",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f5ee",
+  "theme_color": "#173f32",
+  "lang": "th"
+}

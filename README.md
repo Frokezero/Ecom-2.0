@@ -23,6 +23,8 @@ KitchenMart เป็นระบบ E-Commerce ภาษาไทยสำห�
 
 ทดสอบหน้าเว็บจริงแบบ HTTP ได้ด้วย `powershell -ExecutionPolicy Bypass -File tools/smoke-test.ps1` โดยสคริปต์จะเปิด PHP development server เฉพาะ localhost ชั่วคราว ตรวจหน้าหลักและ API guard แล้วปิดเซิร์ฟเวอร์ให้อัตโนมัติ
 
+ก่อนเปิด Production ให้รัน `php tools/production-readiness.php` จนได้ผล `READY` หากพบรหัสแอดมินอ่อนให้ใช้ `php tools/rotate-admin-password.php` ซึ่งจะบังคับรหัสอย่างน้อย 14 ตัวและเปิด 2FA พร้อมกัน
+
 หากคงชื่อโฟลเดอร์เดิม URL จะมีช่องว่างและภาษาไทย จึงแนะนำให้เปลี่ยนชื่อเป็น `kitchenmart`
 
 ## การตั้งค่า

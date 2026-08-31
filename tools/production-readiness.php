@@ -1,0 +1,11 @@
+<?php
+if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
+require_once __DIR__.'/../config/database.php';$errors=[];$warnings=[];
+if(appConfig('APP_ENV','development')!=='production')$warnings[]='APP_ENV is not production';
+if(strlen(appConfig('APP_KEY',''))<32||str_contains(appConfig('APP_KEY',''),'change-this'))$errors[]='APP_KEY is weak or unchanged';
+if(strlen(appConfig('PAYMENT_WEBHOOK_SECRET',''))<32||str_contains(appConfig('PAYMENT_WEBHOOK_SECRET',''),'change-this'))$errors[]='PAYMENT_WEBHOOK_SECRET is weak or unchanged';
+if(!str_starts_with(appConfig('APP_URL',''),'https://'))$errors[]='APP_URL must use HTTPS';
+if(appConfig('MAIL_ASYNC','1')==='1'&&appConfig('SMTP_HOST','')==='')$errors[]='SMTP is not configured';
+if(appConfig('TRUST_CLOUDFLARE','0')==='1'&&appConfig('TRUSTED_PROXY_CIDRS','')==='')$errors[]='Cloudflare trust enabled without proxy CIDRs';
+$db=(new Database())->getConnection();if(!$db)$errors[]='Database unavailable';else{$weak=0;foreach($db->query("SELECT password_hash FROM users WHERE role='admin'")->fetchAll(PDO::FETCH_COLUMN) as $hash)if(password_verify('password123',$hash))$weak++;if($weak)$errors[]="$weak admin account(s) use password123";$without2fa=(int)$db->query("SELECT COUNT(*) FROM users WHERE role='admin' AND two_factor_enabled=0")->fetchColumn();if($without2fa)$warnings[]="$without2fa admin account(s) do not require 2FA";$stale=(int)$db->query("SELECT COUNT(*) FROM email_delivery_logs WHERE status IN ('queued','failed','sending') AND created_at<DATE_SUB(NOW(),INTERVAL 5 MINUTE)")->fetchColumn();if($stale)$errors[]="$stale email(s) are stale";}
+foreach($errors as $item)fwrite(STDERR,"ERROR $item\n");foreach($warnings as $item)fwrite(STDERR,"WARN $item\n");if(!$errors&&!$warnings)echo "READY production checks passed\n";exit($errors?2:($warnings?1:0));

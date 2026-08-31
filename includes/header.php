@@ -5,6 +5,10 @@ $cart_count = array_sum(array_map(fn($item) => (int)($item['quantity'] ?? 0), $c
 $cart_total = array_sum(array_map(fn($item) => (float)($item['price'] ?? 0) * (int)($item['quantity'] ?? 0), $cart_items));
 $cart_preview_items = array_slice($cart_items, 0, 3);
 $current_page = basename($_SERVER['PHP_SELF']);
+$page_description=$page_description??'เลือกซื้ออุปกรณ์ครัวคุณภาพ พร้อมข้อมูลสินค้า รีวิวจากผู้ซื้อ และการจัดส่งที่ตรวจสอบได้จาก KitchenMart';
+$canonicalPath=parse_url($_SERVER['REQUEST_URI']??'/index.php',PHP_URL_PATH)?:'/index.php';
+$page_canonical=$page_canonical??rtrim(BASE_URL,'/').$canonicalPath;
+$page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholder.svg';
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -12,6 +16,18 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#173f32">
+    <meta name="description" content="<?php echo e(mb_substr($page_description,0,160)); ?>">
+    <meta name="robots" content="<?php echo !empty($noindex)?'noindex,nofollow':'index,follow,max-image-preview:large'; ?>">
+    <link rel="canonical" href="<?php echo e($page_canonical); ?>">
+    <meta property="og:type" content="<?php echo !empty($og_type)?e($og_type):'website'; ?>">
+    <meta property="og:site_name" content="<?php echo e(APP_NAME); ?>">
+    <meta property="og:title" content="<?php echo e(isset($page_title)?$page_title.' - '.APP_NAME:APP_NAME); ?>">
+    <meta property="og:description" content="<?php echo e(mb_substr($page_description,0,200)); ?>">
+    <meta property="og:url" content="<?php echo e($page_canonical); ?>">
+    <meta property="og:image" content="<?php echo e($page_image); ?>">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="manifest" href="<?php echo BASE_URL; ?>site.webmanifest">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <title><?php echo isset($page_title) ? e($page_title).' - '.APP_NAME : APP_NAME; ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
@@ -23,6 +39,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/accessibility.css">
 </head>
 <body>
+    <a class="skip-link" href="#main-content">ข้ามไปยังเนื้อหาหลัก</a>
+    <?php if(!empty($structured_data)):?><script type="application/ld+json"><?php echo json_encode($structured_data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP);?></script><?php endif;?>
     <div class="announcement"><div class="container"><span><i class="fa-solid fa-truck-fast"></i> จัดส่งฟรีเมื่อสั่งซื้อครบ ฿1,000</span><span class="announcement-detail"><i class="fa-solid fa-shield-heart"></i> ชำระปลอดภัย · ตรวจสอบคำสั่งซื้อได้ทุกขั้นตอน</span></div></div>
     <header class="site-header">
         <div class="container header-main">
@@ -98,7 +116,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </div>
         </nav>
     </header>
-    <main>
+    <main id="main-content" tabindex="-1">
     <script nonce="<?php echo e(cspNonce()); ?>">
     async function secureLogout(){const body=new FormData();body.append('action','logout');body.append('csrf_token','<?php echo e(getCsrfToken()); ?>');const response=await fetch('<?php echo BASE_URL; ?>api/auth.php',{method:'POST',body});const result=await response.json();if(result.status==='success')location.href=result.data.redirect;}
     </script>

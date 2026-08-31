@@ -1,5 +1,8 @@
 <?php
+require_once __DIR__ . '/config/config.php';
 $page_title = 'สินค้าทั้งหมด';
+$page_description='เลือกซื้ออุปกรณ์ครัวทุกหมวด กรองตามราคา สต็อก และคะแนนรีวิว พร้อมจัดส่งทั่วประเทศ';
+$page_canonical=BASE_URL.'products.php';$noindex=isset($_GET['q'])||isset($_GET['min_price'])||isset($_GET['max_price'])||isset($_GET['sort'])||isset($_GET['page']);
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/config/database.php';
 

@@ -22,6 +22,7 @@ function requestIsHttps(): bool {
     return is_array($cfVisitor) && strtolower((string)($cfVisitor['scheme'] ?? '')) === 'https';
 }
 function cspNonce():string{static $nonce='';if($nonce==='')$nonce=base64_encode(random_bytes(18));return $nonce;}
+function appRequestId():string{static $id='';if($id==='')$id=substr(bin2hex(random_bytes(16)),0,24);return $id;}
 
 if (session_status() === PHP_SESSION_NONE) {
     $sessionPath = appConfig('SESSION_SAVE_PATH', '');
@@ -34,7 +35,9 @@ if (session_status() === PHP_SESSION_NONE) {
 if(PHP_SAPI!=='cli'&&!defined('CSP_NONCE_BUFFER')){define('CSP_NONCE_BUFFER',true);ob_start(static function(string $output):string{return preg_replace('/<script(?![^>]*\bnonce=)([^>]*)>/i','<script nonce="'.cspNonce().'"$1>',$output)??$output;});}
 
 date_default_timezone_set('Asia/Bangkok');
+if(appConfig('APP_ENV','development')==='production'){ini_set('display_errors','0');ini_set('log_errors','1');}
 if (!headers_sent()) {
+    header('X-Request-ID: '.appRequestId());
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: strict-origin-when-cross-origin');

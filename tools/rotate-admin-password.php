@@ -1,0 +1,5 @@
+<?php
+if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
+require_once __DIR__.'/../config/database.php';echo "Admin email: ";$email=strtolower(trim((string)fgets(STDIN)));echo "New password (input is visible): ";$password=rtrim((string)fgets(STDIN),"\r\n");
+if(!filter_var($email,FILTER_VALIDATE_EMAIL)||strlen($password)<14||!preg_match('/[A-Z]/',$password)||!preg_match('/[a-z]/',$password)||!preg_match('/\d/',$password)||!preg_match('/[^A-Za-z0-9]/',$password)){fwrite(STDERR,"Password needs 14+ characters with upper, lower, number and symbol.\n");exit(1);}
+$db=(new Database())->getConnection();if(!$db){fwrite(STDERR,"Database unavailable\n");exit(1);}$stmt=$db->prepare("UPDATE users SET password_hash=?,two_factor_enabled=1 WHERE email=? AND role='admin'");$stmt->execute([password_hash($password,PASSWORD_DEFAULT),$email]);if($stmt->rowCount()!==1){fwrite(STDERR,"Admin not found or password unchanged.\n");exit(1);}$db->prepare('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=(SELECT id FROM users WHERE email=? LIMIT 1) AND used_at IS NULL')->execute([$email]);echo "Admin password rotated and 2FA enabled.\n";

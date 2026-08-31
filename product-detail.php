@@ -40,6 +40,9 @@ if (!$product) {
 }
 
 $page_title = $product['name'];
+$page_description=trim(strip_tags((string)$product['description']))?:'ดูรายละเอียด '.$product['name'].' พร้อมราคา สต็อก และรีวิวจากผู้ซื้อ';
+$page_image=productImageUrl($product['image_url']);$page_canonical=BASE_URL.'product-detail.php?id='.(int)$product['id'];$og_type='product';
+$structured_data=['@context'=>'https://schema.org','@type'=>'Product','name'=>$product['name'],'description'=>$page_description,'image'=>[$page_image],'sku'=>'SKU-'.str_pad((string)$product['id'],4,'0',STR_PAD_LEFT),'category'=>$product['category_name']??'','offers'=>['@type'=>'Offer','url'=>$page_canonical,'priceCurrency'=>'THB','price'=>(string)$product['price'],'availability'=>(int)$product['stock_quantity']>0?'https://schema.org/InStock':'https://schema.org/OutOfStock','itemCondition'=>'https://schema.org/NewCondition']];if($review_count>0)$structured_data['aggregateRating']=['@type'=>'AggregateRating','ratingValue'=>round($average_rating,1),'reviewCount'=>$review_count];
 require_once __DIR__ . '/includes/header.php';
 ?>
 
