@@ -31,9 +31,15 @@ footer{background:#132b23;color:#b9c4bd;margin-top:80px;padding:52px 0 20px}.foo
 .category-menu-trigger .fa-chevron-down{font-size:11px}
 .category-dropdown a{font-size:15px!important}
 .category-dropdown small{font-size:12px;line-height:1.4}
+.category-dropdown{width:660px;padding:12px;gap:4px}
+.category-dropdown a{min-height:82px!important;padding:15px 17px!important;grid-template-columns:42px minmax(0,1fr)!important;gap:13px!important;border-radius:3px}
+.category-dropdown>a>i{font-size:21px}
+.category-dropdown span{font-size:17px;line-height:1.35;gap:3px}
+.category-dropdown small{font-size:13px;line-height:1.45;color:#596b63}
+.category-dropdown a:hover,.category-dropdown a:focus-visible{background:#edf3ee;color:#0e4a37}
 
-@media(max-width:1000px) and (min-width:721px){.site-nav .container{gap:2px}.site-nav a,.site-nav button{padding-inline:11px;font-size:14px}.category-menu-trigger{min-width:185px!important;font-size:14px!important}}
-@media(max-width:720px){.site-nav .container{padding-block:8px}.site-nav a,.site-nav button{min-height:52px;height:auto;padding:10px 16px;font-size:16px}.category-menu-trigger{min-height:54px!important;font-size:16px!important}.category-dropdown a{min-height:58px!important;font-size:15px!important}}
+@media(max-width:1000px) and (min-width:721px){.site-nav .container{gap:2px}.site-nav a,.site-nav button{padding-inline:11px;font-size:14px}.category-menu-trigger{min-width:185px!important;font-size:14px!important}.category-dropdown{width:610px}}
+@media(max-width:720px){.site-nav .container{padding-block:8px}.site-nav a,.site-nav button{min-height:52px;height:auto;padding:10px 16px;font-size:16px}.category-menu-trigger{min-height:54px!important;font-size:16px!important}.category-dropdown{width:100%;padding:5px}.category-dropdown a{min-height:68px!important;padding:12px 14px!important;font-size:15px!important;grid-template-columns:38px minmax(0,1fr)!important}.category-dropdown span{font-size:16px}.category-dropdown small{font-size:12px}}
 .product-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.product-card{min-width:0}.product-title{overflow-wrap:anywhere}.catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:1000px){.product-grid,.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:440px){.product-grid{grid-template-columns:1fr}.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
