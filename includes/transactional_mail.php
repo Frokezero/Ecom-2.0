@@ -1,0 +1,19 @@
+<?php
+require_once __DIR__ . '/mailer.php';
+
+function transactionalEmailHtml(string $title, string $body, string $actionUrl = '', string $actionLabel = 'ดูรายละเอียด'): string {
+    $safeTitle=htmlspecialchars($title,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');$safeBody=nl2br(htmlspecialchars($body,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'));$button='';
+    if($actionUrl!==''){$safeUrl=htmlspecialchars($actionUrl,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');$safeLabel=htmlspecialchars($actionLabel,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');$button='<p style="margin:28px 0 4px"><a href="'.$safeUrl.'" style="display:inline-block;padding:14px 22px;background:#173f32;color:#fff;text-decoration:none;font-weight:700;border-radius:3px">'.$safeLabel.' →</a></p>';}
+    return '<!doctype html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f4f1e9;font-family:Tahoma,Arial,sans-serif;color:#23332e"><table role="presentation" width="100%"><tr><td align="center" style="padding:32px 14px"><table role="presentation" width="600" style="width:100%;max-width:600px;background:#fff;border:1px solid #e3dfd2"><tr><td style="padding:24px 30px;background:#173f32;color:#fff;font-size:23px;font-weight:700">KitchenMart</td></tr><tr><td style="padding:34px 30px"><p style="margin:0 0 8px;color:#d2692d;font-size:12px;font-weight:700;letter-spacing:1px">TRANSACTION UPDATE</p><h1 style="margin:0 0 18px;color:#173f32;font:600 27px/1.3 Georgia,Tahoma,serif">'.$safeTitle.'</h1><div style="font-size:16px;line-height:1.75;color:#53635d">'.$safeBody.'</div>'.$button.'<p style="margin:30px 0 0;padding-top:18px;border-top:1px solid #e7e3da;color:#78847e;font-size:12px">อีเมลนี้เป็นการแจ้งเตือนอัตโนมัติ กรุณาอย่าส่งรหัสผ่านหรือข้อมูลบัญชีเต็มผ่านอีเมล</p></td></tr></table></td></tr></table></body></html>';
+}
+
+function sendUserEventEmail(PDO $db,int $userId,string $eventType,string $subject,string $title,string $body,string $actionUrl='',string $dedupeKey=''):bool{
+    if($db->inTransaction()){
+        register_shutdown_function(static function()use($db,$userId,$eventType,$subject,$title,$body,$actionUrl,$dedupeKey):void{if(!$db->inTransaction())sendUserEventEmail($db,$userId,$eventType,$subject,$title,$body,$actionUrl,$dedupeKey);});
+        return true;
+    }
+    try{$user=$db->prepare('SELECT email FROM users WHERE id=? LIMIT 1');$user->execute([$userId]);$email=(string)$user->fetchColumn();if(!filter_var($email,FILTER_VALIDATE_EMAIL))return false;$dedupeKey=$dedupeKey!==''?$dedupeKey:hash('sha256',$eventType.'|'.$userId.'|'.$subject.'|'.$body);
+        try{$existing=$db->prepare('SELECT status FROM email_delivery_logs WHERE dedupe_key=? LIMIT 1');$existing->execute([$dedupeKey]);if($existing->fetchColumn()==='sent')return true;$reserve=$db->prepare("INSERT INTO email_delivery_logs(user_id,event_type,recipient_email,subject,dedupe_key,status) VALUES(?,?,?,?,?,'sending') ON DUPLICATE KEY UPDATE attempts=attempts+1,status='sending',error_message=NULL");$reserve->execute([$userId,$eventType,$email,$subject,$dedupeKey]);}catch(Throwable $ignored){}
+        try{sendAppMail($email,$subject,transactionalEmailHtml($title,$body,$actionUrl));try{$db->prepare("UPDATE email_delivery_logs SET status='sent',sent_at=NOW(),error_message=NULL WHERE dedupe_key=?")->execute([$dedupeKey]);}catch(Throwable $ignored){}return true;}catch(Throwable $mailError){try{$db->prepare("UPDATE email_delivery_logs SET status='failed',error_message=? WHERE dedupe_key=?")->execute([mb_substr($mailError->getMessage(),0,500),$dedupeKey]);}catch(Throwable $ignored){}error_log('Transactional email failed ['.$eventType.']: '.$mailError->getMessage());return false;}
+    }catch(Throwable $error){error_log('Transactional email setup failed ['.$eventType.']: '.$error->getMessage());return false;}
+}

@@ -39,6 +39,7 @@ function adminStatusLabel(string $status): string {
             <a href="<?php echo BASE_URL; ?>admin/sellers.php" class="<?php echo $admin_page==='sellers.php'?'active':''; ?>"><i class="fa-solid fa-store"></i><span>คำขอผู้ขาย</span></a>
             <a href="<?php echo BASE_URL; ?>admin/seller-products.php" class="<?php echo $admin_page==='seller-products.php'?'active':''; ?>"><i class="fa-solid fa-box-open"></i><span>ตรวจสินค้าผู้ขาย</span></a>
             <a href="<?php echo BASE_URL; ?>admin/payouts.php" class="<?php echo $admin_page==='payouts.php'?'active':''; ?>"><i class="fa-solid fa-money-bill-transfer"></i><span>ถอนเงินผู้ขาย</span></a>
+            <a href="<?php echo BASE_URL; ?>admin/email-logs.php" class="<?php echo $admin_page==='email-logs.php'?'active':''; ?>"><i class="fa-solid fa-envelope-circle-check"></i><span>ประวัติการส่งอีเมล</span></a>
         </nav>
         <div class="admin-sidebar-footer"><a href="<?php echo BASE_URL; ?>index.php" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> ดูหน้าร้าน</a><button type="button" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button></div>
     </aside>

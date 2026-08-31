@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/transactional_mail.php';
 
 function e($value): string { return htmlspecialchars((string)($value ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 function formatCurrency($amount): string { return '฿' . number_format((float)$amount, 2); }
@@ -63,6 +64,11 @@ function createNotification(PDO $db, int $userId, string $type, string $title, s
     if ($userId < 1) return;
     $stmt = $db->prepare('INSERT INTO notifications (user_id,type,title,body,link) VALUES (?,?,?,?,?)');
     $stmt->execute([$userId, substr($type, 0, 40), mb_substr($title, 0, 160), mb_substr($body, 0, 500) ?: null, $link]);
+    if (in_array($type, ['order','payment','return','seller','security','payout'], true)) {
+        $notificationId=(int)$db->lastInsertId();$actionUrl='';
+        if($link){$actionUrl=preg_match('#^https?://#i',$link)?$link:mailAppUrl().ltrim($link,'/');}
+        sendUserEventEmail($db,$userId,'notification.'.$type,$title,$title,$body,$actionUrl,'notification:'.$notificationId);
+    }
 }
 function createRoleNotification(PDO $db, string $role, string $type, string $title, string $body = '', ?string $link = null): void {
     $users = $db->prepare('SELECT id FROM users WHERE role=?');
