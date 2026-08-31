@@ -1,15 +1,19 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/security_monitor.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonResponse('error','อนุญาตเฉพาะ POST',[],405);
 if (!isLoggedIn()) jsonResponse('error','กรุณาเข้าสู่ระบบ',[],401);
 requireCsrf();
 $db=(new Database())->getConnection();
 if (!$db) jsonResponse('error','ไม่สามารถเชื่อมต่อฐานข้อมูลได้',[],503);
+enforceSecurityBlock($db,(int)$_SESSION['user_id'],true);
+enforceRequestRate($db,'api.checkout',30,60,(int)$_SESSION['user_id']);
 $action=$_POST['action'] ?? '';
 
 if ($action === 'create_order') {
+    $burst=$db->prepare('SELECT COUNT(*) FROM orders WHERE user_id=? AND created_at>DATE_SUB(NOW(),INTERVAL 10 MINUTE)');$burst->execute([(int)$_SESSION['user_id']]);if((int)$burst->fetchColumn()>=5){$score=recordSecurityEvent($db,'checkout.burst',40,(int)$_SESSION['user_id'],['window_minutes'=>10],'blocked');securityBlock($db,'user',hash('sha256','user:'.(int)$_SESSION['user_id']),(int)$_SESSION['user_id'],'สร้างคำสั่งซื้อถี่ผิดปกติ',max(60,$score),1800);jsonResponse('error','ระบบพักการสั่งซื้อชั่วคราวเพื่อตรวจสอบความปลอดภัย',['retry_after'=>1800],429);}
     if (empty($_SESSION['cart'])) jsonResponse('error','ตะกร้าสินค้าว่าง',[],422);
     $name=trim($_POST['shipping_name'] ?? ''); $phone=trim($_POST['shipping_phone'] ?? '');
     $address=trim($_POST['shipping_address'] ?? ''); $method=$_POST['payment_method'] ?? '';

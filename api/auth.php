@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/mailer.php';
+require_once __DIR__ . '/../includes/security_monitor.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonResponse('error','อนุญาตเฉพาะ POST',[],405);
 requireCsrf();
@@ -18,6 +19,8 @@ if ($action === 'logout') {
 
 $db=(new Database())->getConnection();
 if (!$db) jsonResponse('error','ไม่สามารถเชื่อมต่อฐานข้อมูลได้',[],503);
+enforceSecurityBlock($db,isLoggedIn()?(int)$_SESSION['user_id']:null,true);
+enforceRequestRate($db,'api.auth',60,60,isLoggedIn()?(int)$_SESSION['user_id']:null);
 if ($action === 'resend_verification') {
     $email=strtolower(trim($_POST['email'] ?? ''));
     if (!filter_var($email,FILTER_VALIDATE_EMAIL)) jsonResponse('error','กรุณากรอกอีเมลให้ถูกต้อง',['field'=>'email'],422);
@@ -67,13 +70,13 @@ if ($action === 'login') {
     $ipHash=hash_hmac('sha256',$ip,$rateKey);
     $limit=$db->prepare("SELECT SUM(identifier_hash=? AND was_successful=0) identity_failures,SUM(ip_hash=? AND was_successful=0) ip_failures FROM login_attempts WHERE attempted_at>DATE_SUB(NOW(),INTERVAL 15 MINUTE)");
     $limit->execute([$identityHash,$ipHash]);$rate=$limit->fetch();
-    if((int)($rate['identity_failures']??0)>=8||(int)($rate['ip_failures']??0)>=30)jsonResponse('error','มีการเข้าสู่ระบบผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่',['retry_after'=>900],429);
+    if((int)($rate['identity_failures']??0)>=8||(int)($rate['ip_failures']??0)>=30){recordSecurityEvent($db,'request.rate_limit',30,null,['endpoint'=>'login','identity_failures'=>(int)($rate['identity_failures']??0),'ip_failures'=>(int)($rate['ip_failures']??0)],'blocked');securityBlock($db,'ip',$ipHash,null,'เข้าสู่ระบบผิดเกินกำหนด',70,900);jsonResponse('error','มีการเข้าสู่ระบบผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่',['retry_after'=>900],429);}
     $attempts=$_SESSION['login_attempts'] ?? ['count'=>0,'last'=>0];
     if((int)$attempts['count']>=5 && time()-(int)$attempts['last']<60)jsonResponse('error','มีการเข้าสู่ระบบผิดหลายครั้ง กรุณารอ 60 วินาทีแล้วลองใหม่',['retry_after'=>60-(time()-(int)$attempts['last'])],429);
     if(time()-(int)$attempts['last']>=60)$attempts=['count'=>0,'last'=>0];
     if ($identity==='' || $password==='') jsonResponse('error','กรุณากรอกชื่อผู้ใช้หรืออีเมล และรหัสผ่านให้ครบ',['field'=>$identity===''?'username_email':'password'],422);
     $stmt=$db->prepare('SELECT * FROM users WHERE username=? OR email=? LIMIT 1'); $stmt->execute([$identity,$identity]); $user=$stmt->fetch();
-    if (!$user || !password_verify($password,$user['password_hash'])) {$db->prepare('INSERT INTO login_attempts(identifier_hash,ip_hash,was_successful) VALUES(?,?,0)')->execute([$identityHash,$ipHash]);$_SESSION['login_attempts']=['count'=>(int)$attempts['count']+1,'last'=>time()];jsonResponse('error','ชื่อผู้ใช้ อีเมล หรือรหัสผ่านไม่ถูกต้อง',[],401);}
+    if (!$user || !password_verify($password,$user['password_hash'])) {$db->prepare('INSERT INTO login_attempts(identifier_hash,ip_hash,was_successful) VALUES(?,?,0)')->execute([$identityHash,$ipHash]);$_SESSION['login_attempts']=['count'=>(int)$attempts['count']+1,'last'=>time()];$risk=recordSecurityEvent($db,'login.failed',10,$user?(int)$user['id']:null,['identifier_hash'=>$identityHash,'attempt'=>(int)$attempts['count']+1],'monitored');if($risk>=60)enforceSecurityBlock($db,$user?(int)$user['id']:null,true);jsonResponse('error','ชื่อผู้ใช้ อีเมล หรือรหัสผ่านไม่ถูกต้อง',[],401);}
     $requestHost=$_SERVER['HTTP_HOST'] ?? '';
     $isLocalRequest=(bool)preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/i',$requestHost);
     if($user['role']==='admin' && !$isLocalRequest && appConfig('ALLOW_PUBLIC_ADMIN','0')!=='1')jsonResponse('error','ปิดการเข้าสู่ระบบผู้ดูแลผ่านลิงก์สาธารณะเพื่อความปลอดภัย กรุณาเข้าสู่ระบบจากเครื่องเซิร์ฟเวอร์',[],403);
@@ -81,6 +84,7 @@ if ($action === 'login') {
     if(!empty($user['two_factor_enabled'])){$code=(string)random_int(100000,999999);$token=bin2hex(random_bytes(32));$db->prepare('UPDATE auth_challenges SET used_at=NOW() WHERE user_id=? AND used_at IS NULL')->execute([(int)$user['id']]);$db->prepare('INSERT INTO auth_challenges(user_id,token_hash,code_hash,expires_at) VALUES(?,?,?,?)')->execute([(int)$user['id'],hash('sha256',$token),password_hash($code,PASSWORD_DEFAULT),date('Y-m-d H:i:s',time()+600)]);try{sendTwoFactorCode($user['email'],$user['full_name'],$code);}catch(Throwable $e){jsonResponse('error','ไม่สามารถส่งรหัสยืนยันได้ กรุณาติดต่อผู้ดูแลระบบ',[],503);}$_SESSION['two_factor_challenge']=$token;jsonResponse('success','ส่งรหัสยืนยันไปยังอีเมลแล้ว',['redirect'=>BASE_URL.'verify-two-factor.php','two_factor_required'=>true]);}
     unset($_SESSION['login_attempts']);
     $db->prepare('INSERT INTO login_attempts(identifier_hash,ip_hash,was_successful) VALUES(?,?,1)')->execute([$identityHash,$ipHash]);
+    recordSecurityEvent($db,'login.success',0,(int)$user['id'],['role'=>$user['role']],'allowed');
     $db->prepare('DELETE FROM login_attempts WHERE attempted_at<DATE_SUB(NOW(),INTERVAL 30 DAY)')->execute();
     session_regenerate_id(true); $_SESSION['user_id']=(int)$user['id']; $_SESSION['username']=$user['username'];
     $_SESSION['full_name']=$user['full_name']; $_SESSION['email']=$user['email']; $_SESSION['user_role']=$user['role'];

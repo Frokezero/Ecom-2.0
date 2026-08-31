@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/mailer.php';
+require_once __DIR__ . '/../includes/security_monitor.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonResponse('error', 'อนุญาตเฉพาะ POST', [], 405);
 requireCsrf();
@@ -11,6 +12,7 @@ $db = (new Database())->getConnection();
 if (!$db) jsonResponse('error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', [], 503);
 
 $userId = (int)$_SESSION['user_id'];
+enforceSecurityBlock($db,$userId,true);enforceRequestRate($db,'api.profile',30,60,$userId);
 $stmt = $db->prepare('SELECT id,username,email,password_hash,full_name,email_verified_at,two_factor_enabled,role FROM users WHERE id=? LIMIT 1');
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
@@ -50,6 +52,7 @@ if ($action === 'update_password') {
     if (!hash_equals($password, $passwordConfirm)) jsonResponse('error', 'รหัสผ่านใหม่ทั้งสองช่องไม่ตรงกัน', ['field' => 'password_confirm'], 422);
     $update = $db->prepare('UPDATE users SET password_hash=? WHERE id=?');
     $update->execute([password_hash($password, PASSWORD_DEFAULT), $userId]);
+    recordSecurityEvent($db,'account.password_changed',20,$userId,[],'allowed');createNotification($db,$userId,'security','เปลี่ยนรหัสผ่านสำเร็จ','รหัสผ่านของบัญชีถูกเปลี่ยนแล้ว หากไม่ใช่คุณกรุณาติดต่อผู้ดูแลทันที',BASE_URL.'profile.php');
     session_regenerate_id(true);
     jsonResponse('success', 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว');
 }
@@ -66,6 +69,7 @@ if ($action === 'update_email') {
 
     $update = $db->prepare('UPDATE users SET email=?,email_verified_at=NULL,email_verification_token_hash=NULL,email_verification_expires_at=NULL,email_verification_sent_at=NULL WHERE id=?');
     $update->execute([$email, $userId]);
+    recordSecurityEvent($db,'account.email_changed',30,$userId,['old_email_hash'=>hash('sha256',strtolower($user['email']))],'verification_required');
     $delivery = 'sent';
     try {
         sendVerificationEmail($db, $userId, $email, $user['full_name']);
