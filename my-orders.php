@@ -35,6 +35,7 @@ if ($db) {
                         <div>
                             <span style="font-size: 0.85rem; color: var(--text-muted);">เลขที่ออเดอร์:</span>
                             <strong style="font-size: 1.1rem; color: var(--secondary); margin-left: 6px;"><?php echo e($o['order_no']); ?></strong>
+                            <?php if(!empty($o['is_demo'])):?><span class="demo-mode-badge">ออเดอร์สาธิต</span><?php endif;?>
                             <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 16px;"><i class="fa-regular fa-calendar"></i> <?php echo date('d/m/Y H:i', strtotime($o['created_at'])); ?></span>
                         </div>
 

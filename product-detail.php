@@ -23,7 +23,7 @@ if ($db && $id > 0) {
         $imageStmt=$db->prepare('SELECT * FROM product_images WHERE product_id=? ORDER BY sort_order,id');$imageStmt->execute([$id]);$product_images=$imageStmt->fetchAll();
         $summary=$db->prepare('SELECT COUNT(*) review_count,COALESCE(AVG(rating),0) average_rating FROM product_reviews WHERE product_id=?');
         $summary->execute([$id]);$reviewSummary=$summary->fetch();$review_count=(int)$reviewSummary['review_count'];$average_rating=(float)$reviewSummary['average_rating'];
-        $stmt=$db->prepare("SELECT r.*,u.username,u.full_name,EXISTS(SELECT 1 FROM order_items oi JOIN orders o ON o.id=oi.order_id WHERE oi.product_id=r.product_id AND o.user_id=r.user_id AND o.order_status<>'cancelled') verified_purchase FROM product_reviews r JOIN users u ON u.id=r.user_id WHERE r.product_id=? ORDER BY r.updated_at DESC");
+        $stmt=$db->prepare("SELECT r.*,u.username,u.full_name,(r.is_demo=0 AND EXISTS(SELECT 1 FROM order_items oi JOIN orders o ON o.id=oi.order_id WHERE oi.product_id=r.product_id AND o.user_id=r.user_id AND o.order_status<>'cancelled' AND o.is_demo=0)) verified_purchase FROM product_reviews r JOIN users u ON u.id=r.user_id WHERE r.product_id=? ORDER BY r.updated_at DESC");
         $stmt->execute([$id]);$reviews=$stmt->fetchAll();
         if(isLoggedIn()){
             foreach($reviews as $review){if((int)$review['user_id']===(int)$_SESSION['user_id']){$current_review=$review;break;}}

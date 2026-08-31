@@ -45,7 +45,7 @@ require_once __DIR__ . '/../includes/admin_header.php';
     <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>คำสั่งซื้อ</th><th>ลูกค้า</th><th>วันที่</th><th>ยอดรวม</th><th>การชำระ</th><th>สถานะ</th><th></th></tr></thead><tbody>
     <?php if (!$recentOrders): ?><tr><td colspan="7" class="admin-empty"><i class="fa-solid fa-inbox"></i>ยังไม่มีคำสั่งซื้อ</td></tr><?php endif; ?>
     <?php foreach ($recentOrders as $order): ?><tr>
-        <td><span class="cell-title"><?php echo e($order['order_no']); ?></span></td>
+        <td><span class="cell-title"><?php echo e($order['order_no']); ?></span><?php if(!empty($order['is_demo'])):?><span class="demo-mode-badge">สาธิต</span><?php endif;?></td>
         <td><?php echo e($order['customer_name'] ?: $order['shipping_name']); ?></td>
         <td><span class="cell-subtitle"><?php echo date('d/m/Y H:i',strtotime($order['created_at'])); ?></span></td>
         <td><strong><?php echo formatCurrency($order['total_amount']); ?></strong></td>

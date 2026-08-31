@@ -25,6 +25,8 @@ KitchenMart เป็นระบบ E-Commerce ภาษาไทยสำห�
 
 ก่อนเปิด Production ให้รัน `php tools/production-readiness.php` จนได้ผล `READY` หากพบรหัสแอดมินอ่อนให้ใช้ `php tools/rotate-admin-password.php` ซึ่งจะบังคับรหัสอย่างน้อย 14 ตัวและเปิด 2FA พร้อมกัน
 
+สำหรับการนำเสนอในชั้นเรียนเท่านั้น ให้ตั้ง `DEMO_MODE=1` แล้วรัน `php tools/seed-demo-commerce.php` ระบบจะสร้างออเดอร์และรีวิวที่ติดป้ายข้อมูลสาธิตชัดเจน ก่อนนำไปใช้จริงต้องรัน `php tools/cleanup-demo-commerce.php` และ Production Readiness จะไม่อนุญาตให้ผ่านหากยังมีข้อมูลจำลองอยู่
+
 หากคงชื่อโฟลเดอร์เดิม URL จะมีช่องว่างและภาษาไทย จึงแนะนำให้เปลี่ยนชื่อเป็น `kitchenmart`
 
 ## การตั้งค่า

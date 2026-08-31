@@ -1,6 +1,8 @@
 <?php
 return [
     'APP_ENV' => 'development',
+    // เปิดเฉพาะงานสาธิต/นำเสนอ ห้ามเปิดบนร้านจริง
+    'DEMO_MODE' => '0',
     'DB_HOST' => '127.0.0.1',
     'DB_PORT' => '3306',
     'DB_NAME' => 'kitchenmart_db',

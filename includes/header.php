@@ -17,7 +17,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#173f32">
     <meta name="description" content="<?php echo e(mb_substr($page_description,0,160)); ?>">
-    <meta name="robots" content="<?php echo !empty($noindex)?'noindex,nofollow':'index,follow,max-image-preview:large'; ?>">
+    <meta name="robots" content="<?php echo (!empty($noindex)||appConfig('DEMO_MODE','0')==='1')?'noindex,nofollow':'index,follow,max-image-preview:large'; ?>">
     <link rel="canonical" href="<?php echo e($page_canonical); ?>">
     <meta property="og:type" content="<?php echo !empty($og_type)?e($og_type):'website'; ?>">
     <meta property="og:site_name" content="<?php echo e(APP_NAME); ?>">
@@ -40,6 +40,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
 </head>
 <body>
     <a class="skip-link" href="#main-content">ข้ามไปยังเนื้อหาหลัก</a>
+    <?php if(appConfig('DEMO_MODE','0')==='1'):?><div class="demo-mode-banner" role="status"><i class="fa-solid fa-flask"></i> เว็บไซต์สาธิตเพื่อการศึกษา — ยอดซื้อและรีวิวบางส่วนเป็นข้อมูลจำลอง</div><?php endif;?>
     <?php if(!empty($structured_data)):?><script type="application/ld+json"><?php echo json_encode($structured_data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP);?></script><?php endif;?>
     <div class="announcement"><div class="container"><span><i class="fa-solid fa-truck-fast"></i> จัดส่งฟรีเมื่อสั่งซื้อครบ ฿1,000</span><span class="announcement-detail"><i class="fa-solid fa-shield-heart"></i> ชำระปลอดภัย · ตรวจสอบคำสั่งซื้อได้ทุกขั้นตอน</span></div></div>
     <header class="site-header">
