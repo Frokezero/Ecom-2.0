@@ -167,7 +167,9 @@ namespace KitchenMartShareLauncher
         private void OnCloudflaredOutput(object sender, DataReceivedEventArgs e)
         {
             if (String.IsNullOrEmpty(e.Data)) return;
-            Match match = Regex.Match(e.Data, "https://[a-z0-9-]+\\.trycloudflare\\.com", RegexOptions.IgnoreCase);
+            // cloudflared logs may mention api.trycloudflare.com before the actual Quick Tunnel URL.
+            // Only accept a generated tunnel hostname; the API host returns Method Not Allowed in a browser.
+            Match match = Regex.Match(e.Data, "https://(?!api\\.)[a-z0-9-]+\\.trycloudflare\\.com", RegexOptions.IgnoreCase);
             if (match.Success)
             {
                 publicUrl = match.Value;
