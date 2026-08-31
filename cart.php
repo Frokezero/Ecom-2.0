@@ -41,7 +41,7 @@ foreach ($cart as $item) {
                         <?php foreach ($cart as $id => $item): 
                             $subtotal = $item['price'] * $item['quantity'];
                         ?>
-                            <tr style="border-bottom: 1px solid var(--border-color);">
+                            <tr data-cart-key="<?php echo e((string)$id);?>" style="border-bottom: 1px solid var(--border-color);">
                                 <td style="padding: 16px 0;">
                                     <div style="display: flex; align-items: center; gap: 14px;">
                                         <img src="<?php echo e($item['image_url']); ?>" alt="<?php echo e($item['name']); ?>" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">
@@ -73,7 +73,7 @@ foreach ($cart as $item) {
                 <div class="coupon-box" data-coupon-selector data-subtotal="<?php echo (float)$grand_total; ?>" data-total-target="cartTotal" data-discount-target="cartCouponDiscount" data-discount-row="cartCouponDiscountRow" style="margin-bottom:18px;padding:14px;background:#fff8ef;border:1px dashed var(--orange);"><label style="display:block;font-weight:700;font-size:12px;margin-bottom:7px;">เลือกคูปองที่ต้องการใช้</label><select data-coupon-select style="width:100%;padding:9px;margin-bottom:8px;"><option value="">ไม่ใช้คูปอง</option></select><div style="display:flex;gap:7px;"><input data-coupon-input placeholder="หรือกรอกรหัสคูปอง" style="min-width:0;flex:1;padding:9px;"><button type="button" data-coupon-apply class="btn btn-outline" style="padding:7px 10px;font-size:11px;">ใช้โค้ด</button></div><small data-coupon-message style="display:block;margin-top:6px;color:var(--muted);"></small></div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px; color: var(--text-muted);">
                     <span>ยอดรวมสินค้า</span>
-                    <span style="font-weight: 600; color: var(--text-main);"><?php echo formatCurrency($grand_total); ?></span>
+                    <span id="cartSubtotal" style="font-weight: 600; color: var(--text-main);"><?php echo formatCurrency($grand_total); ?></span>
                 </div>
 
                 <div style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--text-muted);">

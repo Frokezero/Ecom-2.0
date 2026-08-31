@@ -8,8 +8,9 @@ $db = (new Database())->getConnection();
 
 function cartSummary(): array {
     $items=[]; $count=0; $total=0.0;
-    foreach ($_SESSION['cart'] as $item) {
+    foreach ($_SESSION['cart'] as $cartKey=>$item) {
         $subtotal=(float)$item['price']*(int)$item['quantity'];
+        $item['cart_key']=(string)$cartKey;
         $item['subtotal']=$subtotal; $item['formatted_price']=formatCurrency($item['price']);
         $item['formatted_subtotal']=formatCurrency($subtotal); $items[]=$item;
         $count+=(int)$item['quantity']; $total+=$subtotal;
