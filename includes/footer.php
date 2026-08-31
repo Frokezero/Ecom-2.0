@@ -52,6 +52,8 @@
     </footer>
 
     <div id="floatingPromo" class="floating-promo" hidden aria-live="polite"></div>
+    <button id="chatbotLauncher" class="chatbot-launcher" type="button" aria-label="คุยกับผู้ช่วย KitchenMart" aria-expanded="false"><i class="fa-solid fa-comments"></i><b>AI</b></button>
+    <section id="chatbotPanel" class="chatbot-panel" aria-label="ผู้ช่วย KitchenMart"><header class="chatbot-head"><i class="fa-solid fa-robot"></i><span><strong>ผู้ช่วย KitchenMart</strong><small>ค้นหาจากข้อมูลจริงของร้าน</small></span><button id="chatbotClose" type="button" aria-label="ปิดแชท">×</button></header><div id="chatbotMessages" class="chatbot-messages" aria-live="polite"></div><div class="chat-quick"><button data-chat-prompt="แนะนำสินค้าขายดี">สินค้าแนะนำ</button><button data-chat-prompt="ตรวจสอบคำสั่งซื้อล่าสุด">เช็กออเดอร์</button><button data-chat-prompt="ใช้คูปองอย่างไร">วิธีใช้คูปอง</button><button data-chat-prompt="คืนสินค้าอย่างไร">คืนสินค้า</button></div><button id="chatEscalate" class="chat-escalate" type="button"><i class="fa-solid fa-headset"></i> คุยกับเจ้าหน้าที่</button><form id="chatbotForm" class="chatbot-form"><input id="chatbotInput" maxlength="1000" autocomplete="off" placeholder="พิมพ์คำถามเกี่ยวกับสินค้า..."><button type="submit" aria-label="ส่งข้อความ"><i class="fa-solid fa-paper-plane"></i></button></form></section>
 
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toastContainer"></div>
@@ -79,5 +81,6 @@
     <script src="<?php echo BASE_URL; ?>assets/js/image-crop.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/cart.js?v=4"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/payment.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/chatbot.js?v=1"></script>
 </body>
 </html>

@@ -37,6 +37,7 @@ function adminStatusLabel(string $status): string {
             <a href="<?php echo BASE_URL; ?>admin/orders.php" class="<?php echo in_array($admin_page,['orders.php','order-detail.php'],true)?'active':''; ?>"><i class="fa-solid fa-clipboard-list"></i><span>คำสั่งซื้อ</span></a>
             <a href="<?php echo BASE_URL; ?>admin/returns.php" class="<?php echo $admin_page==='returns.php'?'active':''; ?>"><i class="fa-solid fa-arrow-rotate-left"></i><span>คืนสินค้าและคืนเงิน</span></a>
             <a href="<?php echo BASE_URL; ?>admin/support.php" class="<?php echo $admin_page==='support.php'?'active':''; ?>"><i class="fa-solid fa-headset"></i><span>ศูนย์ช่วยเหลือลูกค้า</span></a>
+            <a href="<?php echo BASE_URL; ?>admin/chatbot.php" class="<?php echo $admin_page==='chatbot.php'?'active':''; ?>"><i class="fa-solid fa-robot"></i><span>AI Chatbot</span></a>
             <a href="<?php echo BASE_URL; ?>admin/sellers.php" class="<?php echo $admin_page==='sellers.php'?'active':''; ?>"><i class="fa-solid fa-store"></i><span>คำขอผู้ขาย</span></a>
             <a href="<?php echo BASE_URL; ?>admin/seller-products.php" class="<?php echo $admin_page==='seller-products.php'?'active':''; ?>"><i class="fa-solid fa-box-open"></i><span>ตรวจสินค้าผู้ขาย</span></a>
             <a href="<?php echo BASE_URL; ?>admin/payouts.php" class="<?php echo $admin_page==='payouts.php'?'active':''; ?>"><i class="fa-solid fa-money-bill-transfer"></i><span>ถอนเงินผู้ขาย</span></a>
