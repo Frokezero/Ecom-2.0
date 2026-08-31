@@ -141,7 +141,7 @@ if ($profileDb) {
     </form>
 </div>
 
-<script>
+<script nonce="<?php echo e(cspNonce()); ?>">
 const savedCheckoutAddress=<?php echo json_encode((string)$checkoutProfile['address'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 const savedPaymentMethod=<?php echo json_encode((string)$checkoutProfile['preferred_payment_method']); ?>;
 const shippingAddressField=document.querySelector('[name="shipping_address"]');

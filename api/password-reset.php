@@ -2,9 +2,11 @@
 require_once __DIR__.'/../config/database.php';
 require_once __DIR__.'/../includes/functions.php';
 require_once __DIR__.'/../includes/mailer.php';
+require_once __DIR__.'/../includes/security_monitor.php';
 if($_SERVER['REQUEST_METHOD']!=='POST')jsonResponse('error','อนุญาตเฉพาะ POST',[],405);
 requireCsrf();
 $db=(new Database())->getConnection();if(!$db)jsonResponse('error','ไม่สามารถเชื่อมต่อฐานข้อมูลได้',[],503);
+protectApiMutation($db,'api.password_reset',10,300);
 $action=$_POST['action']??'';
 if($action==='request'){
     $email=strtolower(trim((string)($_POST['email']??'')));

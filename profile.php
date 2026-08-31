@@ -96,7 +96,7 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </div>
 <div class="profile-notice" id="profileNotice" role="status" aria-live="polite"></div>
-<script>
+<script nonce="<?php echo e(cspNonce()); ?>">
 const profilePanels=document.querySelectorAll('[data-profile-panel]'),profileTabs=document.querySelectorAll('[data-profile-tab]');
 function showProfileTab(name){profilePanels.forEach(panel=>panel.classList.toggle('active',panel.dataset.profilePanel===name));profileTabs.forEach(tab=>tab.classList.toggle('active',tab.dataset.profileTab===name));history.replaceState(null,'','#'+name)}
 profileTabs.forEach(tab=>tab.addEventListener('click',()=>showProfileTab(tab.dataset.profileTab)));if(location.hash){const target=location.hash.slice(1);if(document.querySelector(`[data-profile-panel="${target}"]`))showProfileTab(target)}

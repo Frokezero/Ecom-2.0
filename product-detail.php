@@ -100,7 +100,7 @@ require_once __DIR__ . '/includes/header.php';
     </section>
 </div>
 
-<script>
+<script nonce="<?php echo e(cspNonce()); ?>">
 function addSelectedVariant(){const select=document.getElementById('variantSelect');if(select&&!select.value){showToast('กรุณาเลือกตัวเลือกสินค้า','error');return}addToCart(<?php echo (int)$product['id'];?>,parseInt(document.getElementById('detailQty').value),select?parseInt(select.value):0)}function updateVariant(){const option=document.getElementById('variantSelect')?.selectedOptions[0];if(!option?.value)return;document.querySelector('.detail-price strong').textContent=new Intl.NumberFormat('th-TH',{style:'currency',currency:'THB'}).format(option.dataset.price);document.getElementById('detailQty').max=option.dataset.stock;}
 let wishlistSaved=<?php echo $is_wishlisted?'true':'false';?>;async function toggleWishlist(){<?php if(!isLoggedIn()):?>location.href=`${BASE_URL}login.php`;return;<?php else:?>const d=new FormData();d.append('action',wishlistSaved?'remove':'add');d.append('product_id','<?php echo $id;?>');d.append('csrf_token',CSRF_TOKEN);const r=await fetch(`${BASE_URL}api/wishlist.php`,{method:'POST',body:d}),j=await r.json();if(j.status==='success'){wishlistSaved=j.data.saved;document.getElementById('wishlistButton').innerHTML=`<i class="fa-${wishlistSaved?'solid':'regular'} fa-heart"></i> ${wishlistSaved?'บันทึกแล้ว':'รายการโปรด'}`}showToast(j.message,j.status==='success'?'success':'error');<?php endif;?>}
 function changeQty(delta) {

@@ -1,12 +1,14 @@
 <?php
 require_once __DIR__.'/../config/database.php';
 require_once __DIR__.'/../includes/functions.php';
+require_once __DIR__.'/../includes/security_monitor.php';
 
 if($_SERVER['REQUEST_METHOD']!=='POST')jsonResponse('error','อนุญาตเฉพาะ POST',[],405);
 if(!isLoggedIn())jsonResponse('error','กรุณาเข้าสู่ระบบก่อนเขียนรีวิว',[],401);
 requireCsrf();
 $db=(new Database())->getConnection();
 if(!$db)jsonResponse('error','ไม่สามารถเชื่อมต่อฐานข้อมูลได้',[],503);
+protectApiMutation($db,'api.reviews',20,60);
 $action=$_POST['action']??'';
 $productId=filter_var($_POST['product_id']??null,FILTER_VALIDATE_INT);
 if(!$productId||$productId<1)jsonResponse('error','รหัสสินค้าไม่ถูกต้อง',[],422);

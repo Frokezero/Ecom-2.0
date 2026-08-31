@@ -34,7 +34,7 @@ require_once __DIR__ . '/includes/header.php';
         </form>
     </section><?php endif; ?>
 </div></div>
-<script>
+<script nonce="<?php echo e(cspNonce()); ?>">
 document.querySelectorAll('[data-seller-wizard]').forEach(wizard=>{const form=wizard.querySelector('form'),steps=[...form.querySelectorAll('[data-step]')],dots=[...document.querySelectorAll('.seller-steps li')];let current=0;const escape=v=>String(v||'—').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));const show=index=>{current=index;steps.forEach((step,i)=>{step.hidden=i!==index});dots.forEach((dot,i)=>dot.classList.toggle('active',i<=index));if(index===2){const f=form.elements;form.querySelector('[data-review]').innerHTML=`<dl><div><dt>ชื่อร้าน</dt><dd>${escape(f.shop_name.value)}</dd></div><div><dt>หมวดสินค้าหลัก</dt><dd>${escape(f.category.selectedOptions[0]?.text)}</dd></div><div><dt>เบอร์โทรศัพท์</dt><dd>${escape(f.phone.value)}</dd></div><div><dt>วิธีรับเงิน</dt><dd>${escape(f.payout.value)}</dd></div><div><dt>ที่อยู่รับคืนสินค้า</dt><dd>${escape(f.return_address.value)}</dd></div></dl>`}wizard.scrollIntoView({behavior:'smooth',block:'start'})};form.querySelectorAll('[data-next]').forEach(button=>button.onclick=()=>{const fields=[...steps[current].querySelectorAll('input,select,textarea')].filter(field=>field.required);if(fields.every(field=>field.reportValidity()))show(current+1)});form.querySelectorAll('[data-back]').forEach(button=>button.onclick=()=>show(current-1));form.onsubmit=event=>{event.preventDefault();if(!form.reportValidity())return;steps.forEach(step=>step.hidden=true);form.querySelector('.seller-ready').hidden=false;dots.forEach(dot=>dot.classList.add('active'))}});
 </script>
 <script>

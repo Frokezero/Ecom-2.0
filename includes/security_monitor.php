@@ -43,3 +43,4 @@ function enforceRequestRate(PDO $db,string $endpoint,int $limit,int $windowSecon
  if(random_int(1,100)===1)$db->prepare('DELETE FROM request_rate_counters WHERE expires_at<DATE_SUB(NOW(),INTERVAL 1 DAY)')->execute();
  if($count<=$limit)return;$score=recordSecurityEvent($db,'request.rate_limit',30,$userId,['endpoint'=>$endpoint,'count'=>$count,'limit'=>$limit,'window_seconds'=>$windowSeconds],'blocked');securityBlock($db,'ip',$ipHash,$userId,'Request เกินกำหนด: '.$endpoint,max(60,$score),900);jsonResponse('error','ส่งคำขอถี่เกินไป กรุณารอสักครู่',['retry_after'=>max(1,strtotime($expires)-time())],429);
 }
+function protectApiMutation(PDO $db,string $endpoint,int $limit=60,int $windowSeconds=60):void{$userId=isLoggedIn()?(int)$_SESSION['user_id']:null;enforceSecurityBlock($db,$userId,true);enforceRequestRate($db,$endpoint,$limit,$windowSeconds,$userId);}

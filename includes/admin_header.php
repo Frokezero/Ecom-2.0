@@ -53,6 +53,6 @@ function adminStatusLabel(string $status): string {
             <div class="admin-user"><div class="notification-menu"><button type="button" class="notification-trigger" id="notificationTrigger" aria-label="การแจ้งเตือน"><i class="fa-regular fa-bell"></i><b id="notificationBadge" hidden>0</b></button><div class="notification-dropdown" id="notificationDropdown"><header><strong>การแจ้งเตือน</strong><a href="<?php echo BASE_URL; ?>notifications.php">ดูทั้งหมด</a></header><div class="notification-preview-list" id="notificationPreviewList"><p class="notification-preview-empty">กำลังโหลด...</p></div></div></div><span><strong><?php echo e($_SESSION['username'] ?? 'Admin'); ?></strong><small>ผู้ดูแลระบบ</small></span><i class="fa-solid fa-user-shield"></i></div>
         </header>
         <main class="admin-main">
-<script>
+<script nonce="<?php echo e(cspNonce()); ?>">
 async function adminLogout(){const body=new FormData();body.append('action','logout');body.append('csrf_token','<?php echo e(getCsrfToken()); ?>');const response=await fetch('<?php echo BASE_URL; ?>api/auth.php',{method:'POST',body});const result=await response.json();if(result.status==='success')location.href=result.data.redirect;}
 </script>

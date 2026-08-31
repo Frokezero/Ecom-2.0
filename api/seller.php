@@ -1,11 +1,13 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/security_monitor.php';
 if (!isLoggedIn()) jsonResponse('error', 'กรุณาเข้าสู่ระบบ', [], 401);
 requireCsrf();
 if (($_POST['action'] ?? '') !== 'apply') jsonResponse('error', 'คำขอไม่ถูกต้อง', [], 400);
 require_once __DIR__ . '/../config/database.php';
 $db = (new Database())->getConnection();
 if (!$db) jsonResponse('error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', [], 503);
+protectApiMutation($db,'api.seller',10,300);
 $userId = (int)$_SESSION['user_id'];
 $account = $db->prepare('SELECT email_verified_at FROM users WHERE id=? LIMIT 1');
 $account->execute([$userId]);

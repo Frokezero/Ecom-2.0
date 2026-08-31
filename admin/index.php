@@ -5,7 +5,7 @@ requireAdmin();
 require_once __DIR__ . '/../config/database.php';
 $db = (new Database())->getConnection();
 
-$metrics = ['products'=>0,'low_stock'=>0,'orders'=>0,'pending'=>0,'revenue'=>0,'month_revenue'=>0];
+$metrics = ['products'=>0,'low_stock'=>0,'orders'=>0,'pending'=>0,'revenue'=>0,'month_revenue'=>0,'mail_pending'=>0,'mail_dead'=>0,'mail_stale'=>0];
 $paymentCounts = ['promptpay'=>0,'cod'=>0];
 $recentOrders = [];
 if ($db) {
@@ -15,11 +15,15 @@ if ($db) {
     $metrics['pending'] = (int)$db->query("SELECT COUNT(*) FROM orders WHERE order_status='pending'")->fetchColumn();
     $metrics['revenue'] = (float)$db->query("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE payment_status='paid' OR order_status='completed'")->fetchColumn();
     $metrics['month_revenue'] = (float)$db->query("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE (payment_status='paid' OR order_status='completed') AND YEAR(created_at)=YEAR(CURRENT_DATE()) AND MONTH(created_at)=MONTH(CURRENT_DATE())")->fetchColumn();
+    $metrics['mail_pending']=(int)$db->query("SELECT COUNT(*) FROM email_delivery_logs WHERE status IN ('queued','failed')")->fetchColumn();
+    $metrics['mail_dead']=(int)$db->query("SELECT COUNT(*) FROM email_delivery_logs WHERE status='dead'")->fetchColumn();
+    $metrics['mail_stale']=(int)$db->query("SELECT COUNT(*) FROM email_delivery_logs WHERE status IN ('queued','failed','sending') AND created_at<DATE_SUB(NOW(),INTERVAL 5 MINUTE)")->fetchColumn();
     foreach ($db->query('SELECT payment_method,COUNT(*) count FROM orders GROUP BY payment_method') as $row) $paymentCounts[$row['payment_method']] = (int)$row['count'];
     $recentOrders = $db->query('SELECT o.*,u.full_name customer_name FROM orders o LEFT JOIN users u ON u.id=o.user_id ORDER BY o.id DESC LIMIT 8')->fetchAll();
 }
 require_once __DIR__ . '/../includes/admin_header.php';
 ?>
+<?php if($metrics['mail_stale']||$metrics['mail_dead']):?><div class="admin-alert error"><i class="fa-solid fa-envelope-circle-xmark"></i> คิวอีเมลผิดปกติ: ค้างเกิน 5 นาที <?php echo $metrics['mail_stale'];?> รายการ และหยุดส่ง <?php echo $metrics['mail_dead'];?> รายการ — <a href="<?php echo BASE_URL;?>admin/email-logs.php">ตรวจสอบคิว</a></div><?php endif;?>
 <header class="admin-page-header"><div><p class="eyebrow">STORE OVERVIEW</p><h1>ภาพรวมร้านวันนี้</h1><p>ติดตามยอดขาย คำสั่งซื้อ และงานที่ต้องจัดการจากหน้าเดียว</p></div><div class="admin-actions"><a href="<?php echo BASE_URL; ?>admin/products.php?action=add" class="btn btn-outline"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า</a><a href="<?php echo BASE_URL; ?>admin/orders.php?order_status=pending" class="btn btn-primary"><i class="fa-solid fa-clipboard-check"></i> จัดการออเดอร์</a></div></header>
 
 <section class="stat-grid" aria-label="สถิติร้าน">

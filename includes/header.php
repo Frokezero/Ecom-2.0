@@ -99,6 +99,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </nav>
     </header>
     <main>
-    <script>
+    <script nonce="<?php echo e(cspNonce()); ?>">
     async function secureLogout(){const body=new FormData();body.append('action','logout');body.append('csrf_token','<?php echo e(getCsrfToken()); ?>');const response=await fetch('<?php echo BASE_URL; ?>api/auth.php',{method:'POST',body});const result=await response.json();if(result.status==='success')location.href=result.data.redirect;}
     </script>

@@ -173,7 +173,7 @@ $categoryBanners=$db?activePromotionalBanners($db,'category',$cat_id):[];
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo e(cspNonce()); ?>">
 const filterPanel=document.getElementById('filterPanel'),filterScrim=document.getElementById('filterScrim');
 function setFilters(open){filterPanel.classList.toggle('open',open);filterScrim.classList.toggle('open',open);document.body.classList.toggle('filters-open',open)}
 document.getElementById('openFilters').addEventListener('click',()=>setFilters(true));

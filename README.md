@@ -19,6 +19,10 @@ KitchenMart เป็นระบบ E-Commerce ภาษาไทยสำห�
 7. ตั้ง Cron/Task Scheduler ให้รัน `php tools/process-email-queue.php 50` ทุกหนึ่งนาที
 8. เปิด `http://localhost/kitchenmart/`
 
+บน Windows สามารถติดตั้งงานส่งอีเมลด้วย `powershell -ExecutionPolicy Bypass -File tools/install-email-worker.ps1` ตรวจสุขภาพด้วย `php tools/health-check.php` และตั้งงานรายวันสำหรับ `php tools/cleanup-orphan-uploads.php` เพื่อล้างรูปที่ไม่มีข้อมูลอ้างอิงและเก่ากว่า 24 ชั่วโมง
+
+ทดสอบหน้าเว็บจริงแบบ HTTP ได้ด้วย `powershell -ExecutionPolicy Bypass -File tools/smoke-test.ps1` โดยสคริปต์จะเปิด PHP development server เฉพาะ localhost ชั่วคราว ตรวจหน้าหลักและ API guard แล้วปิดเซิร์ฟเวอร์ให้อัตโนมัติ
+
 หากคงชื่อโฟลเดอร์เดิม URL จะมีช่องว่างและภาษาไทย จึงแนะนำให้เปลี่ยนชื่อเป็น `kitchenmart`
 
 ## การตั้งค่า

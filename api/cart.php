@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/security_monitor.php';
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $db = (new Database())->getConnection();
@@ -20,6 +21,7 @@ if ($action === 'get') jsonResponse('success', 'โหลดตะกร้า�
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonResponse('error', 'อนุญาตเฉพาะ POST', [], 405);
 requireCsrf();
 if (!$db) jsonResponse('error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', [], 503);
+protectApiMutation($db,'api.cart',90,60);
 
 $productId = filter_var($_POST['product_id'] ?? null, FILTER_VALIDATE_INT);
 if (!$productId || $productId < 1) jsonResponse('error', 'รหัสสินค้าไม่ถูกต้อง', [], 422);

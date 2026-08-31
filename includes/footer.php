@@ -65,7 +65,7 @@
     </div>
 
     <!-- Global App JS Script -->
-    <script>
+    <script nonce="<?php echo e(cspNonce()); ?>">
         const BASE_URL = "<?php echo BASE_URL; ?>";
         const CSRF_TOKEN = "<?php echo getCsrfToken(); ?>";
     </script>

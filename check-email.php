@@ -45,7 +45,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </section>
 </div>
-<script>
+<script nonce="<?php echo e(cspNonce()); ?>">
 document.getElementById('resendForm').addEventListener('submit', async event => {
     event.preventDefault();
     const form = event.currentTarget, button = document.getElementById('resendButton'), resultBox = document.getElementById('resendResult');

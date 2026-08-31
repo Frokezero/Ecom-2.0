@@ -62,7 +62,7 @@ $promo_banners=$db?activePromotionalBanners($db,'hero'):[];
         <?php endforeach; ?></div>
     </section>
 </div>
-<script>
+<script nonce="<?php echo e(cspNonce()); ?>">
 document.querySelectorAll('[data-featured-carousel]').forEach((carousel) => {
     const track = carousel.querySelector('[data-carousel-track]');
     const previous = carousel.querySelector('[data-carousel-prev]');

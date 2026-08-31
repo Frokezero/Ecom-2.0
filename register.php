@@ -26,7 +26,7 @@ require_once __DIR__.'/includes/header.php';
         <p class="auth-switch">มีบัญชีอยู่แล้ว? <a href="<?php echo BASE_URL; ?>login.php">เข้าสู่ระบบ</a></p>
     </div>
 </section></div>
-<script>
+<script nonce="<?php echo e(cspNonce()); ?>">
 document.querySelectorAll('[data-password-toggle]').forEach(button=>button.addEventListener('click',()=>{const input=document.getElementById(button.dataset.passwordToggle),show=input.type==='password';input.type=show?'text':'password';button.innerHTML=`<i class="fa-regular fa-eye${show?'-slash':''}"></i>`;button.setAttribute('aria-label',show?'ซ่อนรหัสผ่าน':'แสดงรหัสผ่าน')}));
 const password=document.getElementById('password'),confirmPassword=document.getElementById('passwordConfirm'),meter=document.getElementById('passwordMeter'),strength=document.getElementById('passwordStrength'),matchHint=document.getElementById('matchHint'),usernameInput=document.getElementById('username'),usernameHint=document.getElementById('usernameHint');
 const reservedUsernames=['admin','administrator','root','system','support','staff','moderator','kitchenmart','official','null','undefined'];

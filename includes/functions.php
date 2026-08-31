@@ -48,7 +48,7 @@ function getCsrfToken(): string { return $_SESSION['csrf_token'] ?? ''; }
 function requestCsrfToken(): string { return (string)($_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''); }
 function verifyCsrfToken($token): bool { return is_string($token) && isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token); }
 function requireCsrf(bool $json = true): void {
-    if (verifyCsrfToken(requestCsrfToken())) return;
+    if (verifyCsrfToken(requestCsrfToken())) {$now=time();$guard=$_SESSION['mutation_guard']??['started'=>$now,'count'=>0];if($now-(int)$guard['started']>=60)$guard=['started'=>$now,'count'=>0];$guard['count']=(int)$guard['count']+1;$_SESSION['mutation_guard']=$guard;if($guard['count']<=120)return;if($json)jsonResponse('error','ส่งคำขอถี่เกินไป กรุณารอสักครู่',[],429);http_response_code(429);exit('Too many requests');}
     if ($json) jsonResponse('error', 'โทเคนความปลอดภัยไม่ถูกต้อง กรุณารีเฟรชหน้าแล้วลองใหม่', [], 403);
     http_response_code(403); exit('Invalid CSRF token');
 }
