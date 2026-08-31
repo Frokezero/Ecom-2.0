@@ -61,6 +61,20 @@ CREATE TABLE IF NOT EXISTS request_rate_counters (
  KEY idx_rate_ip_endpoint (ip_hash,endpoint,window_started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS user_login_locations (
+ id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+ user_id INT UNSIGNED NOT NULL,
+ ip_hash CHAR(64) NOT NULL,
+ country_code CHAR(2) NULL,
+ user_agent_hash CHAR(64) NULL,
+ login_count INT UNSIGNED NOT NULL DEFAULT 1,
+ first_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ UNIQUE KEY uq_user_login_ip (user_id,ip_hash),
+ KEY idx_login_location_seen (user_id,last_seen_at),
+ CONSTRAINT fk_login_location_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO security_rules(rule_code,event_type,threshold_count,window_seconds,risk_points,block_seconds) VALUES
 ('login_fail_identity','login.failed',8,900,10,900),
 ('login_fail_ip','login.failed',20,900,10,3600),
