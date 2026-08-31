@@ -95,5 +95,6 @@
     textarea.closest('form')?.addEventListener('submit', compose);
   }
 
-  document.addEventListener('DOMContentLoaded', () => document.querySelectorAll('textarea[data-address-picker], textarea[name="address"], textarea[name="shipping_address"], textarea[name="return_address"]').forEach(attach));
+  window.initThaiAddressPickers=()=>document.querySelectorAll('textarea[data-address-picker], textarea[name="address"], textarea[name="shipping_address"], textarea[name="return_address"]').forEach(attach);
+  document.addEventListener('DOMContentLoaded', window.initThaiAddressPickers);
 })();

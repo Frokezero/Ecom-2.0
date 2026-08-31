@@ -15,18 +15,17 @@
     } catch (_) { /* notification UI is non-blocking */ }
   }
   window.openNotification = async (row, id, link) => {
-    if (row.classList.contains('unread')) {
+    try { if (row.classList.contains('unread')) {
       const body = new FormData();
       body.append('action','read'); body.append('id',id); body.append('csrf_token',CSRF_TOKEN);
-      await fetch(BASE_URL + 'api/notifications.php',{method:'POST',body});
+      const response=await fetch(BASE_URL + 'api/notifications.php',{method:'POST',body});const result=await response.json();if(!response.ok||result.status!=='success')throw new Error(result.message||'บันทึกสถานะไม่สำเร็จ');
       row.classList.remove('unread'); row.querySelector('.notification-dot')?.remove(); load();
-    }
-    if (link) window.location.href = link;
+    } if (link) window.location.href = link; } catch(error) { if(typeof showToast==='function')showToast(error.message,'error'); }
   };
   window.markAllNotifications = async () => {
     const body = new FormData();
     body.append('action','read_all'); body.append('csrf_token',CSRF_TOKEN);
-    await fetch(BASE_URL + 'api/notifications.php',{method:'POST',body});
+    const response=await fetch(BASE_URL + 'api/notifications.php',{method:'POST',body});const result=await response.json();if(!response.ok||result.status!=='success'){if(typeof showToast==='function')showToast(result.message||'บันทึกสถานะไม่สำเร็จ','error');return;}
     document.querySelectorAll('.notification-row.unread,.notification-preview-item.unread').forEach(item=>item.classList.remove('unread'));
     document.querySelectorAll('.notification-dot').forEach(item=>item.remove()); setBadge(0);
   };

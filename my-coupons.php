@@ -23,5 +23,5 @@ require_once __DIR__.'/includes/header.php';
   </div></section>
  </div>
 </div>
-<script src="<?php echo BASE_URL; ?>assets/js/coupon-center.js?v=1"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/coupon-center.js?v=2"></script>
 <?php require_once __DIR__.'/includes/footer.php'; ?>

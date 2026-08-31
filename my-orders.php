@@ -30,7 +30,7 @@ if ($db) {
     <?php else: ?>
         <div style="display: flex; flex-direction: column; gap: 20px;">
             <?php foreach ($orders as $o): ?>
-                <div style="background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 24px; box-shadow: var(--shadow-sm);">
+                <div data-order-card="<?php echo (int)$o['id'];?>" style="background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 24px; box-shadow: var(--shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px;">
                         <div>
                             <span style="font-size: 0.85rem; color: var(--text-muted);">เลขที่ออเดอร์:</span>
@@ -60,7 +60,7 @@ if ($db) {
                             <div style="font-size: 0.85rem; color: var(--text-muted);">ราคารวมสุทธิ</div>
                             <div style="font-size: 1.4rem; font-weight: 700; color: var(--primary);"><?php echo formatCurrency($o['total_amount']); ?></div>
                             <a href="<?php echo BASE_URL; ?>order-detail.php?id=<?php echo $o['id']; ?>" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; margin-top: 8px;">ดูรายละเอียดคำสั่งซื้อ &rarr;</a>
-                            <?php if($o['order_status']==='pending'): ?><button type="button" onclick="cancelOrder(<?php echo (int)$o['id']; ?>)" class="btn btn-danger" style="padding:6px 14px;font-size:.85rem;margin-top:8px">ยกเลิกออเดอร์</button><?php endif; ?>
+                            <?php if($o['order_status']==='pending'): ?><button type="button" onclick="cancelOrder(this,<?php echo (int)$o['id']; ?>)" class="btn btn-danger" style="padding:6px 14px;font-size:.85rem;margin-top:8px">ยกเลิกออเดอร์</button><?php endif; ?>
                             <?php if(in_array($o['order_status'],['shipped','completed'],true)&&(empty($o['return_request_id'])||in_array($o['return_status'],['rejected','cancelled'],true))): ?><?php if(!empty($o['return_request_id'])):?><a href="<?php echo BASE_URL;?>my-returns.php" class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;margin-top:8px">ดูคำขอที่ถูกปฏิเสธ</a><?php endif;?><a href="<?php echo BASE_URL;?>return-request.php?order_id=<?php echo (int)$o['id'];?>" class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;margin-top:8px">ขอคืนสินค้า<?php echo empty($o['return_request_id'])?'':'อีกครั้ง';?></a><?php elseif(!empty($o['return_request_id'])):$returnLabels=['requested'=>'รอตรวจสอบคำขอคืน','approved'=>'อนุมัติแล้ว กรุณาส่งสินค้าคืน','received'=>'ร้านได้รับสินค้าคืนแล้ว','refunded'=>'คืนเงินเรียบร้อย'];?><a href="<?php echo BASE_URL;?>my-returns.php" class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;margin-top:8px"><i class="fa-solid fa-arrow-rotate-left"></i> <?php echo e($returnLabels[$o['return_status']]??$o['return_status']);?></a><?php endif; ?>
                         </div>
                     </div>
@@ -69,6 +69,6 @@ if ($db) {
         </div>
     <?php endif; ?>
 </div>
-<script>async function cancelOrder(id){if(!confirm('ยืนยันยกเลิกคำสั่งซื้อ? สินค้าจะถูกคืนเข้าสต็อก'))return;const data=new FormData();data.append('action','cancel');data.append('order_id',id);data.append('csrf_token',CSRF_TOKEN);const response=await fetch(`${BASE_URL}api/orders.php`,{method:'POST',body:data});const result=await response.json();showToast(result.message,result.status==='success'?'success':'error');if(result.status==='success')setTimeout(()=>location.reload(),600)}</script>
+<script>async function cancelOrder(button,id){if(!confirm('ยืนยันยกเลิกคำสั่งซื้อ? สินค้าจะถูกคืนเข้าสต็อก'))return;button.disabled=true;const data=new FormData();data.append('action','cancel');data.append('order_id',id);data.append('csrf_token',CSRF_TOKEN);try{const response=await fetch(`${BASE_URL}api/orders.php`,{method:'POST',body:data});const result=await response.json();if(!response.ok||result.status!=='success')throw new Error(result.message||'ยกเลิกไม่สำเร็จ');const card=button.closest('[data-order-card]');button.remove();const badge=document.createElement('span');badge.className='status-badge cancelled';badge.textContent='ยกเลิกคำสั่งซื้อแล้ว';card?.querySelector('div[style*="text-align: right"]')?.prepend(badge);showToast(result.message,'success')}catch(error){button.disabled=false;showToast(error.message,'error')}}</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

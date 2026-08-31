@@ -114,8 +114,9 @@ function changeQty(delta) {
     input.value = val;
 }
 async function reviewRequest(action,form=null){const data=form?new FormData(form):new FormData();if(!form){data.append('action',action);data.append('product_id','<?php echo $id; ?>');data.append('csrf_token',CSRF_TOKEN)}const response=await fetch(`${BASE_URL}api/reviews.php`,{method:'POST',body:data});const result=await response.json();if(!response.ok||result.status!=='success')throw new Error(result.message||'ไม่สามารถบันทึกรีวิวได้');return result}
-async function saveReview(event){event.preventDefault();const btn=document.getElementById('reviewSubmitBtn');btn.disabled=true;try{const result=await reviewRequest('save',event.target);showToast(result.message,'success');setTimeout(()=>location.reload(),500)}catch(error){showToast(error.message,'error');btn.disabled=false}}
-async function deleteReview(){if(!confirm('ยืนยันลบรีวิวของคุณ?'))return;try{const result=await reviewRequest('delete');showToast(result.message,'success');setTimeout(()=>location.reload(),500)}catch(error){showToast(error.message,'error')}}
+async function refreshReviews(){const response=await fetch(location.href,{headers:{'X-Fragment-Request':'reviews'}});if(!response.ok)throw new Error('โหลดข้อมูลรีวิวล่าสุดไม่สำเร็จ');const doc=new DOMParser().parseFromString(await response.text(),'text/html'),fresh=doc.getElementById('reviews'),current=document.getElementById('reviews');if(fresh&&current)current.replaceWith(fresh)}
+async function saveReview(event){event.preventDefault();const btn=document.getElementById('reviewSubmitBtn');btn.disabled=true;try{const result=await reviewRequest('save',event.target);await refreshReviews();showToast(result.message,'success')}catch(error){showToast(error.message,'error');btn.disabled=false}}
+async function deleteReview(){if(!confirm('ยืนยันลบรีวิวของคุณ?'))return;try{const result=await reviewRequest('delete');await refreshReviews();showToast(result.message,'success')}catch(error){showToast(error.message,'error')}}
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
