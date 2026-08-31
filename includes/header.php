@@ -20,6 +20,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notification-hover.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/promotions.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/coupons.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/accessibility.css">
 </head>
 <body>
     <div class="announcement"><div class="container"><span><i class="fa-solid fa-truck-fast"></i> จัดส่งฟรีเมื่อสั่งซื้อครบ ฿1,000</span><span class="announcement-detail"><i class="fa-solid fa-shield-heart"></i> ชำระปลอดภัย · ตรวจสอบคำสั่งซื้อได้ทุกขั้นตอน</span></div></div>
