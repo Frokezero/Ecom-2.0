@@ -68,6 +68,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
                             <a href="<?php echo BASE_URL; ?>wishlist.php"><i class="fa-regular fa-heart"></i> รายการโปรด</a>
                             <a href="<?php echo BASE_URL; ?>my-orders.php" class="account-orders-link"><i class="fa-solid fa-box"></i> คำสั่งซื้อของฉัน <i class="fa-solid fa-arrow-right"></i></a>
                             <a href="<?php echo BASE_URL; ?>my-returns.php"><i class="fa-solid fa-arrow-rotate-left"></i> การคืนสินค้า</a>
+                            <a href="<?php echo BASE_URL; ?>support.php"><i class="fa-solid fa-headset"></i> ศูนย์ช่วยเหลือ</a>
                             <button type="button" onclick="secureLogout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ออกจากระบบ</button>
                         </div>
                     </div>

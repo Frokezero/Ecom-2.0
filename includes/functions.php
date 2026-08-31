@@ -76,6 +76,12 @@ function createRoleNotification(PDO $db, string $role, string $type, string $tit
     $users->execute([$role]);
     foreach ($users->fetchAll(PDO::FETCH_COLUMN) as $userId) createNotification($db, (int)$userId, $type, $title, $body, $link);
 }
+function recordOrderHistory(PDO $db, int $orderId, string $orderStatus, string $paymentStatus, string $note = '', ?int $actorUserId = null): void {
+    try {
+        $stmt=$db->prepare('INSERT INTO order_status_history(order_id,order_status,payment_status,note,actor_user_id) VALUES(?,?,?,?,?)');
+        $stmt->execute([$orderId,substr($orderStatus,0,30),substr($paymentStatus,0,30),mb_substr(trim($note),0,500)?:null,$actorUserId]);
+    } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
+}
 function auditLog(PDO $db,string $action,string $entityType,$entityId=null,$before=null,$after=null): void {
     $key=appConfig('APP_KEY','kitchenmart-local-audit-key');$ip=(string)($_SERVER['HTTP_CF_CONNECTING_IP']??$_SERVER['REMOTE_ADDR']??'unknown');
     $stmt=$db->prepare('INSERT INTO audit_logs(actor_user_id,action,entity_type,entity_id,before_json,after_json,ip_hash) VALUES(?,?,?,?,?,?,?)');

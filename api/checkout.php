@@ -41,6 +41,7 @@ if ($action === 'create_order') {
         $stmt=$db->prepare('INSERT INTO orders (order_no,user_id,subtotal_amount,total_amount,coupon_id,coupon_code,discount_amount,shipping_amount,shipping_name,shipping_phone,shipping_address,payment_method,payment_status,payment_expires_at,order_status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
         $stmt->execute([$orderNo,(int)$_SESSION['user_id'],$total,$payable,$coupon['id']??null,$coupon['code']??null,$discount,0,$name,$phone,$address,$method,$paymentStatus,$method==='promptpay'?date('Y-m-d H:i:s',time()+1800):null,'pending']);
         $orderId=(int)$db->lastInsertId();
+        recordOrderHistory($db,$orderId,'pending',$paymentStatus,'รับคำสั่งซื้อเข้าระบบ',(int)$_SESSION['user_id']);
         $itemStmt=$db->prepare('INSERT INTO order_items (order_id,product_id,variant_id,product_name,variant_sku,variant_name,price,quantity,subtotal) VALUES (?,?,?,?,?,?,?,?,?)');
         $stockStmt=$db->prepare('UPDATE products SET stock_quantity=stock_quantity-? WHERE id=? AND stock_quantity>=?');
         foreach ($items as $item) {

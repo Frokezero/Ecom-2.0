@@ -29,6 +29,8 @@
                         <li><a href="<?php echo BASE_URL; ?>products.php">สินค้าทั้งหมด</a></li>
                         <li><a href="<?php echo BASE_URL; ?>cart.php">ตะกร้าสินค้า</a></li>
                         <li><a href="<?php echo BASE_URL; ?>my-orders.php">ตรวจสอบสถานะคำสั่งซื้อ</a></li>
+                        <li><a href="<?php echo BASE_URL; ?>support.php">ศูนย์ช่วยเหลือ</a></li>
+                        <li><a href="<?php echo BASE_URL; ?>privacy.php">ความเป็นส่วนตัว</a></li>
                     </ul>
                 </div>
 
