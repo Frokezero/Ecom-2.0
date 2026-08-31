@@ -1,7 +1,7 @@
 <?php
 function expect(bool $condition,string $message):void{if(!$condition)throw new RuntimeException($message);}
 $secret='test-secret-that-is-not-used-in-production';
-$payload=json_encode(['reference'=>'PAY-001','order_no'=>'KMTEST','status'=>'paid','amount'=>890.00],JSON_UNESCAPED_SLASHES);
+$payload=json_encode(['event_id'=>'evt-test-001','occurred_at'=>time(),'reference'=>'PAY-001','order_no'=>'KMTEST','status'=>'paid','amount'=>890.00],JSON_UNESCAPED_SLASHES);
 $signature=hash_hmac('sha256',$payload,$secret);
 expect(strlen($signature)===64,'HMAC must be SHA-256 hex');
 expect(hash_equals($signature,hash_hmac('sha256',$payload,$secret)),'Valid webhook signature rejected');

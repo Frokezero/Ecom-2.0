@@ -54,8 +54,8 @@ if ($action === 'register') {
     if (($_POST['accept_terms'] ?? '')!=='1') jsonResponse('error','กรุณายอมรับเงื่อนไขการใช้งาน',['field'=>'accept_terms'],422);
     $stmt=$db->prepare('SELECT id FROM users WHERE username=? LIMIT 1');$stmt->execute([$username]);if($stmt->fetch())jsonResponse('error','ชื่อผู้ใช้นี้ถูกใช้งานแล้ว กรุณาเลือกชื่อผู้ใช้อื่น',['field'=>'username'],409);
     $stmt=$db->prepare('SELECT id FROM users WHERE email=? LIMIT 1');$stmt->execute([$email]);if($stmt->fetch())jsonResponse('error','อีเมลนี้ถูกใช้สมัครสมาชิกแล้ว กรุณาเข้าสู่ระบบหรือใช้อีเมลอื่น',['field'=>'email'],409);
-    $stmt=$db->prepare("INSERT INTO users (username,email,password_hash,full_name,phone,address,role,email_verified_at) VALUES (?,?,?,?,?,'','customer',NULL)");
-    $stmt->execute([$username,$email,password_hash($password,PASSWORD_DEFAULT),$fullName,$phone]);
+    try{$stmt=$db->prepare("INSERT INTO users (username,email,password_hash,full_name,phone,address,role,email_verified_at) VALUES (?,?,?,?,?,'','customer',NULL)");$stmt->execute([$username,$email,password_hash($password,PASSWORD_DEFAULT),$fullName,$phone]);}
+    catch(PDOException $e){if((int)($e->errorInfo[1]??0)===1062)jsonResponse('error','ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้แล้ว กรุณาเข้าสู่ระบบหรือเลือกข้อมูลอื่น',['field'=>'username'],409);throw $e;}
     $userId=(int)$db->lastInsertId();$delivery='sent';
     try{sendVerificationEmail($db,$userId,$email,$fullName);}
     catch(Throwable $e){$delivery='failed';$db->prepare('UPDATE users SET email_verification_sent_at=NULL WHERE id=?')->execute([$userId]);}
@@ -68,9 +68,10 @@ if ($action === 'login') {
     $identityHash=hash_hmac('sha256',mb_strtolower($identity),$rateKey);
     $ip=(string)($_SERVER['HTTP_CF_CONNECTING_IP']??$_SERVER['REMOTE_ADDR']??'unknown');
     $ipHash=hash_hmac('sha256',$ip,$rateKey);
-    $limit=$db->prepare("SELECT SUM(identifier_hash=? AND was_successful=0) identity_failures,SUM(ip_hash=? AND was_successful=0) ip_failures FROM login_attempts WHERE attempted_at>DATE_SUB(NOW(),INTERVAL 15 MINUTE)");
-    $limit->execute([$identityHash,$ipHash]);$rate=$limit->fetch();
-    if((int)($rate['identity_failures']??0)>=8||(int)($rate['ip_failures']??0)>=30){recordSecurityEvent($db,'request.rate_limit',30,null,['endpoint'=>'login','identity_failures'=>(int)($rate['identity_failures']??0),'ip_failures'=>(int)($rate['ip_failures']??0)],'blocked');securityBlock($db,'ip',$ipHash,null,'เข้าสู่ระบบผิดเกินกำหนด',70,900);jsonResponse('error','มีการเข้าสู่ระบบผิดหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่',['retry_after'=>900],429);}
+    $identityRule=securityRule($db,'login_fail_identity',['threshold_count'=>8,'window_seconds'=>900,'risk_points'=>10,'block_seconds'=>900]);$ipRule=securityRule($db,'login_fail_ip',['threshold_count'=>20,'window_seconds'=>900,'risk_points'=>10,'block_seconds'=>3600]);$window=max($identityRule['window_seconds'],$ipRule['window_seconds']);
+    $limit=$db->prepare("SELECT SUM(identifier_hash=? AND was_successful=0) identity_failures,SUM(ip_hash=? AND was_successful=0) ip_failures FROM login_attempts WHERE attempted_at>DATE_SUB(NOW(),INTERVAL ? SECOND)");
+    $limit->execute([$identityHash,$ipHash,$window]);$rate=$limit->fetch();
+    if((int)($rate['identity_failures']??0)>=$identityRule['threshold_count']||(int)($rate['ip_failures']??0)>=$ipRule['threshold_count']){$blockSeconds=max($identityRule['block_seconds'],$ipRule['block_seconds']);recordSecurityEvent($db,'request.rate_limit',max($identityRule['risk_points'],$ipRule['risk_points']),null,['endpoint'=>'login','identity_failures'=>(int)($rate['identity_failures']??0),'ip_failures'=>(int)($rate['ip_failures']??0)],'blocked');securityBlock($db,'ip',$ipHash,null,'เข้าสู่ระบบผิดเกินกำหนด',70,$blockSeconds);jsonResponse('error','มีการเข้าสู่ระบบผิดหลายครั้ง กรุณารอแล้วลองใหม่',['retry_after'=>$blockSeconds],429);}
     $attempts=$_SESSION['login_attempts'] ?? ['count'=>0,'last'=>0];
     if((int)$attempts['count']>=5 && time()-(int)$attempts['last']<60)jsonResponse('error','มีการเข้าสู่ระบบผิดหลายครั้ง กรุณารอ 60 วินาทีแล้วลองใหม่',['retry_after'=>60-(time()-(int)$attempts['last'])],429);
     if(time()-(int)$attempts['last']>=60)$attempts=['count'=>0,'last'=>0];

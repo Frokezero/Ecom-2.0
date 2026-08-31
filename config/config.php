@@ -37,6 +37,8 @@ if (!headers_sent()) {
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+    $csp = "default-src 'self'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'; object-src 'none'; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com data:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline'; connect-src 'self'";
+    header((appConfig('CSP_REPORT_ONLY', '0') === '1' ? 'Content-Security-Policy-Report-Only: ' : 'Content-Security-Policy: ') . $csp);
     if (requestIsHttps()) header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 }
 define('APP_NAME', appConfig('STORE_NAME', 'KitchenMart'));

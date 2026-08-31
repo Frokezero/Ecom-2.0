@@ -1,0 +1,6 @@
+<?php
+if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
+require_once __DIR__.'/../config/database.php';
+echo "Admin username: ";$username=trim((string)fgets(STDIN));echo "Admin email: ";$email=strtolower(trim((string)fgets(STDIN)));echo "Full name: ";$name=trim((string)fgets(STDIN));echo "Password (input is visible): ";$password=rtrim((string)fgets(STDIN),"\r\n");
+if(!preg_match('/^[A-Za-z][A-Za-z0-9]{2,29}$/',$username)||!filter_var($email,FILTER_VALIDATE_EMAIL)||mb_strlen($name)<2||strlen($password)<12||!preg_match('/[A-Z]/',$password)||!preg_match('/[a-z]/',$password)||!preg_match('/\d/',$password)){fwrite(STDERR,"Invalid data. Password needs 12+ characters with upper, lower and number.\n");exit(1);}
+$db=(new Database())->getConnection();if(!$db){fwrite(STDERR,"Database unavailable\n");exit(1);}try{$stmt=$db->prepare("INSERT INTO users(username,email,password_hash,full_name,phone,address,role,email_verified_at,two_factor_enabled) VALUES(?,?,?,?,'','','admin',NOW(),1)");$stmt->execute([$username,$email,password_hash($password,PASSWORD_DEFAULT),$name]);echo "Admin created. 2FA is required.\n";}catch(PDOException $e){if((int)($e->errorInfo[1]??0)===1062)fwrite(STDERR,"Username or email already exists.\n");else fwrite(STDERR,"Unable to create admin.\n");exit(1);}

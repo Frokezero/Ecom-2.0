@@ -1,11 +1,18 @@
 <?php
 require_once __DIR__.'/functions.php';
 
+function securityIpInCidr(string $ip,string $cidr):bool{
+ $parts=explode('/',trim($cidr),2);$subnet=$parts[0]??'';$bits=isset($parts[1])?(int)$parts[1]:null;$ipBin=@inet_pton($ip);$subnetBin=@inet_pton($subnet);if($ipBin===false||$subnetBin===false||strlen($ipBin)!==strlen($subnetBin))return false;$max=strlen($ipBin)*8;$bits=$bits===null?$max:$bits;if($bits<0||$bits>$max)return false;$bytes=intdiv($bits,8);$remaining=$bits%8;if($bytes&&substr($ipBin,0,$bytes)!==substr($subnetBin,0,$bytes))return false;if(!$remaining)return true;$mask=(0xff<<(8-$remaining))&0xff;return (ord($ipBin[$bytes])&$mask)===(ord($subnetBin[$bytes])&$mask);
+}
+function securityTrustedProxy(string $remote):bool{
+ $cidrs=array_filter(array_map('trim',explode(',',appConfig('TRUSTED_PROXY_CIDRS',''))));foreach($cidrs as $cidr)if(securityIpInCidr($remote,$cidr))return true;return false;
+}
 function securityClientIp():string{
  $remote=(string)($_SERVER['REMOTE_ADDR']??'unknown');
- if(appConfig('TRUST_CLOUDFLARE','0')==='1'&&!empty($_SERVER['HTTP_CF_CONNECTING_IP'])&&filter_var($_SERVER['HTTP_CF_CONNECTING_IP'],FILTER_VALIDATE_IP))return (string)$_SERVER['HTTP_CF_CONNECTING_IP'];
+ if(appConfig('TRUST_CLOUDFLARE','0')==='1'&&securityTrustedProxy($remote)&&!empty($_SERVER['HTTP_CF_CONNECTING_IP'])&&filter_var($_SERVER['HTTP_CF_CONNECTING_IP'],FILTER_VALIDATE_IP))return (string)$_SERVER['HTTP_CF_CONNECTING_IP'];
  return filter_var($remote,FILTER_VALIDATE_IP)?$remote:'unknown';
 }
+function securityRule(PDO $db,string $code,array $fallback):array{try{$stmt=$db->prepare('SELECT threshold_count,window_seconds,risk_points,block_seconds FROM security_rules WHERE rule_code=? AND is_active=1 LIMIT 1');$stmt->execute([$code]);$rule=$stmt->fetch();return $rule?array_map('intval',$rule):$fallback;}catch(Throwable $e){return $fallback;}}
 function securityIpHash(?string $ip=null):string{return hash_hmac('sha256',$ip??securityClientIp(),appConfig('APP_KEY','kitchenmart-local-security-key'));}
 function securityMaskIp(string $ip):string{if(filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_IPV4)){$p=explode('.',$ip);return $p[0].'.'.$p[1].'.xxx.xxx';}if(filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_IPV6))return substr($ip,0,8).'…';return 'unknown';}
 function securitySeverity(int $score):string{return $score>=80?'critical':($score>=60?'high':($score>=30?'medium':'low'));}

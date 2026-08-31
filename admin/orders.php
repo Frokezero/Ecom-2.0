@@ -3,13 +3,14 @@ $page_title='จัดการคำสั่งซื้อ';
 require_once __DIR__.'/../includes/auth_check.php';
 requireAdmin();
 require_once __DIR__.'/../config/database.php';
+require_once __DIR__.'/../includes/commerce_workflow.php';
 $db=(new Database())->getConnection();$message='';$error='';
 
 if($_SERVER['REQUEST_METHOD']==='POST'&&($_POST['action']??'')==='update_status'){
     requireCsrf(false);$orderId=(int)($_POST['order_id']??0);$paymentStatus=$_POST['payment_status']??'';$orderStatus=$_POST['order_status']??'';
     $validPayment=['pending','paid','cod_pending'];$validOrder=['pending','processing','shipped','completed','cancelled'];
     if($db&&$orderId>0&&in_array($paymentStatus,$validPayment,true)&&in_array($orderStatus,$validOrder,true)){
-        try{$current=$db->prepare('SELECT order_status FROM orders WHERE id=?');$current->execute([$orderId]);$currentStatus=$current->fetchColumn();if($currentStatus==='cancelled'&&$orderStatus!=='cancelled')throw new RuntimeException('ไม่สามารถเปิดคำสั่งซื้อที่ยกเลิกแล้วกลับมาใหม่');if($orderStatus==='cancelled'&&$currentStatus!=='cancelled'){cancelOrderAndRestock($db,$orderId);$message='ยกเลิกคำสั่งซื้อและคืนสต็อกแล้ว';}else{$stmt=$db->prepare('UPDATE orders SET payment_status=?,order_status=? WHERE id=?');$stmt->execute([$paymentStatus,$orderStatus,$orderId]);$message='บันทึกสถานะคำสั่งซื้อแล้ว';}}catch(RuntimeException $e){$error=$e->getMessage();}
+        try{$db->beginTransaction();$current=$db->prepare('SELECT id,order_status,payment_status,payment_method FROM orders WHERE id=? FOR UPDATE');$current->execute([$orderId]);$before=$current->fetch();if(!$before)throw new RuntimeException('ไม่พบคำสั่งซื้อ');assertOrderTransition($before,$orderStatus,$paymentStatus);if($orderStatus==='cancelled'&&$before['order_status']!=='cancelled'){cancelOrderAndRestock($db,$orderId);}else{$stmt=$db->prepare('UPDATE orders SET payment_status=?,order_status=? WHERE id=?');$stmt->execute([$paymentStatus,$orderStatus,$orderId]);}auditLog($db,'order.status.update','order',$orderId,$before,['order_status'=>$orderStatus,'payment_status'=>$paymentStatus]);$db->commit();$message=$orderStatus==='cancelled'?'ยกเลิกคำสั่งซื้อและคืนสต็อกแล้ว':'บันทึกสถานะคำสั่งซื้อแล้ว';}catch(Throwable $e){if($db->inTransaction())$db->rollBack();$error=$e instanceof RuntimeException?$e->getMessage():'ไม่สามารถบันทึกสถานะคำสั่งซื้อได้';}
     }else $error='ข้อมูลสถานะไม่ถูกต้อง';
 }
 

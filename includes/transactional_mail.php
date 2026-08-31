@@ -13,7 +13,17 @@ function sendUserEventEmail(PDO $db,int $userId,string $eventType,string $subjec
         return true;
     }
     try{$user=$db->prepare('SELECT email FROM users WHERE id=? LIMIT 1');$user->execute([$userId]);$email=(string)$user->fetchColumn();if(!filter_var($email,FILTER_VALIDATE_EMAIL))return false;$dedupeKey=$dedupeKey!==''?$dedupeKey:hash('sha256',$eventType.'|'.$userId.'|'.$subject.'|'.$body);
-        try{$existing=$db->prepare('SELECT status FROM email_delivery_logs WHERE dedupe_key=? LIMIT 1');$existing->execute([$dedupeKey]);if($existing->fetchColumn()==='sent')return true;$reserve=$db->prepare("INSERT INTO email_delivery_logs(user_id,event_type,recipient_email,subject,dedupe_key,status) VALUES(?,?,?,?,?,'sending') ON DUPLICATE KEY UPDATE attempts=attempts+1,status='sending',error_message=NULL");$reserve->execute([$userId,$eventType,$email,$subject,$dedupeKey]);}catch(Throwable $ignored){}
-        try{sendAppMail($email,$subject,transactionalEmailHtml($title,$body,$actionUrl));try{$db->prepare("UPDATE email_delivery_logs SET status='sent',sent_at=NOW(),error_message=NULL WHERE dedupe_key=?")->execute([$dedupeKey]);}catch(Throwable $ignored){}return true;}catch(Throwable $mailError){try{$db->prepare("UPDATE email_delivery_logs SET status='failed',error_message=? WHERE dedupe_key=?")->execute([mb_substr($mailError->getMessage(),0,500),$dedupeKey]);}catch(Throwable $ignored){}error_log('Transactional email failed ['.$eventType.']: '.$mailError->getMessage());return false;}
+        $reserve=$db->prepare("INSERT INTO email_delivery_logs(user_id,event_type,recipient_email,subject,title,body_text,action_url,dedupe_key,status,next_attempt_at) VALUES(?,?,?,?,?,?,?,?,'queued',NOW()) ON DUPLICATE KEY UPDATE recipient_email=VALUES(recipient_email),subject=VALUES(subject),title=VALUES(title),body_text=VALUES(body_text),action_url=VALUES(action_url),status=IF(status='sent','sent','queued'),next_attempt_at=IF(status='sent',next_attempt_at,NOW()),error_message=IF(status='sent',error_message,NULL)");
+        $reserve->execute([$userId,$eventType,$email,$subject,$title,$body,$actionUrl,$dedupeKey]);
+        if(appConfig('MAIL_ASYNC','1')==='1')return true;
+        return processQueuedEmail($db,$dedupeKey);
     }catch(Throwable $error){error_log('Transactional email setup failed ['.$eventType.']: '.$error->getMessage());return false;}
+}
+
+function processQueuedEmail(PDO $db,string $dedupeKey):bool{
+    $db->beginTransaction();
+    try{$stmt=$db->prepare("SELECT * FROM email_delivery_logs WHERE dedupe_key=? AND status IN ('queued','failed','sending') FOR UPDATE");$stmt->execute([$dedupeKey]);$mail=$stmt->fetch();if(!$mail){$db->rollBack();return true;}$db->prepare("UPDATE email_delivery_logs SET status='sending',locked_at=NOW() WHERE id=?")->execute([(int)$mail['id']]);$db->commit();}
+    catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
+    try{sendAppMail($mail['recipient_email'],$mail['subject'],transactionalEmailHtml((string)$mail['title'],(string)$mail['body_text'],(string)$mail['action_url']));$db->prepare("UPDATE email_delivery_logs SET status='sent',sent_at=NOW(),locked_at=NULL,error_message=NULL WHERE id=?")->execute([(int)$mail['id']]);return true;}
+    catch(Throwable $e){$attempts=(int)$mail['attempts']+1;$status=$attempts>=5?'dead':'failed';$delay=min(3600,60*(2**max(0,$attempts-1)));$db->prepare("UPDATE email_delivery_logs SET status=?,attempts=?,next_attempt_at=DATE_ADD(NOW(),INTERVAL ? SECOND),locked_at=NULL,error_message=? WHERE id=?")->execute([$status,$attempts,$delay,mb_substr($e->getMessage(),0,500),(int)$mail['id']]);error_log('Transactional email failed: '.$e->getMessage());return false;}
 }

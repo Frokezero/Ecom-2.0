@@ -87,11 +87,7 @@ INSERT INTO categories(id,name,slug,icon) VALUES
 (7,'อุปกรณ์ทำความสะอาดครัว','cleaning','fa-pump-soap')
 ON DUPLICATE KEY UPDATE name=VALUES(name),slug=VALUES(slug),icon=VALUES(icon);
 
--- รหัสผ่านตัวอย่างของทั้งสองบัญชีคือ password123
-INSERT INTO users(id,username,email,password_hash,full_name,phone,address,role,email_verified_at) VALUES
-(1,'admin','admin@kitchenmart.local','$2y$10$yDu0LUfEA6LPFvwgzhw.6eJaueV0bSyJf4/s0/0XYnRhsHNpaGxi2','ผู้ดูแล KitchenMart','0812345678','กรุงเทพมหานคร','admin',NOW()),
-(2,'customer','customer@kitchenmart.local','$2y$10$yDu0LUfEA6LPFvwgzhw.6eJaueV0bSyJf4/s0/0XYnRhsHNpaGxi2','ลูกค้าทดลอง','0898765432','99/9 ถนนสุขุมวิท กรุงเทพมหานคร 10110','customer',NOW())
-ON DUPLICATE KEY UPDATE username=username;
+-- ไม่สร้างบัญชีเริ่มต้นที่มีรหัสผ่านร่วมกัน ให้ใช้ tools/create-admin.php หลังติดตั้ง
 
 INSERT INTO products(id,category_id,name,description,price,stock_quantity,image_url,is_featured) VALUES
 (1,1,'หม้อสเตนเลสก้นหนา 24 ซม.','หม้อสเตนเลส 304 กระจายความร้อนสม่ำเสมอ พร้อมฝาแก้ว ใช้ได้กับเตาทุกประเภท',1290,24,'assets/images/products/pots.svg',1),

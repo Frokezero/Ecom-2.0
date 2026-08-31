@@ -17,7 +17,8 @@ function productImageUrl($path): string {
     return preg_match('#^https?://#i',$path) ? $path : BASE_URL.ltrim($path,'/');
 }
 function cancelOrderAndRestock(PDO $db, int $orderId, ?int $userId = null): void {
-    $db->beginTransaction();
+    $ownsTransaction=!$db->inTransaction();
+    if($ownsTransaction)$db->beginTransaction();
     try {
         $sql='SELECT id,user_id,coupon_id,order_status,payment_status FROM orders WHERE id=?'.($userId!==null?' AND user_id=?':'').' FOR UPDATE';
         $stmt=$db->prepare($sql); $params=[$orderId]; if($userId!==null)$params[]=$userId; $stmt->execute($params); $order=$stmt->fetch();
@@ -40,8 +41,8 @@ function cancelOrderAndRestock(PDO $db, int $orderId, ?int $userId = null): void
                 $release->execute([(int)$order['coupon_id'],(int)$order['user_id']]);
             }
         }
-        $db->commit();
-    }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
+        if($ownsTransaction)$db->commit();
+    }catch(Throwable $e){if($ownsTransaction&&$db->inTransaction())$db->rollBack();throw $e;}
 }
 function getCsrfToken(): string { return $_SESSION['csrf_token'] ?? ''; }
 function requestCsrfToken(): string { return (string)($_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''); }

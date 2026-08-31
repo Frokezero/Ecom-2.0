@@ -14,7 +14,10 @@ KitchenMart เป็นระบบ E-Commerce ภาษาไทยสำห�
 2. วางโปรเจกต์ที่ `C:\xampp\htdocs\kitchenmart`
 3. เปิด `http://localhost/phpmyadmin` แล้ว Import ไฟล์ `database/schema.sql`
 4. คัดลอก `config/local.php.example` เป็น `config/local.php` แล้วแก้ค่าฐานข้อมูลและ PromptPay
-5. เปิด `http://localhost/kitchenmart/`
+5. หลัง Import schema ครั้งแรกให้รัน `php tools/migrate.php --baseline` จากนั้นการอัปเดตครั้งต่อไปใช้ `php tools/migrate.php`
+6. รัน `php tools/create-admin.php` เพื่อสร้างผู้ดูแลด้วยรหัสผ่านเฉพาะ
+7. ตั้ง Cron/Task Scheduler ให้รัน `php tools/process-email-queue.php 50` ทุกหนึ่งนาที
+8. เปิด `http://localhost/kitchenmart/`
 
 หากคงชื่อโฟลเดอร์เดิม URL จะมีช่องว่างและภาษาไทย จึงแนะนำให้เปลี่ยนชื่อเป็น `kitchenmart`
 
@@ -34,10 +37,7 @@ KitchenMart เป็นระบบ E-Commerce ภาษาไทยสำห�
 
 ## บัญชีตัวอย่าง
 
-| สิทธิ์ | ชื่อผู้ใช้ | อีเมล | รหัสผ่าน |
-|---|---|---|---|
-| Admin | `admin` | `admin@kitchenmart.local` | `password123` |
-| ลูกค้า | `customer` | `customer@kitchenmart.local` | `password123` |
+โปรเจกต์ไม่สร้างบัญชีที่ใช้รหัสผ่านตัวอย่าง ให้รัน `php tools/create-admin.php` หลังติดตั้งฐานข้อมูลและกำหนดรหัสผ่านเฉพาะของผู้ดูแล
 
 ## โครงสร้างโปรเจกต์
 
