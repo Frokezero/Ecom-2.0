@@ -77,7 +77,7 @@
     <script src="<?php echo BASE_URL; ?>assets/js/promotions.js?v=1"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/coupon-selector.js?v=1"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/image-crop.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/cart.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/cart.js?v=2"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/payment.js"></script>
 </body>
 </html>
