@@ -52,8 +52,8 @@ if ($action === 'register') {
     if (in_array(strtolower($password),$commonPasswords,true) || str_contains(strtolower($password),strtolower($username)) || ($emailLocal!==''&&str_contains(strtolower($password),strtolower($emailLocal)))) jsonResponse('error','รหัสผ่านคาดเดาง่ายเกินไป และต้องไม่มีชื่อผู้ใช้หรือชื่ออีเมลอยู่ภายใน',['field'=>'password'],422);
     if (!hash_equals($password,$passwordConfirm)) jsonResponse('error','รหัสผ่านทั้งสองช่องไม่ตรงกัน',['field'=>'password_confirm'],422);
     if (($_POST['accept_terms'] ?? '')!=='1') jsonResponse('error','กรุณายอมรับเงื่อนไขการใช้งาน',['field'=>'accept_terms'],422);
-    $stmt=$db->prepare('SELECT id FROM users WHERE username=? OR email=?'); $stmt->execute([$username,$email]);
-    if ($stmt->fetch()) jsonResponse('error','ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้งานแล้ว กรุณาเลือกข้อมูลอื่น',[],409);
+    $stmt=$db->prepare('SELECT id FROM users WHERE username=? LIMIT 1');$stmt->execute([$username]);if($stmt->fetch())jsonResponse('error','ชื่อผู้ใช้นี้ถูกใช้งานแล้ว กรุณาเลือกชื่อผู้ใช้อื่น',['field'=>'username'],409);
+    $stmt=$db->prepare('SELECT id FROM users WHERE email=? LIMIT 1');$stmt->execute([$email]);if($stmt->fetch())jsonResponse('error','อีเมลนี้ถูกใช้สมัครสมาชิกแล้ว กรุณาเข้าสู่ระบบหรือใช้อีเมลอื่น',['field'=>'email'],409);
     $stmt=$db->prepare("INSERT INTO users (username,email,password_hash,full_name,phone,address,role,email_verified_at) VALUES (?,?,?,?,?,'','customer',NULL)");
     $stmt->execute([$username,$email,password_hash($password,PASSWORD_DEFAULT),$fullName,$phone]);
     $userId=(int)$db->lastInsertId();$delivery='sent';
