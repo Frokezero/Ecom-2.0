@@ -34,7 +34,4 @@ return [
     'SMTP_PASS' => 'Gmail App Password 16 หลัก (ห้ามใช้รหัสผ่าน Google ปกติ)',
     'SMTP_FROM_EMAIL' => 'froketv@gmail.com',
     'SMTP_FROM_NAME' => 'KitchenMart',
-    // สร้างคีย์จาก OpenAI Platform และเก็บเฉพาะฝั่ง Server ห้ามใส่ใน JavaScript หรือ commit คีย์จริง
-    'OPENAI_API_KEY' => '',
-    'OPENAI_MODEL' => 'gpt-5',
 ];
