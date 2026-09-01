@@ -61,20 +61,22 @@ function jsonResponse($status, $message, $data = [], $httpCode = 200): void {
 function isLoggedIn(): bool { return isset($_SESSION['user_id']); }
 function isAdmin(): bool { return ($_SESSION['user_role'] ?? '') === 'admin'; }
 function isSeller(): bool { return ($_SESSION['user_role'] ?? '') === 'seller'; }
-function createNotification(PDO $db, int $userId, string $type, string $title, string $body = '', ?string $link = null): void {
+function createNotification(PDO $db, int $userId, string $type, string $title, string $body = '', ?string $link = null, bool $sendImmediately = false): void {
     if ($userId < 1) return;
     $stmt = $db->prepare('INSERT INTO notifications (user_id,type,title,body,link) VALUES (?,?,?,?,?)');
     $stmt->execute([$userId, substr($type, 0, 40), mb_substr($title, 0, 160), mb_substr($body, 0, 500) ?: null, $link]);
     if (in_array($type, ['order','payment','return','seller','security','payout'], true)) {
         $notificationId=(int)$db->lastInsertId();$actionUrl='';
         if($link){$actionUrl=preg_match('#^https?://#i',$link)?$link:mailAppUrl().ltrim($link,'/');}
-        sendUserEventEmail($db,$userId,'notification.'.$type,$title,$title,$body,$actionUrl,'notification:'.$notificationId);
+        $dedupeKey='notification:'.$notificationId;
+        sendUserEventEmail($db,$userId,'notification.'.$type,$title,$title,$body,$actionUrl,$dedupeKey);
+        if($sendImmediately&&appConfig('MAIL_ASYNC','1')==='1')processQueuedEmail($db,$dedupeKey);
     }
 }
-function createRoleNotification(PDO $db, string $role, string $type, string $title, string $body = '', ?string $link = null): void {
+function createRoleNotification(PDO $db, string $role, string $type, string $title, string $body = '', ?string $link = null, bool $sendImmediately = false): void {
     $users = $db->prepare('SELECT id FROM users WHERE role=?');
     $users->execute([$role]);
-    foreach ($users->fetchAll(PDO::FETCH_COLUMN) as $userId) createNotification($db, (int)$userId, $type, $title, $body, $link);
+    foreach ($users->fetchAll(PDO::FETCH_COLUMN) as $userId) createNotification($db, (int)$userId, $type, $title, $body, $link, $sendImmediately);
 }
 function recordOrderHistory(PDO $db, int $orderId, string $orderStatus, string $paymentStatus, string $note = '', ?int $actorUserId = null): void {
     try {
