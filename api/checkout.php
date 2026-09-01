@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/security_monitor.php';
+require_once __DIR__ . '/../includes/behavior_analytics.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonResponse('error','อนุญาตเฉพาะ POST',[],405);
 if (!isLoggedIn()) jsonResponse('error','กรุณาเข้าสู่ระบบ',[],401);
@@ -52,6 +53,7 @@ if ($action === 'create_order') {
         $payment=$db->prepare('INSERT INTO payment_transactions(order_id,provider,idempotency_key,amount,status) VALUES(?,?,?,?,?)');
         $payment->execute([$orderId,$method==='promptpay'?'promptpay':'cod',hash('sha256','order:'.$orderId.':'.$orderNo),$payable,$method==='promptpay'?'pending':'created']);
         $db->commit(); $_SESSION['cart']=[]; unset($_SESSION['coupon_code']);
+        $activity=behaviorLog($db,['user_id'=>(int)$_SESSION['user_id'],'action'=>'order.created','status'=>201,'order_amount'=>$payable]);behaviorEvaluateRuntime($db,$activity,(int)$_SESSION['user_id'],date('Y-m-d H:i:s'));
         createNotification($db, (int)$_SESSION['user_id'], 'order', 'สั่งซื้อสำเร็จ', 'คำสั่งซื้อ '.$orderNo.' ถูกบันทึกแล้ว', BASE_URL.'order-detail.php?id='.$orderId);
         createRoleNotification($db, 'admin', 'order', 'มีคำสั่งซื้อใหม่', 'คำสั่งซื้อ '.$orderNo.' รอตรวจสอบ', BASE_URL.'admin/orders.php?order_status=pending');
         jsonResponse('success','สร้างคำสั่งซื้อเรียบร้อย',['order_id'=>$orderId,'order_no'=>$orderNo,'payment_method'=>$method,'total_amount'=>$payable,'discount_amount'=>$discount,'redirect'=>BASE_URL.'order-success.php?order_id='.$orderId]);

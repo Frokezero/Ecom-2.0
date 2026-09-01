@@ -129,3 +129,9 @@ function calculateCouponDiscount(PDO $db, string $code, int $userId, array $item
     if ($coupon['max_discount'] !== null) $discount=min($discount,(float)$coupon['max_discount']);
     return ['coupon'=>$coupon,'discount'=>min($subtotal,max(0,$discount)),'error'=>''];
 }
+
+// Record every PHP request after the response is complete, then evaluate Request/min.
+if(PHP_SAPI!=='cli'&&!defined('BEHAVIOR_REQUEST_LOGGER')){
+ define('BEHAVIOR_REQUEST_LOGGER',true);$behaviorRequestStarted=microtime(true);
+ register_shutdown_function(static function()use($behaviorRequestStarted):void{try{require_once __DIR__.'/behavior_analytics.php';require_once __DIR__.'/security_monitor.php';$db=(new Database())->getConnection();if(!$db)return;$at=date('Y-m-d H:i:s');$id=behaviorLog($db,['user_id'=>isset($_SESSION['user_id'])?(int)$_SESSION['user_id']:null,'action'=>'request','status'=>http_response_code()?:200,'response_time'=>(microtime(true)-$behaviorRequestStarted)*1000]);behaviorEvaluateRuntime($db,$id,isset($_SESSION['user_id'])?(int)$_SESSION['user_id']:null,$at);}catch(Throwable $e){error_log('Behavior logger: '.$e->getMessage());}});
+}
