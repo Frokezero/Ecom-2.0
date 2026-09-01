@@ -26,7 +26,12 @@ function appRequestId():string{static $id='';if($id==='')$id=substr(bin2hex(rand
 
 if (session_status() === PHP_SESSION_NONE) {
     $sessionPath = appConfig('SESSION_SAVE_PATH', '');
-    if ($sessionPath !== '') ini_set('session.save_path', $sessionPath);
+    // XAMPP's global temp directory is often not writable when the project is shared.
+    // Prefer an app-local directory so sessions work consistently behind Cloudflare.
+    $fallbackSessionPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . '.runtime-sessions';
+    if ($sessionPath === '' || !is_dir($sessionPath) || !is_writable($sessionPath)) $sessionPath = $fallbackSessionPath;
+    if (!is_dir($sessionPath)) @mkdir($sessionPath, 0700, true);
+    if (is_dir($sessionPath) && is_writable($sessionPath)) ini_set('session.save_path', $sessionPath);
     ini_set('session.cookie_httponly', '1');
     ini_set('session.cookie_samesite', 'Lax');
     if (requestIsHttps()) ini_set('session.cookie_secure', '1');
