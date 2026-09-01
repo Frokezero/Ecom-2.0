@@ -68,10 +68,18 @@ if ($action === 'login') {
     $identityHash=hash_hmac('sha256',mb_strtolower($identity),$rateKey);
     $ip=(string)($_SERVER['HTTP_CF_CONNECTING_IP']??$_SERVER['REMOTE_ADDR']??'unknown');
     $ipHash=hash_hmac('sha256',$ip,$rateKey);
-    $identityRule=securityRule($db,'login_fail_identity',['threshold_count'=>8,'window_seconds'=>900,'risk_points'=>10,'block_seconds'=>900]);$ipRule=securityRule($db,'login_fail_ip',['threshold_count'=>20,'window_seconds'=>900,'risk_points'=>10,'block_seconds'=>3600]);$window=max($identityRule['window_seconds'],$ipRule['window_seconds']);
+    $identityRule=securityRule($db,'login_fail_identity',['threshold_count'=>10,'window_seconds'=>900,'risk_points'=>10,'block_seconds'=>900]);
+    // Never allow a stale database rule to bypass the ten-attempt alert threshold.
+    $identityRule['threshold_count']=max(10,(int)$identityRule['threshold_count']);
+    $ipRule=securityRule($db,'login_fail_ip',['threshold_count'=>20,'window_seconds'=>900,'risk_points'=>10,'block_seconds'=>3600]);$window=max($identityRule['window_seconds'],$ipRule['window_seconds']);
     $limit=$db->prepare("SELECT SUM(identifier_hash=? AND was_successful=0) identity_failures,SUM(ip_hash=? AND was_successful=0) ip_failures FROM login_attempts WHERE attempted_at>DATE_SUB(NOW(),INTERVAL ? SECOND)");
     $limit->execute([$identityHash,$ipHash,$window]);$rate=$limit->fetch();
-    if((int)($rate['identity_failures']??0)>=$identityRule['threshold_count']||(int)($rate['ip_failures']??0)>=$ipRule['threshold_count']){$blockSeconds=max($identityRule['block_seconds'],$ipRule['block_seconds']);recordSecurityEvent($db,'request.rate_limit',max($identityRule['risk_points'],$ipRule['risk_points']),null,['endpoint'=>'login','identity_failures'=>(int)($rate['identity_failures']??0),'ip_failures'=>(int)($rate['ip_failures']??0)],'blocked');securityBlock($db,'ip',$ipHash,null,'เข้าสู่ระบบผิดเกินกำหนด',70,$blockSeconds);jsonResponse('error','มีการเข้าสู่ระบบผิดหลายครั้ง กรุณารอแล้วลองใหม่',['retry_after'=>$blockSeconds],429);}
+    $identityFailures=(int)($rate['identity_failures']??0);$ipFailures=(int)($rate['ip_failures']??0);
+    if($identityFailures>=$identityRule['threshold_count']||$ipFailures>=$ipRule['threshold_count']){
+        // Notify administrators once per identity/IP window. The notification is also
+        // emailed by createRoleNotification() for configured admin accounts.
+        try{$marker='%"identity_hash":"'.$identityHash.'"%';$seen=$db->prepare("SELECT id FROM security_events WHERE event_type='login.threshold' AND created_at>DATE_SUB(NOW(),INTERVAL ? SECOND) AND metadata_json LIKE ? LIMIT 1");$seen->execute([$window,$marker]);if(!$seen->fetchColumn()){recordSecurityEvent($db,'login.threshold',0,null,['identity_hash'=>$identityHash,'identity_failures'=>$identityFailures,'ip_failures'=>$ipFailures],'blocked');createRoleNotification($db,'admin','security','แจ้งเตือน: ล็อกอินผิดเกิน 10 ครั้ง','มีความพยายามเข้าสู่ระบบผิดซ้ำภายใน 15 นาที ระบบบล็อกชั่วคราวและควรตรวจสอบที่ศูนย์ความปลอดภัย',BASE_URL.'admin/security-center.php');}}catch(Throwable $ignored){}
+        $blockSeconds=max($identityRule['block_seconds'],$ipRule['block_seconds']);recordSecurityEvent($db,'request.rate_limit',max($identityRule['risk_points'],$ipRule['risk_points']),null,['endpoint'=>'login','identity_failures'=>$identityFailures,'ip_failures'=>$ipFailures],'blocked');securityBlock($db,'ip',$ipHash,null,'เข้าสู่ระบบผิดเกินกำหนด',70,$blockSeconds);jsonResponse('error','เข้าสู่ระบบผิดเกิน 10 ครั้ง ระบบบล็อกชั่วคราวและแจ้งเตือนผู้ดูแลแล้ว กรุณารอแล้วลองใหม่',['retry_after'=>$blockSeconds,'failed_attempts'=>max($identityFailures,$ipFailures)],429);}
     $attempts=$_SESSION['login_attempts'] ?? ['count'=>0,'last'=>0];
     if((int)$attempts['count']>=5 && time()-(int)$attempts['last']<60)jsonResponse('error','มีการเข้าสู่ระบบผิดหลายครั้ง กรุณารอ 60 วินาทีแล้วลองใหม่',['retry_after'=>60-(time()-(int)$attempts['last'])],429);
     if(time()-(int)$attempts['last']>=60)$attempts=['count'=>0,'last'=>0];
