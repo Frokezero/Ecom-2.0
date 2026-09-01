@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -24,6 +25,9 @@ namespace KitchenMartShareLauncher
         private Process phpProcess;
         private Process cloudflaredProcess;
         private string publicUrl = string.Empty;
+        private string pendingPublicUrl = string.Empty;
+        private int tunnelConnected;
+        private int readinessCheckRunning;
 
         public MainForm()
         {
@@ -149,10 +153,16 @@ namespace KitchenMartShareLauncher
 
         private void StartCloudflareTunnel()
         {
-            if (cloudflaredProcess != null && !cloudflaredProcess.HasExited) { Log("Cloudflare Tunnel กำลังทำงานอยู่แล้ว"); return; }
+            if (cloudflaredProcess != null && !cloudflaredProcess.HasExited) { Log("Cloudflare Tunnel กำลังทำงานอยู่แล้ว กำลังตรวจสอบลิงก์อีกครั้ง..."); TryStartTunnelReadinessCheck(); return; }
             string cloudflaredExe = File.Exists(@"C:\Program Files (x86)\cloudflared\cloudflared.exe") ? @"C:\Program Files (x86)\cloudflared\cloudflared.exe" : @"C:\Program Files\cloudflared\cloudflared.exe";
             if (!File.Exists(cloudflaredExe)) throw new FileNotFoundException("ไม่พบ cloudflared กรุณาติดตั้ง Cloudflare Tunnel ก่อน");
-            var info = new ProcessStartInfo(cloudflaredExe, "tunnel --url http://127.0.0.1:8000 --no-autoupdate") { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = projectDirectory };
+            publicUrl = string.Empty;
+            pendingPublicUrl = string.Empty;
+            Interlocked.Exchange(ref tunnelConnected, 0);
+            Interlocked.Exchange(ref readinessCheckRunning, 0);
+            // HTTP/2 uses TCP and is more reliable than QUIC on school/public Wi-Fi
+            // where outbound UDP 7844 is commonly blocked.
+            var info = new ProcessStartInfo(cloudflaredExe, "tunnel --url http://127.0.0.1:8000 --protocol http2 --no-autoupdate") { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = projectDirectory };
             cloudflaredProcess = new Process { StartInfo = info, EnableRaisingEvents = true };
             cloudflaredProcess.OutputDataReceived += OnCloudflaredOutput;
             cloudflaredProcess.ErrorDataReceived += OnCloudflaredOutput;
@@ -170,21 +180,93 @@ namespace KitchenMartShareLauncher
             Match match = Regex.Match(e.Data, "https://[a-z0-9-]+\\.trycloudflare\\.com", RegexOptions.IgnoreCase);
             if (match.Success)
             {
-                publicUrl = match.Value;
+                pendingPublicUrl = match.Value;
                 BeginInvoke(new MethodInvoker(delegate
                 {
-                    publicUrlLink.Text = publicUrl;
-                    copyButton.Enabled = true;
-                    openButton.Enabled = true;
+                    publicUrlLink.Text = "กำลังตรวจสอบ DNS และการเชื่อมต่อ...";
+                    copyButton.Enabled = false;
+                    openButton.Enabled = false;
                     stopButton.Enabled = true;
-                    SetStatus("พร้อมแชร์ให้เพื่อนแล้ว");
-                    Log("สร้างลิงก์สำเร็จ: " + publicUrl);
+                    SetStatus("กำลังเตรียมลิงก์ Cloudflare...");
+                    Log("Cloudflare สร้าง URL แล้ว กำลังรอให้ลิงก์พร้อมใช้งาน...");
                 }));
+                TryStartTunnelReadinessCheck();
             }
             else if (e.Data.IndexOf("Registered tunnel connection", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                Log("เชื่อมต่อ Cloudflare สำเร็จ กำลังรอลิงก์...");
+                Interlocked.Exchange(ref tunnelConnected, 1);
+                Log("เชื่อมต่อ Cloudflare สำเร็จ กำลังตรวจสอบ DNS และหน้าเว็บ...");
+                TryStartTunnelReadinessCheck();
             }
+            else if (e.Data.IndexOf(" ERR ", StringComparison.OrdinalIgnoreCase) >= 0 || e.Data.IndexOf(" WRN ", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                Log("Cloudflare: " + e.Data);
+            }
+        }
+
+        private void TryStartTunnelReadinessCheck()
+        {
+            if (String.IsNullOrEmpty(pendingPublicUrl) || Interlocked.CompareExchange(ref tunnelConnected, 0, 0) != 1) return;
+            if (Interlocked.CompareExchange(ref readinessCheckRunning, 1, 0) != 0) return;
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                string candidate = pendingPublicUrl;
+                try
+                {
+                    for (int attempt = 1; attempt <= 90; attempt++)
+                    {
+                        if (cloudflaredProcess == null || cloudflaredProcess.HasExited || candidate != pendingPublicUrl) return;
+                        if (PublicUrlIsReady(candidate))
+                        {
+                            publicUrl = candidate;
+                            BeginInvoke(new MethodInvoker(delegate
+                            {
+                                publicUrlLink.Text = publicUrl;
+                                copyButton.Enabled = true;
+                                openButton.Enabled = true;
+                                stopButton.Enabled = true;
+                                startButton.Enabled = false;
+                                SetStatus("พร้อมแชร์ให้เพื่อนแล้ว");
+                                Log("ตรวจสอบสำเร็จ ลิงก์พร้อมใช้งานจริง: " + publicUrl);
+                            }));
+                            return;
+                        }
+                        if (attempt == 1 || attempt % 10 == 0) Log("กำลังรอ DNS ของ Cloudflare... (ครั้งที่ " + attempt + ")");
+                        Thread.Sleep(2000);
+                    }
+                    BeginInvoke(new MethodInvoker(delegate
+                    {
+                        publicUrlLink.Text = "ลิงก์ยังไม่พร้อม กรุณากดเริ่มเพื่อตรวจสอบใหม่";
+                        startButton.Enabled = true;
+                        SetStatus("Cloudflare เชื่อมต่อแล้ว แต่ DNS ยังไม่พร้อม");
+                        Log("รอ DNS เกิน 3 นาที กรุณาตรวจสอบอินเทอร์เน็ตแล้วกดเริ่มอีกครั้ง");
+                    }));
+                }
+                finally { Interlocked.Exchange(ref readinessCheckRunning, 0); }
+            });
+        }
+
+        private static bool PublicUrlIsReady(string url)
+        {
+            try
+            {
+                Uri uri = new Uri(url);
+                if (Dns.GetHostAddresses(uri.Host).Length == 0) return false;
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+                request.Method = "GET";
+                request.Timeout = 5000;
+                request.ReadWriteTimeout = 5000;
+                request.AllowAutoRedirect = true;
+                request.Proxy = null;
+                request.UserAgent = "KitchenMart-Share-HealthCheck/1.0";
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    int status = (int)response.StatusCode;
+                    return status >= 200 && status < 400;
+                }
+            }
+            catch { return false; }
         }
 
         private void StopSharing()
@@ -194,6 +276,8 @@ namespace KitchenMartShareLauncher
             cloudflaredProcess = null;
             phpProcess = null;
             publicUrl = string.Empty;
+            pendingPublicUrl = string.Empty;
+            Interlocked.Exchange(ref tunnelConnected, 0);
             publicUrlLink.Text = "หยุดการแชร์แล้ว";
             copyButton.Enabled = false;
             openButton.Enabled = false;
