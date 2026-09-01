@@ -78,3 +78,11 @@ KitchenMart เป็นระบบ E-Commerce ภาษาไทยสำห�
 ## ข้อจำกัดระบบชำระเงิน
 
 PromptPay.io ใช้สร้างและแสดง QR เท่านั้น ไม่มีการเชื่อมธนาคารหรือ webhook และห้ามใช้การโหลด QR เป็นหลักฐานรับเงินจริง ออเดอร์จะคงสถานะรอชำระจนกว่าจะมีระบบตรวจสอบธุรกรรมแยกต่างหาก Production ต้องใช้ payment gateway, HTTPS และระบบจัดเก็บ secrets ที่เหมาะสม
+
+## ผู้ใช้จำลองและการทดสอบความปลอดภัย
+
+- สร้างผู้ใช้จำลอง 100 บัญชีพร้อมที่อยู่: `php tools/seed-simulated-users.php`
+- ลบบัญชีจำลองทั้งหมดก่อน Production: `php tools/seed-simulated-users.php --cleanup`
+- รันการจำลองโจมตีแบบควบคุมเฉพาะเครื่อง: `php tools/security-attack-simulation.php http://127.0.0.1:8000`
+- เครื่องมือโจมตีปฏิเสธ URL ภายนอกและ Production โดยอัตโนมัติ เหตุการณ์จำลองในฐานข้อมูลทำงานภายใน Transaction และ Rollback เมื่อจบ
+- `tools/production-readiness.php` จะไม่ผ่านหากยังมีบัญชีโดเมน `@simulation.kitchenmart.test` เหลืออยู่
