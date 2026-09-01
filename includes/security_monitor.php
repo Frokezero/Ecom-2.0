@@ -29,7 +29,10 @@ function recordSecurityEvent(PDO $db,string $type,int $points,?int $userId=null,
  $ip=securityClientIp();$ipHash=securityIpHash($ip);$country=substr(strtoupper((string)($_SERVER['HTTP_CF_IPCOUNTRY']??'')),0,2)?:null;$path=mb_substr((string)($_SERVER['REQUEST_URI']??''),0,500);$agent=mb_substr((string)($_SERVER['HTTP_USER_AGENT']??''),0,500);
  $recent=$db->prepare('SELECT COALESCE(MAX(risk_score),0) FROM security_events WHERE created_at>DATE_SUB(NOW(),INTERVAL 1 HOUR) AND (ip_hash=? OR (? IS NOT NULL AND user_id=?))');$recent->execute([$ipHash,$userId,$userId]);$score=min(100,$points+(int)$recent->fetchColumn());$severity=securitySeverity($score);
  $stmt=$db->prepare('INSERT INTO security_events(event_type,severity,risk_score,user_id,ip_hash,ip_masked,country_code,request_method,request_path,user_agent,metadata_json,action_taken) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)');$stmt->execute([$type,$severity,$score,$userId,$ipHash,securityMaskIp($ip),$country,substr((string)($_SERVER['REQUEST_METHOD']??'CLI'),0,10),$path,$agent,$metadata?json_encode($metadata,JSON_UNESCAPED_UNICODE):null,$action]);
- if($score>=60){$seconds=$score>=80?3600:900;securityBlock($db,'ip',$ipHash,$userId,'ตรวจพบกิจกรรมเสี่ยง: '.$type,$score,$seconds);createRoleNotification($db,'admin','security','ตรวจพบกิจกรรมผิดปกติ','เหตุการณ์ '.$type.' มีคะแนนความเสี่ยง '.$score.'/100',BASE_URL.'admin/security-center.php');}
+ // Every login event is handled by the identity/IP thresholds in api/auth.php.
+ // Keeping login.success and login.new_ip out of this generic auto-block is also
+ // important: their score may inherit earlier failures from the same shared IP.
+ if($score>=60&&!str_starts_with($type,'login.')){$seconds=$score>=80?3600:900;securityBlock($db,'ip',$ipHash,$userId,'ตรวจพบกิจกรรมเสี่ยง: '.$type,$score,$seconds);createRoleNotification($db,'admin','security','ตรวจพบกิจกรรมผิดปกติ','เหตุการณ์ '.$type.' มีคะแนนความเสี่ยง '.$score.'/100',BASE_URL.'admin/security-center.php');}
  return $score;
 }
 function enforceSecurityBlock(PDO $db,?int $userId=null,bool $json=true):void{
