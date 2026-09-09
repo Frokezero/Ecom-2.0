@@ -34,6 +34,7 @@ function adminStatusLabel(string $status): string {
             <small>จัดการร้าน</small>
             <a href="<?php echo BASE_URL; ?>admin/products.php" class="<?php echo $admin_page==='products.php'?'active':''; ?>"><i class="fa-solid fa-boxes-stacked"></i><span>สินค้าและสต็อก</span></a>
             <a href="<?php echo BASE_URL; ?>admin/promotions.php" class="<?php echo $admin_page==='promotions.php'?'active':''; ?>"><i class="fa-solid fa-ticket"></i><span>โปรโมชั่นและคูปอง</span></a>
+            <a href="<?php echo BASE_URL; ?>admin/mall-promotions.php" class="<?php echo $admin_page==='mall-promotions.php'?'active':''; ?>"><i class="fa-solid fa-bolt"></i><span>โปรโมชัน MALL</span></a>
             <a href="<?php echo BASE_URL; ?>admin/orders.php" class="<?php echo in_array($admin_page,['orders.php','order-detail.php'],true)?'active':''; ?>"><i class="fa-solid fa-clipboard-list"></i><span>คำสั่งซื้อ</span></a>
             <a href="<?php echo BASE_URL; ?>admin/returns.php" class="<?php echo $admin_page==='returns.php'?'active':''; ?>"><i class="fa-solid fa-arrow-rotate-left"></i><span>คืนสินค้าและคืนเงิน</span></a>
             <a href="<?php echo BASE_URL; ?>admin/support.php" class="<?php echo $admin_page==='support.php'?'active':''; ?>"><i class="fa-solid fa-headset"></i><span>ศูนย์ช่วยเหลือลูกค้า</span></a>

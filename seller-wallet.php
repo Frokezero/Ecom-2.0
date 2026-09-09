@@ -61,7 +61,7 @@ function maskAccount(string $value): string {
 require_once __DIR__ . '/includes/header.php';
 ?>
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/seller.css">
-<div class="seller-page seller-wallet-page"><div class="container">
+<div class="seller-page seller-wallet-page"><div class="container"><?php require __DIR__.'/includes/seller_nav.php';?>
     <nav class="seller-breadcrumb"><a href="<?php echo BASE_URL; ?>my-store.php">ร้านค้าของฉัน</a><i class="fa-solid fa-chevron-right"></i><span>ยอดเงินร้านค้า</span></nav>
     <section class="wallet-hero"><div><p class="eyebrow">MOCK PAYOUT CENTER</p><h1>ยอดเงินร้านค้า</h1><p>ระบบจำลองสำหรับทดสอบการขอถอนเงิน ยังไม่มีการโอนเงินจริง</p></div><i class="fa-solid fa-wallet"></i></section>
     <section class="wallet-stats"><div class="wallet-available"><small>ยอดที่ถอนได้</small><strong><?php echo formatCurrency($totals['available']); ?></strong><span>หลังหักค่าบริการ 10%</span></div><div><small>ยอดขายรวมที่เสร็จแล้ว</small><strong><?php echo formatCurrency($totals['gross']); ?></strong></div><div><small>รอจ่าย/จ่ายแล้ว</small><strong><?php echo formatCurrency($totals['reserved']); ?></strong></div></section>

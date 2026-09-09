@@ -10,6 +10,12 @@ function productEffectivePrice(array $product): float {
     return !empty($product['sale_price'])&&(!$start||$start<=$now)&&(!$end||$end>$now)?(float)$product['sale_price']:(float)$product['price'];
 }
 function productSaleActive(array $product): bool { return productEffectivePrice($product)<(float)$product['price']; }
+function productCardPriceHtml(array $product): string {
+    $current=productEffectivePrice($product);$regular=(float)($product['compare_at_price']?:$product['price']);
+    if($regular<=0||$current>=$regular)return '<strong class="product-price">'.formatCurrency($current).'</strong>';
+    $percent=max(1,min(99,(int)round((1-$current/$regular)*100)));
+    return '<span class="card-sale-price"><strong class="product-price">'.formatCurrency($current).'</strong><span><del>'.formatCurrency($regular).'</del><mark>-'.$percent.'%</mark></span></span>';
+}
 function compactCount(int $value): string { return $value>=1000000?number_format($value/1000000,1).'M':($value>=1000?number_format($value/1000,1).'K':(string)$value); }
 function applyActiveBundles(PDO $db,array $items): array {
     if(!$items)return $items;$ids=array_map(fn($x)=>(int)$x['id'],$items);$marks=implode(',',array_fill(0,count($ids),'?'));
@@ -143,7 +149,7 @@ function calculateCouponDiscount(PDO $db, string $code, int $userId, array $item
     $userStmt=$db->prepare('SELECT used_count FROM user_coupons WHERE coupon_id=? AND user_id=?'.($lock?' FOR UPDATE':'')); $userStmt->execute([(int)$coupon['id'],$userId]); $userCoupon=$userStmt->fetch();
     if ($userCoupon && (int)$userCoupon['used_count'] >= (int)$coupon['per_user_limit']) return ['coupon'=>null,'discount'=>0.0,'error'=>'คุณใช้คูปองนี้ครบจำนวนแล้ว'];
     $eligibleSubtotal=$subtotal;
-    if($coupon['product_id']!==null||$coupon['category_id']!==null||($coupon['seller_id']??null)!==null){$eligibleSubtotal=0.0;$productCheck=$db->prepare('SELECT category_id,seller_id FROM products WHERE id=?');foreach($items as $item){$productId=(int)($item['id']??$item['product_id']??0);$productCheck->execute([$productId]);$eligible=$productCheck->fetch();if($eligible&&($coupon['product_id']===null||(int)$coupon['product_id']===$productId)&&($coupon['category_id']===null||(int)$coupon['category_id']===(int)$eligible['category_id'])&&(($coupon['seller_id']??null)===null||(int)$coupon['seller_id']===(int)$eligible['seller_id']))$eligibleSubtotal+=(float)$item['price']*(int)$item['quantity'];}if($eligibleSubtotal<=0)return ['coupon'=>null,'discount'=>0.0,'error'=>'ไม่มีสินค้าในตะกร้าที่ร่วมรายการกับคูปองนี้'];}
+    if($coupon['product_id']!==null||$coupon['category_id']!==null||($coupon['seller_id']??null)!==null||!empty($coupon['mall_only'])){$eligibleSubtotal=0.0;$productCheck=$db->prepare('SELECT category_id,seller_id FROM products WHERE id=?');foreach($items as $item){$productId=(int)($item['id']??$item['product_id']??0);$productCheck->execute([$productId]);$eligible=$productCheck->fetch();if($eligible&&($coupon['product_id']===null||(int)$coupon['product_id']===$productId)&&($coupon['category_id']===null||(int)$coupon['category_id']===(int)$eligible['category_id'])&&(($coupon['seller_id']??null)===null||(int)$coupon['seller_id']===(int)$eligible['seller_id'])&&(empty($coupon['mall_only'])||$eligible['seller_id']===null))$eligibleSubtotal+=(float)$item['price']*(int)$item['quantity'];}if($eligibleSubtotal<=0)return ['coupon'=>null,'discount'=>0.0,'error'=>'ไม่มีสินค้าในตะกร้าที่ร่วมรายการกับคูปองนี้'];}
     $discount = $coupon['discount_type']==='percent' ? $eligibleSubtotal*((float)$coupon['discount_value']/100) : min($eligibleSubtotal,(float)$coupon['discount_value']);
     if ($coupon['discount_type']==='free_shipping') $discount=0.0;
     if ($coupon['max_discount'] !== null) $discount=min($discount,(float)$coupon['max_discount']);

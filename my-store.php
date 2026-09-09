@@ -113,7 +113,7 @@ require_once __DIR__ . '/includes/header.php';
 $coverStyle = $profile['cover_image'] ? ' style="background-image:linear-gradient(90deg,rgba(13,51,40,.92),rgba(13,51,40,.36)),url('.e(productImageUrl($profile['cover_image'])).')"' : '';
 ?>
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/seller.css">
-<div class="seller-page my-store-page"><div class="container">
+<div class="seller-page my-store-page"><div class="container"><?php require __DIR__.'/includes/seller_nav.php';?>
     <section class="storefront-hero"<?php echo $coverStyle; ?>>
         <div class="storefront-identity">
             <span class="storefront-logo"><?php if ($profile['shop_logo']): ?><img src="<?php echo e(productImageUrl($profile['shop_logo'])); ?>" alt="โลโก้ <?php echo e($profile['shop_name']); ?>"><?php else: ?><i class="fa-solid fa-store"></i><?php endif; ?></span>
