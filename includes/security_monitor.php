@@ -1,17 +1,11 @@
 <?php
 require_once __DIR__.'/functions.php';
 
-function securityIpInCidr(string $ip,string $cidr):bool{
- $parts=explode('/',trim($cidr),2);$subnet=$parts[0]??'';$bits=isset($parts[1])?(int)$parts[1]:null;$ipBin=@inet_pton($ip);$subnetBin=@inet_pton($subnet);if($ipBin===false||$subnetBin===false||strlen($ipBin)!==strlen($subnetBin))return false;$max=strlen($ipBin)*8;$bits=$bits===null?$max:$bits;if($bits<0||$bits>$max)return false;$bytes=intdiv($bits,8);$remaining=$bits%8;if($bytes&&substr($ipBin,0,$bytes)!==substr($subnetBin,0,$bytes))return false;if(!$remaining)return true;$mask=(0xff<<(8-$remaining))&0xff;return (ord($ipBin[$bytes])&$mask)===(ord($subnetBin[$bytes])&$mask);
-}
+function securityIpInCidr(string $ip,string $cidr):bool{return appIpInCidr($ip,$cidr);}
 function securityTrustedProxy(string $remote):bool{
- $cidrs=array_filter(array_map('trim',explode(',',appConfig('TRUSTED_PROXY_CIDRS',''))));foreach($cidrs as $cidr)if(securityIpInCidr($remote,$cidr))return true;return false;
+ if($remote!==(string)($_SERVER['REMOTE_ADDR']??''))return false;return appRequestFromTrustedProxy();
 }
-function securityClientIp():string{
- $remote=(string)($_SERVER['REMOTE_ADDR']??'unknown');
- if(appConfig('TRUST_CLOUDFLARE','0')==='1'&&securityTrustedProxy($remote)&&!empty($_SERVER['HTTP_CF_CONNECTING_IP'])&&filter_var($_SERVER['HTTP_CF_CONNECTING_IP'],FILTER_VALIDATE_IP))return (string)$_SERVER['HTTP_CF_CONNECTING_IP'];
- return filter_var($remote,FILTER_VALIDATE_IP)?$remote:'unknown';
-}
+function securityClientIp():string{return appClientIp();}
 function securityRule(PDO $db,string $code,array $fallback):array{try{$stmt=$db->prepare('SELECT threshold_count,window_seconds,risk_points,block_seconds FROM security_rules WHERE rule_code=? AND is_active=1 LIMIT 1');$stmt->execute([$code]);$rule=$stmt->fetch();return $rule?array_map('intval',$rule):$fallback;}catch(Throwable $e){return $fallback;}}
 function securityIpHash(?string $ip=null):string{return hash_hmac('sha256',$ip??securityClientIp(),appConfig('APP_KEY','kitchenmart-local-security-key'));}
 function securityMaskIp(string $ip):string{if(filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_IPV4)){$p=explode('.',$ip);return $p[0].'.'.$p[1].'.xxx.xxx';}if(filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_IPV6))return substr($ip,0,8).'…';return 'unknown';}
@@ -26,7 +20,7 @@ function securityBlock(PDO $db,string $targetType,string $targetHash,?int $userI
  $stmt=$db->prepare("INSERT INTO security_blocks(target_type,target_hash,user_id,reason,risk_score,blocked_until,created_by) VALUES(?,?,?,?,?,DATE_ADD(NOW(),INTERVAL ? SECOND),?)");$stmt->execute([$targetType,$targetHash,$userId,$reason,$score,$seconds,$adminId]);
 }
 function recordSecurityEvent(PDO $db,string $type,int $points,?int $userId=null,array $metadata=[],string $action='logged'):int{
- $ip=securityClientIp();$ipHash=securityIpHash($ip);$country=substr(strtoupper((string)($_SERVER['HTTP_CF_IPCOUNTRY']??'')),0,2)?:null;$path=mb_substr((string)($_SERVER['REQUEST_URI']??''),0,500);$agent=mb_substr((string)($_SERVER['HTTP_USER_AGENT']??''),0,500);
+ $ip=securityClientIp();$ipHash=securityIpHash($ip);$country=appCountryCode();$path=mb_substr((string)($_SERVER['REQUEST_URI']??''),0,500);$agent=mb_substr((string)($_SERVER['HTTP_USER_AGENT']??''),0,500);
  $recent=$db->prepare('SELECT COALESCE(MAX(risk_score),0) FROM security_events WHERE created_at>DATE_SUB(NOW(),INTERVAL 1 HOUR) AND (ip_hash=? OR (? IS NOT NULL AND user_id=?))');$recent->execute([$ipHash,$userId,$userId]);$score=min(100,$points+(int)$recent->fetchColumn());$severity=securitySeverity($score);
  $stmt=$db->prepare('INSERT INTO security_events(event_type,severity,risk_score,user_id,ip_hash,ip_masked,country_code,request_method,request_path,user_agent,metadata_json,action_taken) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)');$stmt->execute([$type,$severity,$score,$userId,$ipHash,securityMaskIp($ip),$country,substr((string)($_SERVER['REQUEST_METHOD']??'CLI'),0,10),$path,$agent,$metadata?json_encode($metadata,JSON_UNESCAPED_UNICODE):null,$action]);
  // Every login event is handled by the identity/IP thresholds in api/auth.php.

@@ -85,7 +85,7 @@ function recordOrderHistory(PDO $db, int $orderId, string $orderStatus, string $
     } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
 }
 function auditLog(PDO $db,string $action,string $entityType,$entityId=null,$before=null,$after=null): void {
-    $key=appConfig('APP_KEY','kitchenmart-local-audit-key');$ip=(string)($_SERVER['HTTP_CF_CONNECTING_IP']??$_SERVER['REMOTE_ADDR']??'unknown');
+    $key=appConfig('APP_KEY','kitchenmart-local-audit-key');$ip=appClientIp();
     $stmt=$db->prepare('INSERT INTO audit_logs(actor_user_id,action,entity_type,entity_id,before_json,after_json,ip_hash) VALUES(?,?,?,?,?,?,?)');
     $stmt->execute([$_SESSION['user_id']??null,substr($action,0,80),substr($entityType,0,60),$entityId===null?null:(string)$entityId,$before===null?null:json_encode($before,JSON_UNESCAPED_UNICODE),$after===null?null:json_encode($after,JSON_UNESCAPED_UNICODE),hash_hmac('sha256',$ip,$key)]);
 }

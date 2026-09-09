@@ -5,8 +5,7 @@ function behaviorMaskIp(string $ip): string {
     return 'unknown';
 }
 function behaviorClientIp(): string {
-    $ip=trim(explode(',',(string)($_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown'))[0]);
-    return filter_var($ip,FILTER_VALIDATE_IP) ? $ip : 'unknown';
+    return appClientIp();
 }
 function behaviorLog(PDO $db, array $data): int {
     $ip=(string)($data['ip_address']??behaviorClientIp());

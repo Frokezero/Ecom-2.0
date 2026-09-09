@@ -5,6 +5,10 @@ $login=file_get_contents($root.'/login.php');hardeningExpect(!str_contains($logi
 $webhook=file_get_contents($root.'/api/payment-webhook.php');hardeningExpect(str_contains($webhook,'payload_hash')&&str_contains($webhook,'hash_equals'),'Webhook payload mismatch is not checked');
 $returns=file_get_contents($root.'/api/returns.php');hardeningExpect(str_contains($returns,'deleteManagedUpload($evidence)'),'Failed return leaves an orphan upload');
 $config=file_get_contents($root.'/config/config.php');hardeningExpect(str_contains($config,"script-src 'self' 'nonce-")&&!str_contains($config,"script-src 'self' 'unsafe-inline'"),'CSP does not enforce script nonces');
+hardeningExpect(str_contains($config,'appRequestFromTrustedProxy()')&&str_contains($config,'appClientIp()'),'Trusted proxy boundary is missing');
+hardeningExpect(str_contains($config,"appConfig('APP_URL', '')")&&str_contains($config,"preg_match('/^(?:localhost|"),'BASE_URL does not constrain untrusted Host headers');
 $functions=file_get_contents($root.'/includes/functions.php');hardeningExpect(str_contains($functions,"mutation_guard")&&str_contains($functions,"429"),'Global mutation guard is missing');
+hardeningExpect(!str_contains($functions,'HTTP_CF_CONNECTING_IP'),'Audit logging trusts a client-supplied Cloudflare IP header');
+$behavior=file_get_contents($root.'/includes/behavior_analytics.php');hardeningExpect(!str_contains($behavior,'HTTP_CF_CONNECTING_IP'),'Behavior analytics trusts a client-supplied Cloudflare IP header');
 $protected=['addresses','cart','orders','password-reset','promotions','returns','reviews','seller','wishlist'];foreach($protected as $api){$source=file_get_contents($root.'/api/'.$api.'.php');hardeningExpect(str_contains($source,'protectApiMutation'),'Missing mutation protection: '.$api);}
 echo "Production hardening tests passed\n";
