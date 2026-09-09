@@ -39,6 +39,8 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/accessibility.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/price-overrides.css?v=1">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/product-card-pricing.css?v=1">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/floating-product-video.css?v=1">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/floating-product-video-extra.css?v=1">
 </head>
 <body>
     <a class="skip-link" href="#main-content">ข้ามไปยังเนื้อหาหลัก</a>

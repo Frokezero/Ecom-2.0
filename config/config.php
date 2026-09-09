@@ -88,7 +88,7 @@ if (!headers_sent()) {
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-    $csp = "default-src 'self'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'; object-src 'none'; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com data:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'nonce-".cspNonce()."'; script-src-attr 'unsafe-inline'; connect-src 'self' https://raw.githubusercontent.com";
+    $csp = "default-src 'self'; base-uri 'self'; frame-ancestors 'self'; frame-src 'self' https://www.youtube-nocookie.com; form-action 'self'; object-src 'none'; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com data:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'nonce-".cspNonce()."'; script-src-attr 'unsafe-inline'; connect-src 'self' https://raw.githubusercontent.com";
     header((appConfig('CSP_REPORT_ONLY', '0') === '1' ? 'Content-Security-Policy-Report-Only: ' : 'Content-Security-Policy: ') . $csp);
     if (requestIsHttps()) header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 }

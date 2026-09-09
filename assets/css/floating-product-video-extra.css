@@ -1,0 +1,1 @@
+.floating-video-play{position:absolute;z-index:2;top:50%;left:50%;display:grid;place-items:center;width:48px;height:48px;translate:-50% -50%;border:0;border-radius:50%;background:#e97532;color:#fff;box-shadow:0 3px 12px #0008;cursor:pointer}.floating-video-play[hidden]{display:none}
