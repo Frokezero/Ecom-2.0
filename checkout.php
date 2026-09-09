@@ -84,7 +84,7 @@ if ($profileDb) {
                     <!-- PromptPay Details Box -->
                     <div id="promptPayDetails" class="promptpay-box">
                         <h4 style="color: #003b6d; margin-bottom: 8px;"><i class="fa-solid fa-qrcode"></i> ชำระเงินด้วย PromptPay QR Code</h4>
-                        <p style="font-size: 0.9rem; color: var(--text-muted);">ยอดเงินชำระสุทธิ: <strong style="color: var(--primary); font-size: 1.1rem;"><?php echo formatCurrency($grand_total); ?></strong></p>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">ยอดเงินชำระสุทธิ: <strong data-payable-total style="color: var(--primary); font-size: 1.1rem;"><?php echo formatCurrency($grand_total); ?></strong></p>
                         
                         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px;">ระบบจะสร้าง QR จากยอดคำสั่งซื้อที่ตรวจสอบแล้ว หลังจากกดยืนยันคำสั่งซื้อ</p>
                     </div>
@@ -93,7 +93,7 @@ if ($profileDb) {
                     <div id="codDetails" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: var(--radius-md); margin-top: 20px; text-align: center;">
                         <i class="fa-solid fa-truck-ramp-box fa-2x" style="color: var(--accent); margin-bottom: 10px;"></i>
                         <h4 style="color: #166534; margin-bottom: 6px;">ชำระเงินปลายทาง (Cash on Delivery)</h4>
-                        <p style="font-size: 0.9rem; color: #15803d;">พนักงานจัดส่งจะทำการเก็บเงินจำนวน <strong><?php echo formatCurrency($grand_total); ?></strong> เมื่อสินค้าจัดส่งถึงที่อยู่ของคุณ</p>
+                        <p style="font-size: 0.9rem; color: #15803d;">พนักงานจัดส่งจะทำการเก็บเงินจำนวน <strong data-payable-total><?php echo formatCurrency($grand_total); ?></strong> เมื่อสินค้าจัดส่งถึงที่อยู่ของคุณ</p>
                     </div>
                 </div>
             </div>

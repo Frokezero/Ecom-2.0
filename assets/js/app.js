@@ -3,15 +3,20 @@
 function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
+    const normalizedMessage = String(message);
+    const duplicate = Array.from(container.querySelectorAll('.toast')).find(item => item.dataset.message === normalizedMessage && item.dataset.type === type);
+    if (duplicate) return;
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
+    toast.dataset.message = normalizedMessage;
+    toast.dataset.type = type;
     
     const iconClass = type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation';
     const icon = document.createElement('i');
     icon.className = iconClass;
     const text = document.createElement('span');
-    text.textContent = String(message);
+    text.textContent = normalizedMessage;
     toast.append(icon, document.createTextNode(' '), text);
     
     container.appendChild(toast);
