@@ -7,10 +7,41 @@ require_once __DIR__.'/../includes/commerce_workflow.php';
 $db=(new Database())->getConnection();$message='';$error='';
 
 if($_SERVER['REQUEST_METHOD']==='POST'&&($_POST['action']??'')==='update_status'){
-    requireCsrf(false);$orderId=(int)($_POST['order_id']??0);$paymentStatus=$_POST['payment_status']??'';$orderStatus=$_POST['order_status']??'';
+    requireCsrf(false);
+    $orderId=(int)($_POST['order_id']??0);
+    $paymentStatus=(string)($_POST['payment_status']??'');
+    $orderStatus=(string)($_POST['order_status']??'');
     $validPayment=['pending','paid','cod_pending'];$validOrder=['pending','processing','shipped','completed','cancelled'];
     if($db&&$orderId>0&&in_array($paymentStatus,$validPayment,true)&&in_array($orderStatus,$validOrder,true)){
-        try{$db->beginTransaction();$current=$db->prepare('SELECT id,order_status,payment_status,payment_method,user_id,order_no FROM orders WHERE id=? FOR UPDATE');$current->execute([$orderId]);$before=$current->fetch();if(!$before)throw new RuntimeException('ไม่พบคำสั่งซื้อ');assertOrderTransition($before,$orderStatus,$paymentStatus);if($orderStatus==='cancelled'&&$before['order_status']!=='cancelled'){cancelOrderAndRestock($db,$orderId);}else{$stmt=$db->prepare('UPDATE orders SET payment_status=?,order_status=? WHERE id=?');$stmt->execute([$paymentStatus,$orderStatus,$orderId]);}recordOrderHistory($db,$orderId,$orderStatus,$paymentStatus,'ผู้ดูแลอัปเดตสถานะ',(int)$_SESSION['user_id']);auditLog($db,'order.status.update','order',$orderId,$before,['order_status'=>$orderStatus,'payment_status'=>$paymentStatus]);createNotification($db,(int)$before['user_id'],'order','อัปเดตคำสั่งซื้อ '.$before['order_no'],'สถานะล่าสุด: '.adminStatusLabel($orderStatus),BASE_URL.'order-detail.php?id='.$orderId);$db->commit();$message=$orderStatus==='cancelled'?'ยกเลิกคำสั่งซื้อและคืนสต็อกแล้ว':'บันทึกสถานะคำสั่งซื้อแล้ว';}catch(Throwable $e){if($db->inTransaction())$db->rollBack();$error=$e instanceof RuntimeException?$e->getMessage():'ไม่สามารถบันทึกสถานะคำสั่งซื้อได้';}
+        try {
+            $db->beginTransaction();
+            $current=$db->prepare('SELECT id,order_status,payment_status,payment_method,user_id,order_no FROM orders WHERE id=? FOR UPDATE');
+            $current->execute([$orderId]);
+            $before=$current->fetch();
+            if(!$before)throw new RuntimeException('ไม่พบคำสั่งซื้อ');
+            assertOrderTransition($before,$orderStatus,$paymentStatus);
+            if($orderStatus==='cancelled'&&$before['order_status']!=='cancelled'){
+                cancelOrderAndRestock($db,$orderId);
+            }else{
+                $stmt=$db->prepare('UPDATE orders SET payment_status=?,order_status=? WHERE id=?');
+                $stmt->execute([$paymentStatus,$orderStatus,$orderId]);
+            }
+            recordOrderHistory($db,$orderId,$orderStatus,$paymentStatus,'ผู้ดูแลอัปเดตสถานะ',(int)$_SESSION['user_id']);
+            auditLog($db,'order.status.update','order',$orderId,$before,['order_status'=>$orderStatus,'payment_status'=>$paymentStatus]);
+            $db->commit();
+            $message=$orderStatus==='cancelled'?'ยกเลิกคำสั่งซื้อและคืนสต็อกแล้ว':'บันทึกสถานะคำสั่งซื้อแล้ว';
+
+            // การแจ้งเตือนไม่ควรทำให้การเปลี่ยนสถานะที่บันทึกสำเร็จแล้วถูกย้อนกลับ
+            try {
+                createNotification($db,(int)$before['user_id'],'order','อัปเดตคำสั่งซื้อ '.$before['order_no'],'สถานะล่าสุด: '.adminStatusLabel($orderStatus),BASE_URL.'order-detail.php?id='.$orderId);
+            } catch(Throwable $notificationError) {
+                error_log('Order notification failed: '.$notificationError->getMessage());
+            }
+        } catch(Throwable $e) {
+            if($db->inTransaction())$db->rollBack();
+            error_log('Admin order update failed for #'.$orderId.': '.$e->getMessage());
+            $error=$e instanceof RuntimeException?$e->getMessage():'ไม่สามารถบันทึกสถานะคำสั่งซื้อได้ กรุณาลองใหม่';
+        }
     }else $error='ข้อมูลสถานะไม่ถูกต้อง';
 }
 
