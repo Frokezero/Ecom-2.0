@@ -1,6 +1,9 @@
 (function(){
   const money=value=>`฿${Number(value||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-  document.querySelectorAll('[data-coupon-selector]').forEach(root=>{
+  function initCouponSelectors(scope=document){
+  scope.querySelectorAll('[data-coupon-selector]').forEach(root=>{
+    if(root.dataset.couponInitialized==='1')return;
+    root.dataset.couponInitialized='1';
     const select=root.querySelector('[data-coupon-select]'),input=root.querySelector('[data-coupon-input]'),applyButton=root.querySelector('[data-coupon-apply]'),message=root.querySelector('[data-coupon-message]');
     const total=document.getElementById(root.dataset.totalTarget),discount=document.getElementById(root.dataset.discountTarget),discountRow=document.getElementById(root.dataset.discountRow);let subtotal=Number(root.dataset.subtotal||0);
     const reset=()=>{if(total)total.textContent=money(subtotal);if(discount)discount.textContent='-฿0.00';if(discountRow)discountRow.style.display='none';};
@@ -12,4 +15,8 @@
     root.addEventListener('cart:updated',event=>{subtotal=Number(event.detail?.subtotal||0);const code=String(select.value||input.value||'').trim();code?useCode(code):reset();});
     fetch(`${BASE_URL}api/promotions.php?action=mine`).then(async response=>({response,result:await response.json()})).then(({response,result})=>{if(response.status===401){select.hidden=true;message.textContent='เข้าสู่ระบบเพื่อเลือกคูปองที่รับไว้';return;}const coupons=result?.data?.coupons||[];coupons.forEach(coupon=>{const option=document.createElement('option');option.value=coupon.code;const benefit=coupon.discount_type==='percent'?`ลด ${Number(coupon.discount_value)}%`:coupon.discount_type==='fixed'?`ลด ${money(coupon.discount_value)}`:'ส่งฟรี';option.textContent=`${coupon.title} · ${benefit} · ${coupon.code}`;select.append(option);});const selected=result?.data?.selected||'';if(selected&&coupons.some(c=>c.code===selected)){select.value=selected;useCode(selected);}else reset();}).catch(()=>{message.textContent='โหลดคูปองไม่สำเร็จ';});
   });
+  }
+  window.initCouponSelectors=initCouponSelectors;
+  initCouponSelectors();
+  document.addEventListener('ajax:page-loaded',()=>initCouponSelectors());
 })();
