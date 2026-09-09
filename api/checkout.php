@@ -23,17 +23,18 @@ if ($action === 'create_order') {
     if (!in_array($method,['promptpay','cod'],true)) jsonResponse('error','วิธีชำระเงินไม่ถูกต้อง',[],422);
     try {
         $db->beginTransaction(); $items=[]; $total=0.0;
-        $productStmt=$db->prepare("SELECT id,name,price,stock_quantity,image_url FROM products WHERE id=? AND approval_status='approved' FOR UPDATE");
+        $productStmt=$db->prepare("SELECT p.id,p.seller_id,p.name,p.price,p.sale_price,p.sale_starts_at,p.sale_ends_at,p.stock_quantity,p.image_url FROM products p WHERE p.id=? AND p.approval_status='approved' AND ".marketplaceVisibilitySql('p')." FOR UPDATE");
         foreach ($_SESSION['cart'] as $cartItem) {
             $id=(int)$cartItem['id']; $qty=(int)$cartItem['quantity'];
             if ($id<1 || $qty<1) throw new RuntimeException('ข้อมูลตะกร้าไม่ถูกต้อง');
             $productStmt->execute([$id]); $product=$productStmt->fetch();
             if (!$product) throw new RuntimeException('สินค้าบางรายการไม่มีอยู่แล้ว');
             if ((int)$product['stock_quantity'] < $qty) throw new RuntimeException('สินค้า “'.$product['name'].'” มีไม่เพียงพอ');
-            $price=(float)$product['price']; $subtotal=$price*$qty; $total+=$subtotal;
-            $variantId=(int)($cartItem['variant_id']??0);$variant=null;if($variantId>0){$variantStmt=$db->prepare('SELECT id,sku,name,price,stock_quantity FROM product_variants WHERE id=? AND product_id=? AND is_active=1 FOR UPDATE');$variantStmt->execute([$variantId,$id]);$variant=$variantStmt->fetch();if(!$variant)throw new RuntimeException('ตัวเลือกสินค้าบางรายการไม่มีอยู่แล้ว');if((int)$variant['stock_quantity']<$qty)throw new RuntimeException('ตัวเลือก “'.$variant['name'].'” มีไม่เพียงพอ');$price=(float)$variant['price'];$subtotal=$price*$qty;$total-=(float)$product['price']*$qty;$total+=$subtotal;}
-            $items[]=['id'=>$id,'variant_id'=>$variantId,'variant_sku'=>$variant['sku']??null,'variant_name'=>$variant['name']??null,'name'=>$product['name'],'price'=>$price,'quantity'=>$qty,'subtotal'=>$subtotal];
+            $price=productEffectivePrice($product); $subtotal=$price*$qty; $total+=$subtotal;
+            $variantId=(int)($cartItem['variant_id']??0);$variant=null;if($variantId>0){$variantStmt=$db->prepare('SELECT id,sku,name,price,stock_quantity FROM product_variants WHERE id=? AND product_id=? AND is_active=1 FOR UPDATE');$variantStmt->execute([$variantId,$id]);$variant=$variantStmt->fetch();if(!$variant)throw new RuntimeException('ตัวเลือกสินค้าบางรายการไม่มีอยู่แล้ว');if((int)$variant['stock_quantity']<$qty)throw new RuntimeException('ตัวเลือก “'.$variant['name'].'” มีไม่เพียงพอ');$total-=$subtotal;$price=(float)$variant['price'];$subtotal=$price*$qty;$total+=$subtotal;}
+            $items[]=['id'=>$id,'variant_id'=>$variantId,'variant_sku'=>$variant['sku']??null,'variant_name'=>$variant['name']??null,'name'=>productDisplayName($product),'price'=>$price,'quantity'=>$qty,'subtotal'=>$subtotal];
         }
+        $items=applyActiveBundles($db,$items);$total=array_sum(array_column($items,'subtotal'));
         $couponResult=calculateCouponDiscount($db,(string)($_POST['coupon_code']??$_SESSION['coupon_code']??''),(int)$_SESSION['user_id'],$items,$total,true);
         if($couponResult['error']!=='') throw new RuntimeException($couponResult['error']);
         $discount=(float)$couponResult['discount']; $coupon=$couponResult['coupon']; $payable=max(0,$total-$discount);

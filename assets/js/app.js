@@ -38,6 +38,45 @@ function closeModal(modalId) {
     }
 }
 
+function enhanceMallLabels(root = document) {
+    const selectors = ['.product-title', '.purchase-panel h1', '.product-info h3', '.cart-table td:first-child span', '.cart-preview-item strong'];
+    root.querySelectorAll(selectors.join(',')).forEach(element => {
+        if (element.querySelector('.mall-name-badge')) return;
+        const textNode = Array.from(element.childNodes).find(node => node.nodeType === Node.TEXT_NODE && /^\s*MALL\s+/i.test(node.textContent));
+        if (!textNode) return;
+        textNode.textContent = textNode.textContent.replace(/^\s*MALL\s+/i, '');
+        const badge = document.createElement('span');
+        badge.className = 'mall-name-badge';
+        badge.textContent = 'MALL';
+        element.insertBefore(badge, textNode);
+    });
+}
+
+// Admin product modal handlers must be global because AJAX navigation replaces
+// the page markup without executing inline scripts appended to the new page.
+function openAddProductModal() {
+    const modal = document.getElementById('productFormModal');
+    if (!modal) return;
+    const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value; };
+    set('productModalTitle', 'เพิ่มสินค้าใหม่'); set('productAction', 'add'); set('productId', '');
+    set('productName', ''); set('productPrice', ''); set('productStock', '10'); set('productImageUrl', ''); set('productDesc', '');
+    const featured = document.getElementById('productFeatured'); if (featured) featured.checked = false;
+    openModal('productFormModal');
+}
+function openEditProductModal(product) {
+    const modal = document.getElementById('productFormModal');
+    if (!modal || !product) return;
+    const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; };
+    set('productModalTitle', `แก้ไข: ${product.name || ''}`); set('productAction', 'edit'); set('productId', product.id);
+    set('productName', product.name); set('productCategory', product.category_id); set('productPrice', product.price);
+    set('productStock', product.stock_quantity); set('productImageUrl', product.image_url); set('productDesc', product.description);
+    const featured = document.getElementById('productFeatured'); if (featured) featured.checked = Number(product.is_featured) === 1;
+    openModal('productFormModal');
+}
+
+enhanceMallLabels();
+document.addEventListener('ajax:page-loaded', () => enhanceMallLabels());
+
 const categoryMenuTrigger = document.querySelector('.category-menu-trigger');
 if (categoryMenuTrigger) {
     categoryMenuTrigger.addEventListener('click', () => {
@@ -77,6 +116,7 @@ async function quickViewProduct(productId) {
                     </div>
                 </div>
             `;
+            enhanceMallLabels(modalContent);
         } else {
             modalContent.innerHTML = `<p style="color: var(--danger); text-align: center; padding: 20px;">ไม่พบข้อมูลสินค้า</p>`;
         }

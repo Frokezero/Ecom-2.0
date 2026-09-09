@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__.'/includes/functions.php';
 if(isLoggedIn()){header('Location: '.BASE_URL.(isAdmin()?'admin/index.php':'index.php'));exit;}
+$sellerRegistration=($_GET['seller']??'')==='1';
+if($sellerRegistration)$_SESSION['redirect_url']=parse_url(BASE_URL,PHP_URL_PATH).'seller.php';
 $page_title='สมัครสมาชิก';
 require_once __DIR__.'/includes/header.php';
 ?>
@@ -13,7 +15,7 @@ require_once __DIR__.'/includes/header.php';
         <div class="auth-security-note"><i class="fa-solid fa-shield-halved"></i> เราจัดเก็บรหัสผ่านแบบเข้ารหัสและไม่เปิดเผยข้อมูลส่วนตัว</div>
     </aside>
     <div class="auth-card register-card">
-        <header class="auth-heading"><p class="eyebrow">CREATE ACCOUNT</p><h2>สมัครสมาชิก</h2><p>กรอกข้อมูลแล้วตรวจอีเมลเพื่อเปิดใช้งานบัญชี</p></header>
+        <header class="auth-heading"><p class="eyebrow"><?php echo $sellerRegistration?'SELLER ACCOUNT':'CREATE ACCOUNT'; ?></p><h2><?php echo $sellerRegistration?'สร้างบัญชีเพื่อเปิดร้าน':'สมัครสมาชิก'; ?></h2><p><?php echo $sellerRegistration?'สร้างบัญชีและยืนยันอีเมล จากนั้นระบบจะพาไปกรอกข้อมูลร้านค้า':'กรอกข้อมูลแล้วตรวจอีเมลเพื่อเปิดใช้งานบัญชี'; ?></p></header>
         <div class="auth-error" id="authError" role="alert" aria-live="polite"><i class="fa-solid fa-circle-exclamation"></i><span></span></div>
         <form class="auth-form" id="registerForm" novalidate>
             <div class="auth-form-row"><div class="auth-field"><label for="username">ชื่อผู้ใช้ <small>ภาษาอังกฤษ/ตัวเลขเท่านั้น</small></label><div class="auth-input"><i class="fa-regular fa-user"></i><input id="username" name="username" required minlength="3" maxlength="30" pattern="[A-Za-z][A-Za-z0-9]{2,29}" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="เช่น somchai99"></div><p class="field-hint" id="usernameHint">3–30 ตัว ต้องขึ้นต้นด้วย A–Z ห้ามเว้นวรรค จุด ขีดล่าง และอักขระพิเศษ</p></div><div class="auth-field"><label for="fullName">ชื่อ-นามสกุล</label><div class="auth-input"><i class="fa-regular fa-id-card"></i><input id="fullName" name="full_name" required minlength="2" maxlength="100" pattern="[A-Za-zก-๙ .'-]+" autocomplete="name" placeholder="สมชาย ใจดี"></div><p class="field-hint">ห้ามใส่ตัวเลข อีโมจิ หรือสัญลักษณ์ HTML</p></div></div>

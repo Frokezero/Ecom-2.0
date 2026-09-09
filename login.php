@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__.'/includes/functions.php';
 if(isLoggedIn()){header('Location: '.BASE_URL.(isAdmin()?'admin/index.php':'index.php'));exit;}
+if(($_GET['seller']??'')==='1')$_SESSION['redirect_url']=parse_url(BASE_URL,PHP_URL_PATH).'seller.php';
 $requestHost=$_SERVER['HTTP_HOST'] ?? '';
 $isLocalRequest=(bool)preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/i',$requestHost);
 $page_title='เข้าสู่ระบบ';
@@ -27,7 +28,13 @@ require_once __DIR__.'/includes/header.php';
         </form>
         <p class="auth-switch">ยังไม่มีบัญชี? <a href="<?php echo BASE_URL; ?>register.php">สมัครสมาชิกฟรี</a></p>
     </div>
-</section></div>
+</section>
+<a class="seller-login-banner" href="<?php echo BASE_URL; ?>register.php?seller=1" aria-label="สมัครเปิดร้านค้ากับ KitchenMart">
+    <span class="seller-login-banner-icon"><i class="fa-solid fa-store"></i></span>
+    <span class="seller-login-banner-copy"><small>KITCHENMART SELLER</small><strong>อยากขายสินค้ากับเรา?</strong><em>สมัครเปิดร้าน ส่งข้อมูลให้ทีมงานตรวจสอบ และเริ่มจัดการสินค้าผ่านศูนย์ผู้ขาย</em></span>
+    <span class="seller-login-banner-action">สมัครเป็นร้านค้า <i class="fa-solid fa-arrow-right"></i></span>
+</a>
+</div>
 <script nonce="<?php echo e(cspNonce()); ?>">
 document.querySelectorAll('[data-password-toggle]').forEach(button=>button.addEventListener('click',()=>{const input=document.getElementById(button.dataset.passwordToggle),show=input.type==='password';input.type=show?'text':'password';button.innerHTML=`<i class="fa-regular fa-eye${show?'-slash':''}"></i>`;button.setAttribute('aria-label',show?'ซ่อนรหัสผ่าน':'แสดงรหัสผ่าน')}));
 function showAuthError(message,field,email){const box=document.getElementById('authError'),help=document.getElementById('verificationHelp');box.querySelector('span').textContent=message;box.classList.add('show');help.hidden=!email;if(email)help.href=`${BASE_URL}check-email.php?email=${encodeURIComponent(email)}`;document.querySelectorAll('.auth-field').forEach(el=>el.classList.remove('invalid'));if(field){const input=document.querySelector(`[name="${field}"]`);if(input){input.closest('.auth-field')?.classList.add('invalid');input.focus()}}}

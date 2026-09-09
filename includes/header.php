@@ -37,6 +37,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/promotions.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/coupons.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/accessibility.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/price-overrides.css?v=1">
 </head>
 <body>
     <a class="skip-link" href="#main-content">ข้ามไปยังเนื้อหาหลัก</a>
@@ -112,7 +113,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
                 <a href="<?php echo BASE_URL; ?>index.php#featured">สินค้าแนะนำ</a>
                 <a href="<?php echo BASE_URL; ?>my-coupons.php" class="<?php echo $current_page==='my-coupons.php'?'active':''; ?>"><i class="fa-solid fa-ticket"></i> ศูนย์รวมคูปอง</a>
                 <?php if (isLoggedIn()): ?><a href="<?php echo BASE_URL; ?>profile.php">โปรไฟล์ของฉัน</a><?php endif; ?>
-                <?php if (isSeller()): ?><a href="<?php echo BASE_URL; ?>my-store.php">ร้านค้าของฉัน</a><a href="<?php echo BASE_URL; ?>seller-orders.php">ออเดอร์ร้านค้า</a><a href="<?php echo BASE_URL; ?>seller-wallet.php">ยอดเงินร้านค้า</a><?php endif; ?>
+                <?php if (isSeller()): ?><a href="<?php echo BASE_URL; ?>my-store.php">ร้านค้าของฉัน</a><a href="<?php echo BASE_URL; ?>seller-orders.php">ออเดอร์ร้านค้า</a><a href="<?php echo BASE_URL; ?>seller-wallet.php">ยอดเงินร้านค้า</a><a href="<?php echo BASE_URL; ?>seller-marketplace.php">โปรโมชันร้าน</a><a href="<?php echo BASE_URL; ?>messages.php">ข้อความลูกค้า</a><?php endif; ?>
                 <?php if (isAdmin()): ?><a href="<?php echo BASE_URL; ?>admin/index.php">จัดการร้าน</a><?php endif; ?>
                 <?php if (isLoggedIn()): ?><button type="button" onclick="secureLogout()">ออกจากระบบ</button><?php else: ?><a class="mobile-account" href="<?php echo BASE_URL; ?>register.php">สมัครสมาชิก</a><?php endif; ?>
             </div>

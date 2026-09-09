@@ -29,6 +29,7 @@ function walletTotals(PDO $db, int $sellerId, float $commissionRate): array {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'request_payout') {
     requireCsrf(false);
     try {
+        if ($profile['store_status'] !== 'active' || !(int)$profile['payout_enabled']) throw new RuntimeException('ร้านถูกระงับการถอนเงิน กรุณาติดต่อผู้ดูแลระบบ');
         $amount = filter_var($_POST['amount'] ?? null, FILTER_VALIDATE_FLOAT);
         if ($amount === false || $amount <= 0) throw new RuntimeException('กรุณาระบุยอดถอนให้ถูกต้อง');
         $db->beginTransaction();

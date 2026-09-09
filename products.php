@@ -37,7 +37,7 @@ if ($db) {
         if ((int)$category['id'] === $cat_id) $activeCategory = $category;
     }
 
-    $where = " FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.approval_status='approved'";
+    $where = " FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.approval_status='approved' AND ".marketplaceVisibilitySql('p');
     $params = [];
     if ($q !== '') {
         $where .= ' AND (p.name LIKE ? OR p.description LIKE ?)';
@@ -104,7 +104,7 @@ $categoryBanners=$db?activePromotionalBanners($db,'category',$cat_id):[];
     <div class="catalog-layout">
         <aside class="filter-panel" id="filterPanel" aria-label="ตัวกรองสินค้า">
             <div class="filter-panel-heading"><strong>ตัวกรองสินค้า</strong><button type="button" id="closeFilters" aria-label="ปิดตัวกรอง"><i class="fa-solid fa-xmark"></i></button></div>
-            <form method="GET">
+            <form method="GET" id="productFilterForm">
                 <div class="filter-group">
                     <label for="filterSearch">ค้นหาในรายการ</label>
                     <div class="filter-search"><i class="fa-solid fa-magnifying-glass"></i><input id="filterSearch" type="search" name="q" value="<?php echo e($q); ?>" placeholder="ชื่อสินค้า"></div>
@@ -134,7 +134,7 @@ $categoryBanners=$db?activePromotionalBanners($db,'category',$cat_id):[];
                 <form method="GET">
                     <?php foreach ($baseQuery as $key=>$value): if ($key==='sort' || $value==='') continue; ?><input type="hidden" name="<?php echo e($key); ?>" value="<?php echo e($value); ?>"><?php endforeach; ?>
                     <label for="sort">เรียงตาม</label>
-                    <select id="sort" name="sort" onchange="this.form.submit()">
+                    <select id="sort" name="sort" onchange="this.form.requestSubmit()">
                         <option value="newest" <?php echo $sort==='newest'?'selected':''; ?>>ใหม่ล่าสุด</option>
                         <option value="rating" <?php echo $sort==='rating'?'selected':''; ?>>คะแนนรีวิว</option>
                         <option value="price_asc" <?php echo $sort==='price_asc'?'selected':''; ?>>ราคาต่ำไปสูง</option>
@@ -154,7 +154,7 @@ $categoryBanners=$db?activePromotionalBanners($db,'category',$cat_id):[];
                             <a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>" class="product-img-wrapper"><img src="<?php echo e(productImageUrl($p['image_url'])); ?>" alt="<?php echo e($p['name']); ?>" class="product-img"></a>
                             <div class="product-info">
                                 <span class="product-category"><?php echo e($p['category_name'] ?? 'ทั่วไป'); ?></span>
-                                <a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>" class="product-title"><?php echo e($p['name']); ?></a>
+                                <a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$p['id']; ?>" class="product-title"><?php echo e(productDisplayName($p)); ?></a>
                                 <div class="product-rating"><span>★</span> <?php echo number_format((float)$p['average_rating'],1); ?> <small>(<?php echo (int)$p['review_count']; ?> รีวิว)</small></div>
                                 <div class="product-price-row"><strong class="product-price"><?php echo formatCurrency($p['price']); ?></strong><?php if ((int)$p['stock_quantity'] > 0): ?><span class="stock-text in-stock"><i class="fa-solid fa-circle-check"></i> พร้อมส่ง</span><?php else: ?><span class="stock-text out-stock">สินค้าหมด</span><?php endif; ?></div>
                                 <div class="delivery-note"><i class="fa-solid fa-truck"></i> จัดส่งทั่วประเทศ · ฟรีเมื่อครบ ฿1,000</div>
@@ -182,5 +182,10 @@ function setFilters(open){filterPanel.classList.toggle('open',open);filterScrim.
 document.getElementById('openFilters').addEventListener('click',()=>setFilters(true));
 document.getElementById('closeFilters').addEventListener('click',()=>setFilters(false));
 filterScrim.addEventListener('click',()=>setFilters(false));
+
+const productFilterForm=document.getElementById('productFilterForm');
+productFilterForm.querySelectorAll('input[name="category"]').forEach(control=>{
+    control.addEventListener('change',()=>productFilterForm.requestSubmit());
+});
 </script>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

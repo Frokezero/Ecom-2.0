@@ -41,7 +41,7 @@ if ($action === 'update' && $quantity === 0) {
 }
 if ($quantity < 1) jsonResponse('error', 'จำนวนสินค้าต้องอย่างน้อย 1 ชิ้น', [], 422);
 
-$stmt=$db->prepare("SELECT id,name,price,stock_quantity,image_url FROM products WHERE id=? AND approval_status='approved'");
+$stmt=$db->prepare("SELECT p.id,p.seller_id,p.name,p.price,p.sale_price,p.sale_starts_at,p.sale_ends_at,p.stock_quantity,p.image_url FROM products p WHERE p.id=? AND p.approval_status='approved' AND ".marketplaceVisibilitySql('p'));
 $stmt->execute([$productId]); $product=$stmt->fetch();
 if (!$product) jsonResponse('error', 'ไม่พบสินค้า', [], 404);
 $variant=null;if($variantId>0){$v=$db->prepare('SELECT id,sku,name,price,stock_quantity FROM product_variants WHERE id=? AND product_id=? AND is_active=1');$v->execute([$variantId,$productId]);$variant=$v->fetch();if(!$variant)jsonResponse('error','ไม่พบตัวเลือกสินค้า',[],404);$cartKey=$productId.':'.$variantId;}elseif(isset($_SESSION['cart'][$cartKey])&&!empty($_SESSION['cart'][$cartKey]['variant_id'])){$v=$db->prepare('SELECT id,sku,name,price,stock_quantity FROM product_variants WHERE id=? AND product_id=? AND is_active=1');$v->execute([(int)$_SESSION['cart'][$cartKey]['variant_id'],$productId]);$variant=$v->fetch();}
@@ -49,5 +49,5 @@ $stock=$variant?(int)$variant['stock_quantity']:(int)$product['stock_quantity'];
 if ($targetQty > $stock) jsonResponse('error', 'สินค้าในสต็อกไม่เพียงพอ', ['available'=>$stock], 409);
 if (!in_array($action, ['add','update'], true)) jsonResponse('error', 'คำสั่งไม่ถูกต้อง', [], 400);
 
-$_SESSION['cart'][$cartKey]=['id'=>(int)$product['id'],'variant_id'=>$variant?(int)$variant['id']:0,'variant_sku'=>$variant['sku']??null,'variant_name'=>$variant['name']??null,'name'=>$product['name'].($variant?' · '.$variant['name']:''),'price'=>(float)($variant['price']??$product['price']),'image_url'=>$product['image_url'],'quantity'=>$targetQty];
+$_SESSION['cart'][$cartKey]=['id'=>(int)$product['id'],'variant_id'=>$variant?(int)$variant['id']:0,'variant_sku'=>$variant['sku']??null,'variant_name'=>$variant['name']??null,'name'=>productDisplayName($product).($variant?' · '.$variant['name']:''),'price'=>$variant?(float)$variant['price']:productEffectivePrice($product),'image_url'=>$product['image_url'],'quantity'=>$targetQty];
 jsonResponse('success', $action==='add' ? 'เพิ่มสินค้าลงตะกร้าแล้ว' : 'อัปเดตจำนวนสินค้าแล้ว', cartSummary());

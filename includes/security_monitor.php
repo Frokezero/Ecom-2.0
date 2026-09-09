@@ -17,6 +17,7 @@ function securityIsBlocked(PDO $db,?int $userId=null):?array{
 }
 function securityBlock(PDO $db,string $targetType,string $targetHash,?int $userId,string $reason,int $score,int $seconds,?int $adminId=null):void{
  $update=$db->prepare("UPDATE security_blocks SET reason=?,risk_score=GREATEST(risk_score,?),blocked_until=GREATEST(blocked_until,DATE_ADD(NOW(),INTERVAL ? SECOND)),created_by=?,released_at=NULL WHERE target_type=? AND target_hash=? AND is_active=1");$update->execute([$reason,$score,$seconds,$adminId,$targetType,$targetHash]);if($update->rowCount())return;
+ $existing=$db->prepare('SELECT id FROM security_blocks WHERE target_type=? AND target_hash=? AND is_active=1 LIMIT 1');$existing->execute([$targetType,$targetHash]);if($existing->fetchColumn())return;
  $stmt=$db->prepare("INSERT INTO security_blocks(target_type,target_hash,user_id,reason,risk_score,blocked_until,created_by) VALUES(?,?,?,?,?,DATE_ADD(NOW(),INTERVAL ? SECOND),?)");$stmt->execute([$targetType,$targetHash,$userId,$reason,$score,$seconds,$adminId]);
 }
 function recordSecurityEvent(PDO $db,string $type,int $points,?int $userId=null,array $metadata=[],string $action='logged'):int{
