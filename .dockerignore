@@ -1,0 +1,7 @@
+.git
+.gitignore
+.runtime-sessions
+database/backups
+backups
+*.log
+node_modules

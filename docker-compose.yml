@@ -1,0 +1,42 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      APP_ENV: development
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: kitchenmart_db
+      DB_USER: kitchenmart
+      DB_PASS: kitchenmart
+      STORE_NAME: KitchenMart
+      APP_URL: http://localhost:8080/
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - product_uploads:/var/www/html/assets/images/products/uploads
+      - banner_uploads:/var/www/html/assets/images/banners/uploads
+      - app_sessions:/var/www/html/.runtime-sessions
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: kitchenmart_db
+      MYSQL_USER: kitchenmart
+      MYSQL_PASSWORD: kitchenmart
+      MYSQL_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
+      - database_data:/var/lib/mysql
+volumes:
+  database_data:
+  product_uploads:
+  banner_uploads:
+  app_sessions:
