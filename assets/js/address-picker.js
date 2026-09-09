@@ -1,100 +1,32 @@
 (() => {
-  const source = 'https://raw.githubusercontent.com/thailand-geography-data/thailand-geography-json/main/src/geography.json';
+  const source='https://raw.githubusercontent.com/thailand-geography-data/thailand-geography-json/main/src/geography.json';
   let dataPromise;
-  const loadData = () => dataPromise || (dataPromise = (async () => {
-    try {
-      const cached = localStorage.getItem('kitchenmart_thai_addresses');
-      if (cached) return JSON.parse(cached);
-    } catch (_) { /* use network copy */ }
-    const response = await fetch(source, { cache: 'force-cache' });
-    if (!response.ok) throw new Error('โหลดข้อมูลที่อยู่ไม่สำเร็จ');
-    const result = await response.json();
-    try { localStorage.setItem('kitchenmart_thai_addresses', JSON.stringify(result)); } catch (_) { /* storage is optional */ }
-    return result;
-  })());
-
-  const option = (value, label) => {
-    const item = document.createElement('option');
-    item.value = value;
-    item.textContent = label;
-    return item;
-  };
-  const fill = (select, items, valueKey, labelKey, placeholder) => {
-    select.replaceChildren(option('', placeholder));
-    items.forEach(item => select.append(option(String(item[valueKey]), item[labelKey])));
-    select.disabled = items.length === 0;
-  };
-
-  function attach(textarea) {
-    if (textarea.dataset.addressReady) return;
-    textarea.dataset.addressReady = '1';
-    textarea.required = false;
-    textarea.hidden = true;
-    const wrapper = document.createElement('div');
-    wrapper.className = 'thai-address-picker';
-    wrapper.innerHTML = '<label>บ้านเลขที่ / อาคาร / ถนน<input type="text" data-address-detail maxlength="500" placeholder="เช่น 99/9 ถนนสุขุมวิท"></label><div class="thai-address-grid"><label>จังหวัด<select data-address-province required><option value="">กำลังโหลดจังหวัด...</option></select></label><label>อำเภอ / เขต<select data-address-district required disabled><option value="">เลือกจังหวัดก่อน</option></select></label><label>ตำบล / แขวง<select data-address-subdistrict required disabled><option value="">เลือกอำเภอก่อน</option></select></label><label>รหัสไปรษณีย์<input data-address-postal inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required placeholder="เช่น 47000"></label></div><small class="thai-address-status" aria-live="polite">เลือกพื้นที่เพื่อเติมที่อยู่ให้ครบอัตโนมัติ</small>';
+  const loadData=()=>dataPromise||(dataPromise=(async()=>{try{const cached=localStorage.getItem('kitchenmart_thai_addresses');if(cached)return JSON.parse(cached)}catch(_){}const response=await fetch(source,{cache:'force-cache'});if(!response.ok)throw new Error('โหลดข้อมูลที่อยู่ไม่สำเร็จ');const rows=await response.json();try{localStorage.setItem('kitchenmart_thai_addresses',JSON.stringify(rows))}catch(_){}return rows})());
+  const makeOption=(value,label)=>{const item=document.createElement('option');item.value=value;item.textContent=label;return item};
+  const fill=(select,items,valueKey,labelKey,placeholder)=>{select.replaceChildren(makeOption('',placeholder));items.forEach(item=>select.append(makeOption(String(item[valueKey]),item[labelKey])));select.disabled=!items.length};
+  const unique=(rows,key)=>[...new Map(rows.map(row=>[row[key],row])).values()];
+  function attach(textarea){
+    if(textarea.dataset.addressReady)return;
+    textarea.dataset.addressReady='1';textarea.required=false;textarea.hidden=true;
+    const wrapper=document.createElement('div');wrapper.className='thai-address-picker';
+    wrapper.innerHTML='<label class="postal-search-label">ค้นหาด้วยรหัสไปรษณีย์<input type="text" data-address-postal-search inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="กรอกรหัสไปรษณีย์ 5 หลัก" autocomplete="postal-code"></label><div class="postal-search-results" data-address-results hidden></div><div class="selected-postal" data-address-selected hidden><span></span><button type="button">เปลี่ยนรหัสไปรษณีย์</button></div><label>บ้านเลขที่ / อาคาร / ถนน<input type="text" data-address-detail maxlength="500" placeholder="เช่น 99/9 ถนนสุขุมวิท"></label><div class="thai-address-grid" data-address-grid hidden><label>จังหวัด<select data-address-province required></select></label><label>อำเภอ / เขต<select data-address-district required></select></label><label>ตำบล / แขวง<select data-address-subdistrict required></select></label><input type="hidden" data-address-postal></div><small class="thai-address-status" aria-live="polite">กรอกรหัสไปรษณีย์เพื่อค้นหาพื้นที่</small>';
     textarea.after(wrapper);
-    const detail = wrapper.querySelector('[data-address-detail]');
-    const province = wrapper.querySelector('[data-address-province]');
-    const district = wrapper.querySelector('[data-address-district]');
-    const subdistrict = wrapper.querySelector('[data-address-subdistrict]');
-    const postal = wrapper.querySelector('[data-address-postal]');
-    const status = wrapper.querySelector('.thai-address-status');
-    let syncingPostal = false;
-    detail.value = textarea.value.trim().replace(/\s*(ตำบล|แขวง|อำเภอ|เขต|จังหวัด)\s+.*$/u, '').trim();
-    let rows = [];
-    const compose = () => {
-      const p = province.selectedOptions[0]?.textContent || '';
-      const d = district.selectedOptions[0]?.textContent || '';
-      const s = subdistrict.selectedOptions[0]?.textContent || '';
-      const parts = [detail.value.trim(), s ? `ตำบล/แขวง ${s}` : '', d ? `อำเภอ/เขต ${d}` : '', p ? `จังหวัด ${p}` : '', postal.value.trim()].filter(Boolean);
-      textarea.value = parts.join(' ');
-    };
-    const lookupPostal = () => {
-      const code = postal.value.trim();
-      if (!/^\d{5}$/.test(code)) return;
-      const found = rows.find(row => String(row.postalCode).padStart(5, '0') === code);
-      if (!found) { status.textContent = 'ไม่พบรหัสไปรษณีย์นี้ในฐานข้อมูล'; return; }
-      province.value = String(found.provinceCode);
-      syncingPostal = true;
-      province.dispatchEvent(new Event('change'));
-      setTimeout(() => {
-        district.value = String(found.districtCode);
-        district.dispatchEvent(new Event('change'));
-        setTimeout(() => { subdistrict.value = String(found.subdistrictCode); subdistrict.dispatchEvent(new Event('change')); postal.value = code; syncingPostal = false; compose(); }, 0);
-      }, 0);
-    };
-    loadData().then(input => {
-      rows = input;
-      const provinces = [...new Map(rows.map(row => [row.provinceCode, row])).values()].sort((a, b) => a.provinceNameTh.localeCompare(b.provinceNameTh, 'th'));
-      fill(province, provinces, 'provinceCode', 'provinceNameTh', 'เลือกจังหวัด');
-      status.textContent = 'พร้อมเลือกจังหวัด อำเภอ ตำบล และรหัสไปรษณีย์';
-      const savedPostal=(textarea.value.match(/\b\d{5}\b/)||[])[0];
-      if(savedPostal){postal.value=savedPostal;lookupPostal();const savedDetail=textarea.value.split(/ตำบล\/แขวง|แขวง|ตำบล/u)[0].trim();if(savedDetail)detail.value=savedDetail;}
-    }).catch(() => { status.textContent = 'ไม่สามารถโหลดข้อมูลที่อยู่ได้ กรุณาลองใหม่'; });
-    province.addEventListener('change', () => {
-      const code = province.value;
-      const districts = [...new Map(rows.filter(row => String(row.provinceCode) === code).map(row => [row.districtCode, row])).values()].sort((a, b) => a.districtNameTh.localeCompare(b.districtNameTh, 'th'));
-      fill(district, districts, 'districtCode', 'districtNameTh', 'เลือกอำเภอ / เขต');
-      fill(subdistrict, [], 'subdistrictCode', 'subdistrictNameTh', 'เลือกตำบล / แขวง');
-      if (!syncingPostal) postal.value = ''; compose();
-    });
-    district.addEventListener('change', () => {
-      const code = district.value;
-      const subs = rows.filter(row => String(row.districtCode) === code && String(row.provinceCode) === province.value).sort((a, b) => a.subdistrictNameTh.localeCompare(b.subdistrictNameTh, 'th'));
-      fill(subdistrict, subs, 'subdistrictCode', 'subdistrictNameTh', 'เลือกตำบล / แขวง');
-      if (!syncingPostal) postal.value = ''; compose();
-    });
-    subdistrict.addEventListener('change', () => {
-      const found = rows.find(row => String(row.subdistrictCode) === subdistrict.value);
-      if (found) postal.value = String(found.postalCode).padStart(5, '0');
-      compose();
-    });
-    postal.addEventListener('input', lookupPostal);
-    detail.addEventListener('input', compose);
-    textarea.closest('form')?.addEventListener('submit', compose);
+    const search=wrapper.querySelector('[data-address-postal-search]'),results=wrapper.querySelector('[data-address-results]'),selected=wrapper.querySelector('[data-address-selected]'),grid=wrapper.querySelector('[data-address-grid]'),detail=wrapper.querySelector('[data-address-detail]'),province=wrapper.querySelector('[data-address-province]'),district=wrapper.querySelector('[data-address-district]'),subdistrict=wrapper.querySelector('[data-address-subdistrict]'),postal=wrapper.querySelector('[data-address-postal]'),status=wrapper.querySelector('.thai-address-status');
+    let rows=[];const savedValue=textarea.value.trim();detail.value=savedValue.split(/ตำบล\/แขวง|แขวง|ตำบล/u)[0].trim();
+    search.required=true;const compose=()=>{const p=province.selectedOptions[0]?.textContent||'',d=district.selectedOptions[0]?.textContent||'',s=subdistrict.selectedOptions[0]?.textContent||'';textarea.value=[detail.value.trim(),s?`ตำบล/แขวง ${s}`:'',d?`อำเภอ/เขต ${d}`:'',p?`จังหวัด ${p}`:'',postal.value].filter(Boolean).join(' ')};
+    const populateDistricts=provinceCode=>{const items=unique(rows.filter(row=>String(row.provinceCode)===String(provinceCode)),'districtCode').sort((a,b)=>a.districtNameTh.localeCompare(b.districtNameTh,'th'));fill(district,items,'districtCode','districtNameTh','เลือกอำเภอ / เขต')};
+    const populateSubdistricts=(provinceCode,districtCode)=>{const items=rows.filter(row=>String(row.provinceCode)===String(provinceCode)&&String(row.districtCode)===String(districtCode)).sort((a,b)=>a.subdistrictNameTh.localeCompare(b.subdistrictNameTh,'th'));fill(subdistrict,items,'subdistrictCode','subdistrictNameTh','เลือกตำบล / แขวง')};
+    const applyRow=row=>{province.value=String(row.provinceCode);populateDistricts(row.provinceCode);district.value=String(row.districtCode);populateSubdistricts(row.provinceCode,row.districtCode);subdistrict.value=String(row.subdistrictCode);province.disabled=false;district.disabled=false;subdistrict.disabled=false;postal.value=String(row.postalCode).padStart(5,'0');search.value=postal.value;search.required=false;results.hidden=true;wrapper.querySelector('.postal-search-label').hidden=true;selected.hidden=false;selected.querySelector('span').textContent=`${postal.value} · ${row.subdistrictNameTh}, ${row.districtNameTh}, ${row.provinceNameTh}`;grid.hidden=false;status.textContent='เลือกพื้นที่แล้ว สามารถกรอกบ้านเลขที่และบันทึกที่อยู่ได้';compose()};
+    const lookup=()=>{const code=search.value.replace(/\D/g,'').slice(0,5);search.value=code;results.replaceChildren();if(code.length<5){results.hidden=true;status.textContent='กรอกรหัสไปรษณีย์ให้ครบ 5 หลัก';return}const matches=rows.filter(row=>String(row.postalCode).padStart(5,'0')===code);if(!matches.length){results.hidden=true;status.textContent='ไม่พบรหัสไปรษณีย์นี้';return}matches.forEach(row=>{const button=document.createElement('button');button.type='button';button.textContent=`${row.subdistrictNameTh} · ${row.districtNameTh} · ${row.provinceNameTh}`;button.addEventListener('click',()=>applyRow(row));results.append(button)});results.hidden=false;status.textContent=`พบ ${matches.length} พื้นที่ กรุณาเลือกตำบล/แขวง`};
+    search.addEventListener('input',lookup);
+    selected.querySelector('button').addEventListener('click',()=>{selected.hidden=true;grid.hidden=true;wrapper.querySelector('.postal-search-label').hidden=false;province.value='';district.replaceChildren(makeOption('','เลือกอำเภอ / เขต'));subdistrict.replaceChildren(makeOption('','เลือกตำบล / แขวง'));province.disabled=true;district.disabled=true;subdistrict.disabled=true;postal.value='';textarea.value='';search.required=true;search.select();results.hidden=true;status.textContent='กรอกรหัสไปรษณีย์ใหม่'});
+    province.addEventListener('change',()=>{populateDistricts(province.value);fill(subdistrict,[],'subdistrictCode','subdistrictNameTh','เลือกตำบล / แขวง');postal.value='';compose()});
+    district.addEventListener('change',()=>{populateSubdistricts(province.value,district.value);postal.value='';compose()});
+    subdistrict.addEventListener('change',()=>{const row=rows.find(item=>String(item.subdistrictCode)===subdistrict.value&&String(item.districtCode)===district.value);if(row){postal.value=String(row.postalCode).padStart(5,'0');search.value=postal.value;selected.querySelector('span').textContent=`${postal.value} · ${row.subdistrictNameTh}, ${row.districtNameTh}, ${row.provinceNameTh}`}compose()});
+    detail.addEventListener('input',compose);textarea.closest('form')?.addEventListener('submit',event=>{compose();if(!postal.value||!province.value||!district.value||!subdistrict.value){event.preventDefault();status.textContent='กรุณากรอกรหัสไปรษณีย์และเลือกพื้นที่ให้ครบ';search.focus()}});
+    loadData().then(input=>{rows=input;const provinces=unique(rows,'provinceCode').sort((a,b)=>a.provinceNameTh.localeCompare(b.provinceNameTh,'th'));fill(province,provinces,'provinceCode','provinceNameTh','เลือกจังหวัด');const savedPostal=(savedValue.match(/\b\d{5}\b/)||[])[0];if(savedPostal){const savedProvince=(savedValue.match(/จังหวัด\s+(.+?)\s+\d{5}\b/u)||[])[1],savedDistrict=(savedValue.match(/อำเภอ\/เขต\s+(.+?)\s+จังหวัด/u)||[])[1],savedSubdistrict=(savedValue.match(/ตำบล\/แขวง\s+(.+?)\s+อำเภอ\/เขต/u)||[])[1];const match=rows.find(row=>String(row.postalCode).padStart(5,'0')===savedPostal&&(!savedProvince||row.provinceNameTh===savedProvince)&&(!savedDistrict||row.districtNameTh===savedDistrict)&&(!savedSubdistrict||row.subdistrictNameTh===savedSubdistrict))||rows.find(row=>String(row.postalCode).padStart(5,'0')===savedPostal);if(match)applyRow(match);else{search.value=savedPostal;lookup()}}}).catch(()=>status.textContent='โหลดข้อมูลที่อยู่ไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต');
   }
-
-  window.initThaiAddressPickers=()=>document.querySelectorAll('textarea[data-address-picker], textarea[name="address"], textarea[name="shipping_address"], textarea[name="return_address"]').forEach(attach);
-  document.addEventListener('DOMContentLoaded', window.initThaiAddressPickers);
+  window.initThaiAddressPickers=(scope=document)=>scope.querySelectorAll('textarea[data-address-picker], textarea[name="address"], textarea[name="shipping_address"], textarea[name="return_address"]').forEach(attach);
+  document.addEventListener('DOMContentLoaded',()=>window.initThaiAddressPickers());
+  document.addEventListener('ajax:page-loaded',()=>window.initThaiAddressPickers());
 })();
