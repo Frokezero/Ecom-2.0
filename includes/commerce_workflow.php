@@ -2,8 +2,8 @@
 
 function allowedOrderTransitions(string $current): array {
     return [
-        'pending' => ['pending', 'processing', 'cancelled'],
-        'processing' => ['processing', 'shipped', 'cancelled'],
+        'pending' => ['pending', 'processing', 'shipped', 'completed', 'cancelled'],
+        'processing' => ['processing', 'shipped', 'completed', 'cancelled'],
         'shipped' => ['shipped', 'completed'],
         'completed' => ['completed'],
         'cancelled' => ['cancelled'],

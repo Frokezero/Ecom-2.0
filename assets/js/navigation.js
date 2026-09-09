@@ -122,7 +122,8 @@
         if (event.defaultPrevented) return;
         const form = event.target;
         if (!(form instanceof HTMLFormElement) || form.dataset.noAjax !== undefined || form.target) return;
-        const url = new URL(form.action || location.href, location.href);
+        const explicitAction=form.getAttribute('action');
+        const url = new URL(explicitAction || location.href, location.href);
         if (!canNavigate(url)) return;
         if(form.method.toUpperCase()==='GET'){
             event.preventDefault();url.search=new URLSearchParams(new FormData(form)).toString();navigate(url.href);return;

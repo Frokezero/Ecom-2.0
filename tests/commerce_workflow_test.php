@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__.'/../includes/commerce_workflow.php';
 function workflowExpect(bool $condition,string $message):void{if(!$condition)throw new RuntimeException($message);}
-workflowExpect(allowedOrderTransitions('pending')===['pending','processing','cancelled'],'Pending transition mismatch');
+workflowExpect(allowedOrderTransitions('pending')===['pending','processing','shipped','completed','cancelled'],'Pending transition mismatch');
 workflowExpect(fulfillmentToOrderStatus('packing')==='processing','Seller packing status mismatch');
 workflowExpect(orderToFulfillmentStatus('completed')==='delivered','Admin completed status mismatch');
 assertOrderTransition(['order_status'=>'pending','payment_status'=>'paid','payment_method'=>'promptpay'],'processing','paid');
