@@ -12,6 +12,7 @@ services:
       DB_PASS: kitchenmart
       STORE_NAME: KitchenMart
       APP_URL: http://localhost:8080/
+      MAIL_ASYNC: "1"
     depends_on:
       db:
         condition: service_healthy

@@ -17,7 +17,7 @@ if ($db) {
     $metrics['month_revenue'] = (float)$db->query("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE (payment_status='paid' OR order_status='completed') AND YEAR(created_at)=YEAR(CURRENT_DATE()) AND MONTH(created_at)=MONTH(CURRENT_DATE())")->fetchColumn();
     $metrics['mail_pending']=(int)$db->query("SELECT COUNT(*) FROM email_delivery_logs WHERE status IN ('queued','failed')")->fetchColumn();
     $metrics['mail_dead']=(int)$db->query("SELECT COUNT(*) FROM email_delivery_logs WHERE status='dead'")->fetchColumn();
-    $metrics['mail_stale']=(int)$db->query("SELECT COUNT(*) FROM email_delivery_logs WHERE status IN ('queued','failed','sending') AND created_at<DATE_SUB(NOW(),INTERVAL 5 MINUTE)")->fetchColumn();
+    $metrics['mail_stale']=(int)$db->query("SELECT COUNT(*) FROM email_delivery_logs WHERE (status IN ('queued','failed') AND next_attempt_at<=NOW() AND updated_at<DATE_SUB(NOW(),INTERVAL 5 MINUTE)) OR (status='sending' AND locked_at<DATE_SUB(NOW(),INTERVAL 15 MINUTE))")->fetchColumn();
     foreach ($db->query('SELECT payment_method,COUNT(*) count FROM orders GROUP BY payment_method') as $row) $paymentCounts[$row['payment_method']] = (int)$row['count'];
     $recentOrders = $db->query('SELECT o.*,u.full_name customer_name FROM orders o LEFT JOIN users u ON u.id=o.user_id ORDER BY o.id DESC LIMIT 8')->fetchAll();
 }
