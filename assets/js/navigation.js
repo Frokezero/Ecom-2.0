@@ -139,5 +139,7 @@
     });
 
     window.addEventListener('popstate', () => navigate(location.href, {history: true}));
+    function enhanceAddressSelection(){document.querySelectorAll('select[onchange*="address_id"]').forEach(select=>{select.onchange=null;select.removeAttribute('onchange');select.addEventListener('change',()=>navigate(`${location.pathname}?address_id=${encodeURIComponent(select.value)}`))})}
+    document.addEventListener('DOMContentLoaded',enhanceAddressSelection);document.addEventListener('ajax:page-loaded',enhanceAddressSelection);
     window.ajaxNavigate = navigate;
 })();
