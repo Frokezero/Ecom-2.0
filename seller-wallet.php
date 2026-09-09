@@ -16,14 +16,11 @@ $profile = $profileStmt->fetch();
 if (!$profile) { header('Location: '.BASE_URL.'seller.php'); exit; }
 
 function walletTotals(PDO $db, int $sellerId, float $commissionRate): array {
-    $sales = $db->prepare("SELECT COALESCE(SUM(s.seller_subtotal-GREATEST(0,o.discount_amount)*(s.seller_subtotal/NULLIF(t.order_subtotal,0))),0) FROM orders o JOIN (SELECT oi.order_id,SUM(oi.subtotal) seller_subtotal FROM order_items oi JOIN products p ON p.id=oi.product_id WHERE p.seller_id=? GROUP BY oi.order_id) s ON s.order_id=o.id JOIN (SELECT order_id,SUM(subtotal) order_subtotal FROM order_items GROUP BY order_id) t ON t.order_id=o.id WHERE o.order_status='completed' AND (o.payment_status='paid' OR (o.payment_method='cod' AND o.payment_status IN ('cod_pending','paid')))");
-    $sales->execute([$sellerId]);
-    $gross = (float)$sales->fetchColumn();
-    $net = round($gross * (1 - $commissionRate), 2);
+    $sales=$db->prepare("SELECT COALESCE(SUM(CASE WHEN entry_type='sale' THEN amount ELSE 0 END),0) gross,COALESCE(-SUM(CASE WHEN entry_type='commission' THEN amount ELSE 0 END),0) commission,COALESCE(SUM(amount),0) net FROM seller_ledger WHERE seller_id=? AND (available_at IS NULL OR available_at<=NOW())");$sales->execute([$sellerId]);$ledger=$sales->fetch();$gross=(float)$ledger['gross'];$net=(float)$ledger['net'];
     $reserved = $db->prepare("SELECT COALESCE(SUM(amount),0) FROM seller_payout_requests WHERE seller_id=? AND status IN ('requested','paid')");
     $reserved->execute([$sellerId]);
     $reservedAmount = (float)$reserved->fetchColumn();
-    return ['gross'=>$gross,'commission'=>round($gross*$commissionRate,2),'net'=>$net,'reserved'=>$reservedAmount,'available'=>max(0,round($net-$reservedAmount,2))];
+    return ['gross'=>$gross,'commission'=>(float)$ledger['commission'],'net'=>$net,'reserved'=>$reservedAmount,'available'=>max(0,round($net-$reservedAmount,2))];
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'request_payout') {

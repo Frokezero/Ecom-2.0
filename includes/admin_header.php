@@ -5,7 +5,7 @@ $admin_title = $page_title ?? 'ระบบหลังบ้าน';
 function adminStatusLabel(string $status): string {
     return [
         'pending'=>'รอดำเนินการ','processing'=>'กำลังแพ็ก','shipped'=>'จัดส่งแล้ว','completed'=>'สำเร็จ','cancelled'=>'ยกเลิก',
-        'paid'=>'ชำระแล้ว','cod_pending'=>'รอเก็บเงิน COD'
+        'paid'=>'ชำระแล้ว','cod_pending'=>'รอเก็บเงิน COD','failed'=>'ชำระไม่สำเร็จ','expired'=>'หมดเวลาชำระ','refunded'=>'คืนเงินแล้ว','partially_refunded'=>'คืนเงินบางส่วน'
     ][$status] ?? $status;
 }
 ?>

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/../includes/commerce_workflow.php';
 $page_title='คืนสินค้าและคืนเงิน';require_once __DIR__.'/../includes/auth_check.php';requireAdmin();require_once __DIR__.'/../config/database.php';
 $db=(new Database())->getConnection();$message=$error='';
 if($_SERVER['REQUEST_METHOD']==='POST'){
@@ -14,7 +15,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
    $db->prepare("INSERT INTO refunds(order_id,return_request_id,amount,status,reason,processed_at) VALUES(?,?,?,'succeeded',?,NOW())")->execute([(int)$r['order_id'],$id,$refundAmount,$note?:'คืนเงินตามรายการที่อนุมัติ']);
    $items=$db->prepare('SELECT oi.product_id,oi.variant_id,COALESCE(ri.quantity,oi.quantity) quantity FROM order_items oi LEFT JOIN return_request_items ri ON ri.order_item_id=oi.id AND ri.return_request_id=? WHERE oi.order_id=? AND (ri.id IS NOT NULL OR NOT EXISTS(SELECT 1 FROM return_request_items x WHERE x.return_request_id=?))');$items->execute([$id,(int)$r['order_id'],$id]);$restore=$db->prepare('UPDATE products SET stock_quantity=stock_quantity+? WHERE id=?');$restoreVariant=$db->prepare('UPDATE product_variants SET stock_quantity=stock_quantity+? WHERE id=?');foreach($items->fetchAll() as $item){if(!empty($item['variant_id']))$restoreVariant->execute([(int)$item['quantity'],(int)$item['variant_id']]);else $restore->execute([(int)$item['quantity'],(int)$item['product_id']]);}
    $isFull=$refundAmount>=(float)$r['total_amount'];if($isFull&&!empty($r['coupon_id'])){$used=$db->prepare('DELETE FROM coupon_usages WHERE order_id=?');$used->execute([(int)$r['order_id']]);if($used->rowCount())$db->prepare('UPDATE user_coupons SET used_count=GREATEST(0,used_count-1) WHERE coupon_id=? AND user_id=?')->execute([(int)$r['coupon_id'],(int)$r['user_id']]);}
-   $db->prepare("UPDATE orders SET payment_status=?,order_status=IF(?=1,'cancelled',order_status) WHERE id=?")->execute([$isFull?'refunded':'partially_refunded',$isFull?1:0,(int)$r['order_id']]);
+   reverseSellerLedgerForRefund($db,(int)$r['order_id'],$refundAmount,$id);$db->prepare("UPDATE orders SET payment_status=?,order_status=IF(?=1,'cancelled',order_status) WHERE id=?")->execute([$isFull?'refunded':'partially_refunded',$isFull?1:0,(int)$r['order_id']]);
   }
   $db->prepare('UPDATE return_requests SET status=?,admin_note=? WHERE id=?')->execute([$next,$note?:null,$id]);createNotification($db,(int)$r['user_id'],'return','อัปเดตคำขอคืนสินค้า','คำขอสำหรับ '.$r['order_no'].' เปลี่ยนเป็น '.$next,BASE_URL.'my-returns.php');$db->commit();$message='อัปเดตคำขอเรียบร้อย';
  }catch(Throwable $e){if($db->inTransaction())$db->rollBack();$error=$e->getMessage();}

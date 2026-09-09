@@ -118,15 +118,24 @@
         navigate(url.href);
     });
 
-    document.addEventListener('submit', event => {
+    document.addEventListener('submit', async event => {
         if (event.defaultPrevented) return;
         const form = event.target;
-        if (!(form instanceof HTMLFormElement) || form.method.toUpperCase() !== 'GET' || form.dataset.noAjax !== undefined) return;
+        if (!(form instanceof HTMLFormElement) || form.dataset.noAjax !== undefined || form.target) return;
         const url = new URL(form.action || location.href, location.href);
         if (!canNavigate(url)) return;
-        event.preventDefault();
-        url.search = new URLSearchParams(new FormData(form)).toString();
-        navigate(url.href);
+        if(form.method.toUpperCase()==='GET'){
+            event.preventDefault();url.search=new URLSearchParams(new FormData(form)).toString();navigate(url.href);return;
+        }
+        if(form.method.toUpperCase()!=='POST')return;
+        event.preventDefault();setLoading(true);
+        try{
+            const response=await fetch(url.href,{method:'POST',body:new FormData(form),headers:{'X-Requested-With':'XMLHttpRequest'}});
+            const type=response.headers.get('content-type')||'';
+            if(!response.ok||!type.includes('text/html'))throw new Error(`Form failed: ${response.status}`);
+            const nextDocument=new DOMParser().parseFromString(await response.text(),'text/html'),selector=contentSelector(),current=document.querySelector(selector),next=nextDocument.querySelector(selector);
+            if(!current||!next)throw new Error('Page content is missing');current.innerHTML=next.innerHTML;document.title=nextDocument.title;history.replaceState({ajaxNavigation:true},'',response.url||url.href);updateNavigationState(new URL(response.url||url.href));await runPageScripts(current);document.dispatchEvent(new CustomEvent('ajax:page-loaded',{detail:{url:response.url||url.href}}));window.scrollTo({top:0,behavior:'smooth'});
+        }catch(error){location.assign(url.href)}finally{setLoading(false)}
     });
 
     window.addEventListener('popstate', () => navigate(location.href, {history: true}));

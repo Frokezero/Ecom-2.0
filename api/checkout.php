@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/security_monitor.php';
 require_once __DIR__ . '/../includes/behavior_analytics.php';
+require_once __DIR__ . '/../includes/commerce_workflow.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonResponse('error','อนุญาตเฉพาะ POST',[],405);
 if (!isLoggedIn()) jsonResponse('error','กรุณาเข้าสู่ระบบ',[],401);
@@ -32,7 +33,7 @@ if ($action === 'create_order') {
             if ((int)$product['stock_quantity'] < $qty) throw new RuntimeException('สินค้า “'.$product['name'].'” มีไม่เพียงพอ');
             $price=productEffectivePrice($product); $subtotal=$price*$qty; $total+=$subtotal;
             $variantId=(int)($cartItem['variant_id']??0);$variant=null;if($variantId>0){$variantStmt=$db->prepare('SELECT id,sku,name,price,stock_quantity FROM product_variants WHERE id=? AND product_id=? AND is_active=1 FOR UPDATE');$variantStmt->execute([$variantId,$id]);$variant=$variantStmt->fetch();if(!$variant)throw new RuntimeException('ตัวเลือกสินค้าบางรายการไม่มีอยู่แล้ว');if((int)$variant['stock_quantity']<$qty)throw new RuntimeException('ตัวเลือก “'.$variant['name'].'” มีไม่เพียงพอ');$total-=$subtotal;$price=(float)$variant['price'];$subtotal=$price*$qty;$total+=$subtotal;}
-            $items[]=['id'=>$id,'variant_id'=>$variantId,'variant_sku'=>$variant['sku']??null,'variant_name'=>$variant['name']??null,'name'=>productDisplayName($product),'price'=>$price,'quantity'=>$qty,'subtotal'=>$subtotal];
+            $items[]=['id'=>$id,'seller_id'=>$product['seller_id']===null?null:(int)$product['seller_id'],'variant_id'=>$variantId,'variant_sku'=>$variant['sku']??null,'variant_name'=>$variant['name']??null,'name'=>productDisplayName($product),'price'=>$price,'quantity'=>$qty,'subtotal'=>$subtotal];
         }
         $items=applyActiveBundles($db,$items);$total=array_sum(array_column($items,'subtotal'));
         $couponResult=calculateCouponDiscount($db,(string)($_POST['coupon_code']??$_SESSION['coupon_code']??''),(int)$_SESSION['user_id'],$items,$total,true);
@@ -44,12 +45,14 @@ if ($action === 'create_order') {
         $stmt->execute([$orderNo,(int)$_SESSION['user_id'],$total,$payable,$coupon['id']??null,$coupon['code']??null,$discount,0,$name,$phone,$address,$method,$paymentStatus,$method==='promptpay'?date('Y-m-d H:i:s',time()+1800):null,'pending']);
         $orderId=(int)$db->lastInsertId();
         recordOrderHistory($db,$orderId,'pending',$paymentStatus,'รับคำสั่งซื้อเข้าระบบ',(int)$_SESSION['user_id']);
-        $itemStmt=$db->prepare('INSERT INTO order_items (order_id,product_id,variant_id,product_name,variant_sku,variant_name,price,quantity,subtotal) VALUES (?,?,?,?,?,?,?,?,?)');
+        $itemStmt=$db->prepare('INSERT INTO order_items (order_id,product_id,seller_id,variant_id,product_name,variant_sku,variant_name,price,quantity,subtotal) VALUES (?,?,?,?,?,?,?,?,?,?)');
         $stockStmt=$db->prepare('UPDATE products SET stock_quantity=stock_quantity-? WHERE id=? AND stock_quantity>=?');
         foreach ($items as $item) {
-            $itemStmt->execute([$orderId,$item['id'],$item['variant_id']?:null,$item['name'],$item['variant_sku'],$item['variant_name'],$item['price'],$item['quantity'],$item['subtotal']]);
+            $itemStmt->execute([$orderId,$item['id'],$item['seller_id'],$item['variant_id']?:null,$item['name'],$item['variant_sku'],$item['variant_name'],$item['price'],$item['quantity'],$item['subtotal']]);
             if($item['variant_id']){$variantStock=$db->prepare('UPDATE product_variants SET stock_quantity=stock_quantity-? WHERE id=? AND stock_quantity>=?');$variantStock->execute([$item['quantity'],$item['variant_id'],$item['quantity']]);if($variantStock->rowCount()!==1)throw new RuntimeException('ไม่สามารถตัดสต็อกตัวเลือกสินค้าได้');}else{$stockStmt->execute([$item['quantity'],$item['id'],$item['quantity']]);if($stockStmt->rowCount()!==1)throw new RuntimeException('ไม่สามารถตัดสต็อกสินค้าได้');}
         }
+        $sellerIds=array_values(array_unique(array_filter(array_column($items,'seller_id'))));
+        if($sellerIds){$fulfillment=$db->prepare("INSERT IGNORE INTO order_fulfillments(order_id,seller_id,status) VALUES(?,?,'pending')");foreach($sellerIds as $sellerId)$fulfillment->execute([$orderId,(int)$sellerId]);}
         if($coupon){$claim=$db->prepare('INSERT INTO user_coupons(coupon_id,user_id,used_count) VALUES(?,?,1) ON DUPLICATE KEY UPDATE used_count=used_count+1');$claim->execute([(int)$coupon['id'],(int)$_SESSION['user_id']]);$use=$db->prepare('INSERT INTO coupon_usages(coupon_id,user_id,order_id,discount_amount) VALUES(?,?,?,?)');$use->execute([(int)$coupon['id'],(int)$_SESSION['user_id'],$orderId,$discount]);}
         $payment=$db->prepare('INSERT INTO payment_transactions(order_id,provider,idempotency_key,amount,status) VALUES(?,?,?,?,?)');
         $payment->execute([$orderId,$method==='promptpay'?'promptpay':'cod',hash('sha256','order:'.$orderId.':'.$orderNo),$payable,$method==='promptpay'?'pending':'created']);
