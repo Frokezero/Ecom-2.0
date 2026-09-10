@@ -4,6 +4,7 @@ require_once __DIR__ . '/includes/auth_check.php';
 requireSeller();
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/image_upload.php';
+require_once __DIR__ . '/includes/security_monitor.php';
 
 $db = (new Database())->getConnection();
 if (!$db) { http_response_code(503); exit('ไม่สามารถเชื่อมต่อฐานข้อมูลได้'); }
@@ -30,6 +31,7 @@ function cleanStoreUrl(string $value): ?string {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCsrf(false);
+    protectApiMutation($db, 'seller.store.manage', 30, 60);
     $action = $_POST['action'] ?? '';
     try {
         if ($action === 'save_store') {
@@ -72,24 +74,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $image = $old['image_url'];
             $hasNewImage = uploadedFilePresent('product_image');
             if ($hasNewImage) $image = saveProductImageUpload($_FILES['product_image']);
-            $requiresReview = $hasNewImage || $name !== $old['name'] || $categoryId !== (int)$old['category_id'] || (float)$price !== (float)$old['price'] || $description !== (string)$old['description'];
+            $video = $old['video_url'] ?? null;$hasNewVideo=uploadedFilePresent('product_video');if($hasNewVideo)$video=saveProductVideoUpload($_FILES['product_video']);
+            $primary=in_array(($_POST['primary_media_type']??''),['image','video'],true)?$_POST['primary_media_type']:($old['primary_media_type']??'image');if($primary==='video'&&!$video)throw new RuntimeException('กรุณาอัปโหลดวิดีโอก่อนเลือกเป็นสื่อหลัก');
+            $requiresReview = $hasNewImage || $hasNewVideo || $primary!==($old['primary_media_type']??'image') || $name !== $old['name'] || $categoryId !== (int)$old['category_id'] || (float)$price !== (float)$old['price'] || $description !== (string)$old['description'];
             $status = $requiresReview ? 'pending' : $old['approval_status'];
-            $stmt = $db->prepare('UPDATE products SET name=?,category_id=?,price=?,stock_quantity=?,description=?,image_url=?,approval_status=?,admin_note=? WHERE id=? AND seller_id=?');
-            $stmt->execute([$name, $categoryId, $price, $stock, $description, $image, $status, $requiresReview ? null : $old['admin_note'], $productId, $sellerId]);
+            $stmt = $db->prepare('UPDATE products SET name=?,category_id=?,price=?,stock_quantity=?,description=?,image_url=?,video_url=?,primary_media_type=?,approval_status=?,admin_note=? WHERE id=? AND seller_id=?');
+            $stmt->execute([$name, $categoryId, $price, $stock, $description, $image, $video, $primary, $status, $requiresReview ? null : $old['admin_note'], $productId, $sellerId]);
+            if($hasNewImage&&$old['image_url']!==$image)deleteManagedUpload($old['image_url']);if($hasNewVideo&&!empty($old['video_url'])&&$old['video_url']!==$video)deleteManagedVideoUpload($old['video_url']);auditLog($db,'seller.product.update','product',$productId,null,['primary_media'=>$primary]);
             $message = $requiresReview ? 'บันทึกสินค้าแล้ว และส่งให้ทีมงานตรวจสอบอีกครั้ง' : 'อัปเดตสต็อกสินค้าแล้ว';
         }
 
         if ($action === 'delete_product') {
             $productId = (int)($_POST['product_id'] ?? 0);
-            $owned = $db->prepare('SELECT 1 FROM products WHERE id=? AND seller_id=? LIMIT 1');
+            $owned = $db->prepare('SELECT image_url,video_url FROM products WHERE id=? AND seller_id=? LIMIT 1');
             $owned->execute([$productId, $sellerId]);
-            if (!$owned->fetchColumn()) throw new RuntimeException('ไม่พบสินค้านี้ หรือคุณไม่มีสิทธิ์ลบ');
+            $ownedMedia=$owned->fetch();if(!$ownedMedia) throw new RuntimeException('ไม่พบสินค้านี้ หรือคุณไม่มีสิทธิ์ลบ');
             $activeOrder = $db->prepare('SELECT 1 FROM order_items WHERE product_id=? LIMIT 1');
             $activeOrder->execute([$productId]);
             if ($activeOrder->fetchColumn()) throw new RuntimeException('ลบสินค้านี้ไม่ได้ เพราะมีประวัติคำสั่งซื้ออยู่แล้ว ให้ปรับสต็อกเป็น 0 แทน');
+            $gallery=$db->prepare('SELECT image_url FROM product_images WHERE product_id=?');$gallery->execute([$productId]);$galleryMedia=$gallery->fetchAll(PDO::FETCH_COLUMN);
             $stmt = $db->prepare('DELETE FROM products WHERE id=? AND seller_id=?');
             $stmt->execute([$productId, $sellerId]);
             if ($stmt->rowCount() !== 1) throw new RuntimeException('ไม่พบสินค้านี้ หรือคุณไม่มีสิทธิ์ลบ');
+            deleteManagedUpload($ownedMedia['image_url']);deleteManagedVideoUpload($ownedMedia['video_url']);foreach($galleryMedia as $path)deleteManagedUpload($path);
             $message = 'ลบสินค้าออกจากร้านแล้ว';
         }
     } catch (Throwable $exception) {
@@ -144,7 +151,7 @@ $coverStyle = $profile['cover_image'] ? ' style="background-image:linear-gradien
                 <div><span class="status-badge <?php echo $product['approval_status']==='approved'?'paid':($product['approval_status']==='rejected'?'cancelled':'pending'); ?>"><?php echo e($product['approval_status']); ?></span><small><?php echo e($product['category_name']); ?></small><h3><?php echo e($product['name']); ?></h3><strong><?php echo formatCurrency($product['price']); ?></strong><span>คงเหลือ <?php echo (int)$product['stock_quantity']; ?> ชิ้น</span></div>
                 <details><summary><i class="fa-regular fa-pen-to-square"></i> แก้ไขสินค้า</summary>
                     <form method="POST" enctype="multipart/form-data" class="seller-form product-edit-form"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>"><input type="hidden" name="action" value="edit_product"><input type="hidden" name="product_id" value="<?php echo (int)$product['id']; ?>">
-                        <div class="seller-fields"><label class="full">ชื่อสินค้า<input name="name" value="<?php echo e($product['name']); ?>" required maxlength="200"></label><label>หมวดสินค้า<select name="category_id" required><?php foreach($categories as $category): ?><option value="<?php echo (int)$category['id']; ?>" <?php echo (int)$category['id']===(int)$product['category_id']?'selected':''; ?>><?php echo e($category['name']); ?></option><?php endforeach; ?></select></label><label>ราคา<input type="number" name="price" min="0.01" step="0.01" value="<?php echo e($product['price']); ?>" required></label><label>สต็อก<input type="number" name="stock_quantity" min="0" value="<?php echo (int)$product['stock_quantity']; ?>" required></label><label class="full">เปลี่ยนรูปสินค้า<input type="file" name="product_image" data-image-crop data-crop-ratio="1" accept="image/jpeg,image/png,image/webp"><small>หากเปลี่ยนรูปหรือรายละเอียด สินค้าจะส่งตรวจสอบอีกครั้ง</small></label><label class="full">รายละเอียด<textarea name="description" rows="4" maxlength="3000"><?php echo e($product['description']); ?></textarea></label></div><footer><button class="btn btn-primary" type="submit">บันทึกการแก้ไข</button></footer>
+                        <div class="seller-fields"><label class="full">ชื่อสินค้า<input name="name" value="<?php echo e($product['name']); ?>" required maxlength="200"></label><label>หมวดสินค้า<select name="category_id" required><?php foreach($categories as $category): ?><option value="<?php echo (int)$category['id']; ?>" <?php echo (int)$category['id']===(int)$product['category_id']?'selected':''; ?>><?php echo e($category['name']); ?></option><?php endforeach; ?></select></label><label>ราคา<input type="number" name="price" min="0.01" step="0.01" value="<?php echo e($product['price']); ?>" required></label><label>สต็อก<input type="number" name="stock_quantity" min="0" value="<?php echo (int)$product['stock_quantity']; ?>" required></label><fieldset class="full"><legend>สื่อหลัก</legend><label><input type="radio" name="primary_media_type" value="image" <?php echo ($product['primary_media_type']??'image')==='image'?'checked':'';?>> รูปภาพ</label> <label><input type="radio" name="primary_media_type" value="video" <?php echo ($product['primary_media_type']??'image')==='video'?'checked':'';?>> วิดีโอ</label></fieldset><label class="full">เปลี่ยนรูปสินค้า<input type="file" name="product_image" data-image-crop data-crop-ratio="1" accept="image/jpeg,image/png,image/webp"><small>หากเปลี่ยนสื่อหรือรายละเอียด สินค้าจะส่งตรวจสอบอีกครั้ง</small></label><label class="full">เปลี่ยนวิดีโอสินค้า<input type="file" name="product_video" accept="video/mp4,video/webm"><small>MP4 หรือ WebM ไม่เกิน 50 MB</small></label><label class="full">รายละเอียด<textarea name="description" rows="4" maxlength="3000"><?php echo e($product['description']); ?></textarea></label></div><footer><button class="btn btn-primary" type="submit">บันทึกการแก้ไข</button></footer>
                     </form>
                     <a class="btn btn-outline" href="<?php echo BASE_URL;?>seller-product-options.php?id=<?php echo (int)$product['id'];?>"><i class="fa-solid fa-layer-group"></i> ตัวเลือกและรูปเพิ่มเติม</a><form method="POST" class="seller-delete-form" onsubmit="return confirm('ลบสินค้านี้ออกจากร้านใช่หรือไม่?');"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>"><input type="hidden" name="action" value="delete_product"><input type="hidden" name="product_id" value="<?php echo (int)$product['id']; ?>"><button class="btn btn-danger" type="submit"><i class="fa-regular fa-trash-can"></i> ลบสินค้า</button></form>
                 </details>

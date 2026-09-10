@@ -17,7 +17,7 @@ function adminStatusLabel(string $status): string {
     <meta name="theme-color" content="#173f32">
     <title><?php echo e($admin_title); ?> - <?php echo APP_NAME; ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css?v=7">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notifications.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notification-hover.css">

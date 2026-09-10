@@ -5,7 +5,7 @@ until php -r '$db=@new PDO("mysql:host=".getenv("DB_HOST").";port=".getenv("DB_P
   sleep 2
 done
 php /var/www/html/tools/migrate.php
-chown -R www-data:www-data /var/www/html/.runtime-sessions /var/www/html/assets/images/products/uploads /var/www/html/assets/images/banners/uploads
+chown -R www-data:www-data /var/www/html/.runtime-sessions /var/www/html/assets/images/products/uploads /var/www/html/assets/images/banners/uploads /var/www/html/assets/videos/products/uploads
 if [ "${MAIL_ASYNC:-1}" = "1" ]; then
   (
     while true; do

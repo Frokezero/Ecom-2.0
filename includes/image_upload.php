@@ -46,4 +46,25 @@ function saveReturnEvidenceUpload(array $file): string {
     $size=@getimagesize($file['tmp_name']);if(!$size||$size[0]*$size[1]>20000000)throw new RuntimeException('รูปหลักฐานไม่ถูกต้อง');
     $directory=__DIR__.'/../assets/images/returns/uploads';if(!is_dir($directory)&&!mkdir($directory,0755,true)&&!is_dir($directory))throw new RuntimeException('เตรียมพื้นที่หลักฐานไม่สำเร็จ');$name=bin2hex(random_bytes(24)).'.'.$types[$mime];if(!move_uploaded_file($file['tmp_name'],$directory.'/'.$name))throw new RuntimeException('บันทึกหลักฐานไม่สำเร็จ');return 'assets/images/returns/uploads/'.$name;
 }
+function saveProductVideoUpload(array $file): string {
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'] ?? '')) throw new RuntimeException('กรุณาเลือกไฟล์วิดีโอสินค้า');
+    if (($file['size'] ?? 0) < 1 || $file['size'] > 50 * 1024 * 1024) throw new RuntimeException('วิดีโอต้องมีขนาดไม่เกิน 50 MB');
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+    $types = ['video/mp4'=>'mp4','video/webm'=>'webm'];
+    if (!isset($types[$mime])) throw new RuntimeException('รองรับเฉพาะวิดีโอ MP4 และ WebM');
+    $directory = __DIR__ . '/../assets/videos/products/uploads';
+    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) throw new RuntimeException('ไม่สามารถเตรียมพื้นที่เก็บวิดีโอได้');
+    $name = bin2hex(random_bytes(24)) . '.' . $types[$mime];
+    if (!move_uploaded_file($file['tmp_name'], $directory . DIRECTORY_SEPARATOR . $name)) throw new RuntimeException('ไม่สามารถบันทึกวิดีโอสินค้าได้');
+    return 'assets/videos/products/uploads/' . $name;
+}
+function deleteManagedVideoUpload(?string $relativePath): void {
+    $path = (string)$relativePath;
+    if (!preg_match('#^assets/videos/products/uploads/[a-f0-9]{48}\.(mp4|webm)$#', $path)) return;
+    $root = realpath(__DIR__ . '/..');
+    $absolute = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);
+    $parent = realpath(dirname($absolute));
+    $videoRoot = $root . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'videos';
+    if ($root && $parent && str_starts_with($parent, $videoRoot) && is_file($absolute)) @unlink($absolute);
+}
 function deleteManagedUpload(?string $relativePath):void{$path=(string)$relativePath;if(!preg_match('#^assets/images/(products|stores|banners|returns)/uploads/[a-f0-9]{32,48}\.(jpg|png|webp)$#',$path))return;$root=realpath(__DIR__.'/..');$absolute=$root.DIRECTORY_SEPARATOR.str_replace('/',DIRECTORY_SEPARATOR,$path);$parent=realpath(dirname($absolute));if($root&&$parent&&str_starts_with($parent,$root.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.'images')&&is_file($absolute))@unlink($absolute);}

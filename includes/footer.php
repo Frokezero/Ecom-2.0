@@ -71,7 +71,7 @@
         const BASE_URL = "<?php echo BASE_URL; ?>";
         const CSRF_TOKEN = "<?php echo getCsrfToken(); ?>";
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/app.js?v=6"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/app.js?v=7"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/address-picker.js?v=4"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/notifications.js?v=2"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/promotions.js?v=1"></script>
@@ -83,6 +83,6 @@
     <script src="<?php echo BASE_URL; ?>assets/js/product-card-pricing.js?v=1"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/floating-product-video.js?v=3"></script>
     <?php if (basename($_SERVER['PHP_SELF'] ?? '') === 'index.php'): ?><script src="<?php echo BASE_URL; ?>assets/js/home-banner-carousel.js?v=2"></script><?php endif; ?>
-    <?php if (basename($_SERVER['PHP_SELF'] ?? '') === 'seller-marketplace.php'): ?><script src="<?php echo BASE_URL; ?>assets/js/seller-promotions.js?v=1"></script><?php endif; ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/seller-promotions.js?v=2"></script>
 </body>
 </html>

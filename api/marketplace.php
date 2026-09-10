@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__.'/../includes/functions.php';
 require_once __DIR__.'/../config/database.php';
+require_once __DIR__.'/../includes/security_monitor.php';
 if($_SERVER['REQUEST_METHOD']!=='POST')jsonResponse('error','อนุญาตเฉพาะ POST',[],405);
 if(!isLoggedIn())jsonResponse('error','กรุณาเข้าสู่ระบบ',[],401);
 requireCsrf();$db=(new Database())->getConnection();if(!$db)jsonResponse('error','เชื่อมต่อฐานข้อมูลไม่ได้',[],503);

@@ -4,12 +4,36 @@ require_once __DIR__ . '/../includes/auth_check.php';
 requireAdmin();
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/image_upload.php';
+require_once __DIR__ . '/../includes/security_monitor.php';
 $db = (new Database())->getConnection();
 $message = '';
 $error = '';
 
+function adminProductGalleryFiles(array $files): array {
+    $names = $files['name'] ?? [];
+    if (!is_array($names)) return [];
+    if (count($names) > 8) throw new RuntimeException('อัปโหลดรูปเพิ่มเติมได้ไม่เกิน 8 รูปต่อครั้ง');
+    $result = [];
+    foreach ($names as $index => $name) {
+        $error = (int)($files['error'][$index] ?? UPLOAD_ERR_NO_FILE);
+        if ($error === UPLOAD_ERR_NO_FILE) continue;
+        $result[] = [
+            'name' => (string)$name,
+            'type' => (string)($files['type'][$index] ?? ''),
+            'tmp_name' => (string)($files['tmp_name'][$index] ?? ''),
+            'error' => $error,
+            'size' => (int)($files['size'][$index] ?? 0),
+        ];
+    }
+    return $result;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCsrf(false);
+    if ($db) {
+        enforceSecurityBlock($db, (int)$_SESSION['user_id'], false);
+        enforceRequestRate($db, 'admin.products', 30, 60, (int)$_SESSION['user_id']);
+    }
     $action = $_POST['action'] ?? '';
     if ($action === 'add' || $action === 'edit') {
         $productName = trim($_POST['name'] ?? '');
@@ -17,35 +41,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $price = filter_var($_POST['price'] ?? null, FILTER_VALIDATE_FLOAT);
         $stock = filter_var($_POST['stock_quantity'] ?? null, FILTER_VALIDATE_INT);
         $description = trim($_POST['description'] ?? '');
+        $videoUrl = null;$previousVideo=null;
+        $primaryMedia = in_array(($_POST['primary_media_type'] ?? ''), ['image','video'], true) ? $_POST['primary_media_type'] : 'image';
         $imageUrl = 'assets/images/products/placeholder.svg';$previousImage=null;
-        if ($action === 'edit') { $old=$db?->prepare('SELECT image_url FROM products WHERE id=?'); if($old){$old->execute([(int)($_POST['id']??0)]);$previousImage=$old->fetchColumn()?:null;$imageUrl=$previousImage ?: $imageUrl;} }
+        if ($action === 'edit') { $old=$db?->prepare('SELECT image_url,video_url FROM products WHERE id=?'); if($old){$old->execute([(int)($_POST['id']??0)]);$oldMedia=$old->fetch();$previousImage=$oldMedia['image_url']??null;$previousVideo=$oldMedia['video_url']??null;$imageUrl=$previousImage ?: $imageUrl;$videoUrl=$previousVideo ?: null;} }
         $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
+        $uploadedPaths = [];$uploadedVideo = null;
+        $galleryFiles = [];
 
-        if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] !== UPLOAD_ERR_NO_FILE) {
-            try { $imageUrl = saveProductImageUpload($_FILES['product_image']); $_FILES['product_image']['error'] = UPLOAD_ERR_NO_FILE; }
+        try {
+            $galleryFiles = adminProductGalleryFiles($_FILES['gallery_images'] ?? []);
+        } catch (Throwable $validationError) { $error = $validationError->getMessage(); }
+
+        if (!$error && isset($_FILES['product_image']) && $_FILES['product_image']['error'] !== UPLOAD_ERR_NO_FILE) {
+            try { $imageUrl = saveProductImageUpload($_FILES['product_image']); $uploadedPaths[] = $imageUrl; $_FILES['product_image']['error'] = UPLOAD_ERR_NO_FILE; }
             catch (Throwable $uploadError) { $error = $uploadError->getMessage(); }
         }
 
+        if (!$error) {
+            try { foreach ($galleryFiles as $file) $uploadedPaths[] = saveProductImageUpload($file); }
+            catch (Throwable $uploadError) { $error = $uploadError->getMessage(); }
+        }
+
+        if (!$error && isset($_FILES['product_video']) && ($_FILES['product_video']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            try { $uploadedVideo = saveProductVideoUpload($_FILES['product_video']); $videoUrl = $uploadedVideo; }
+            catch (Throwable $uploadError) { $error = $uploadError->getMessage(); }
+        }
+
+        if (!$error && $primaryMedia === 'video' && !$videoUrl) $error = 'กรุณาอัปโหลดวิดีโอก่อนเลือกวิดีโอเป็นสื่อหลัก';
+
         if (!$error && ($productName === '' || $price === false || $price <= 0 || $stock === false || $stock < 0 || $categoryId < 1)) $error = 'กรุณากรอกชื่อ หมวดหมู่ ราคา และสต็อกให้ถูกต้อง';
         if (!$error && $db) {
-            if ($action === 'add') {
-                $stmt=$db->prepare('INSERT INTO products(category_id,name,description,price,stock_quantity,image_url,is_featured) VALUES(?,?,?,?,?,?,?)');
-                $stmt->execute([$categoryId,$productName,$description,$price,$stock,$imageUrl,$isFeatured]);
-                $message='เพิ่มสินค้า “'.$productName.'” แล้ว';
-            } else {
-                $id=(int)($_POST['id'] ?? 0);
-                $stmt=$db->prepare('UPDATE products SET category_id=?,name=?,description=?,price=?,stock_quantity=?,image_url=?,is_featured=? WHERE id=?');
-                $stmt->execute([$categoryId,$productName,$description,$price,$stock,$imageUrl,$isFeatured,$id]);
-                if($previousImage&&$previousImage!==$imageUrl)deleteManagedUpload($previousImage);
-                $message='บันทึกข้อมูลสินค้าแล้ว';
+            try {
+                $db->beginTransaction();
+                if ($action === 'add') {
+                    $stmt=$db->prepare('INSERT INTO products(category_id,name,description,price,stock_quantity,image_url,video_url,primary_media_type,is_featured) VALUES(?,?,?,?,?,?,?,?,?)');
+                    $stmt->execute([$categoryId,$productName,$description,$price,$stock,$imageUrl,$videoUrl,$primaryMedia,$isFeatured]);
+                    $id=(int)$db->lastInsertId();
+                    $message='เพิ่มสินค้า “'.$productName.'” แล้ว';
+                } else {
+                    $id=(int)($_POST['id'] ?? 0);
+                    if ($id < 1) throw new RuntimeException('ไม่พบสินค้าที่ต้องการแก้ไข');
+                    $stmt=$db->prepare('UPDATE products SET category_id=?,name=?,description=?,price=?,stock_quantity=?,image_url=?,video_url=?,primary_media_type=?,is_featured=? WHERE id=?');
+                    $stmt->execute([$categoryId,$productName,$description,$price,$stock,$imageUrl,$videoUrl,$primaryMedia,$isFeatured,$id]);
+                    $message='บันทึกข้อมูลสินค้าแล้ว';
+                }
+                $galleryPaths = array_values(array_filter($uploadedPaths, static fn($path) => $path !== $imageUrl));
+                if ($galleryPaths) {
+                    $sort=$db->prepare('SELECT COALESCE(MAX(sort_order),-1)+1 FROM product_images WHERE product_id=?');$sort->execute([$id]);$sortOrder=(int)$sort->fetchColumn();
+                    $insertImage=$db->prepare('INSERT INTO product_images(product_id,image_url,sort_order) VALUES(?,?,?)');
+                    foreach ($galleryPaths as $path) $insertImage->execute([$id,$path,$sortOrder++]);
+                }
+                auditLog($db, $action === 'add' ? 'admin.product.create' : 'admin.product.update', 'product', $id, null, ['gallery_added'=>count($galleryPaths),'has_video'=>$videoUrl !== null,'primary_media'=>$primaryMedia]);
+                recordSecurityEvent($db, 'admin.product.'.$action, 0, (int)$_SESSION['user_id'], ['product_id'=>$id,'gallery_added'=>count($galleryPaths)], 'allowed');
+                $db->commit();
+                if($action==='edit'&&$previousImage&&$previousImage!==$imageUrl)deleteManagedUpload($previousImage);
+                if($action==='edit'&&$previousVideo&&$previousVideo!==$videoUrl)deleteManagedVideoUpload($previousVideo);
+            } catch (Throwable $saveError) {
+                if ($db->inTransaction()) $db->rollBack();
+                $error = $saveError->getMessage();
             }
         }
+        if ($error) {foreach ($uploadedPaths as $path) deleteManagedUpload($path);if($uploadedVideo)deleteManagedVideoUpload($uploadedVideo);}
     } elseif ($action === 'delete' && $db) {
         $id=(int)($_POST['id'] ?? 0);
-        $old=$db->prepare('SELECT image_url FROM products WHERE id=?');$old->execute([$id]);$oldImage=$old->fetchColumn()?:null;
+        $old=$db->prepare('SELECT image_url,video_url FROM products WHERE id=?');$old->execute([$id]);$oldMedia=$old->fetch();$oldImage=$oldMedia['image_url']??null;$oldVideo=$oldMedia['video_url']??null;
+        $gallery=$db->prepare('SELECT image_url FROM product_images WHERE product_id=?');$gallery->execute([$id]);$galleryImages=$gallery->fetchAll(PDO::FETCH_COLUMN);
         $stmt=$db->prepare('DELETE FROM products WHERE id=?');
         $stmt->execute([$id]);
-        if($stmt->rowCount())deleteManagedUpload($oldImage);
+        if($stmt->rowCount()){deleteManagedUpload($oldImage);deleteManagedVideoUpload($oldVideo);foreach($galleryImages as $galleryImage)deleteManagedUpload($galleryImage);auditLog($db,'admin.product.delete','product',$id);recordSecurityEvent($db,'admin.product.delete',0,(int)$_SESSION['user_id'],['product_id'=>$id],'allowed');}
         $message='ลบสินค้าเรียบร้อยแล้ว';
     }
 }
@@ -82,11 +146,11 @@ require_once __DIR__ . '/../includes/admin_header.php';
 </section>
 
 <div class="modal-overlay admin-modal" id="productFormModal"><div class="modal-content"><button type="button" class="modal-close" onclick="closeModal('productFormModal')">&times;</button><h2 id="productModalTitle" style="margin-bottom:18px">เพิ่มสินค้าใหม่</h2><form method="POST" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>"><input type="hidden" name="action" id="productAction" value="add"><input type="hidden" name="id" id="productId">
-    <div class="admin-form-grid"><div class="admin-form-field full"><label for="productName">ชื่อสินค้า *</label><input id="productName" name="name" required maxlength="200"></div><div class="admin-form-field"><label for="productCategory">หมวดหมู่ *</label><select id="productCategory" name="category_id" required><?php foreach($categories as $category): ?><option value="<?php echo (int)$category['id']; ?>"><?php echo e($category['name']); ?></option><?php endforeach; ?></select></div><div class="admin-form-field"><label for="productPrice">ราคา (บาท) *</label><input type="number" min="0.01" step="0.01" id="productPrice" name="price" required></div><div class="admin-form-field"><label for="productStock">จำนวนสต็อก *</label><input type="number" min="0" id="productStock" name="stock_quantity" value="10" required></div><div class="admin-form-field"><label for="productImageUrl">ที่อยู่รูปเดิม</label><input id="productImageUrl" name="image_url" placeholder="assets/images/products/placeholder.svg"></div><div class="admin-form-field full"><label for="productImage">อัปโหลดรูปใหม่</label><input type="file" id="productImage" name="product_image" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG หรือ WebP ขนาดไม่เกิน 2 MB</small></div><div class="admin-form-field full"><label for="productDesc">รายละเอียดสินค้า</label><textarea id="productDesc" name="description" rows="4"></textarea></div><div class="admin-form-field full"><label><input type="checkbox" name="is_featured" id="productFeatured" value="1"> แสดงเป็นสินค้าแนะนำบนหน้าร้าน</label></div></div><button class="btn btn-primary" style="width:100%" type="submit"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลสินค้า</button>
+    <div class="admin-form-grid"><div class="admin-form-field full"><label for="productName">ชื่อสินค้า *</label><input id="productName" name="name" required maxlength="200"></div><div class="admin-form-field"><label for="productCategory">หมวดหมู่ *</label><select id="productCategory" name="category_id" required><?php foreach($categories as $category): ?><option value="<?php echo (int)$category['id']; ?>"><?php echo e($category['name']); ?></option><?php endforeach; ?></select></div><div class="admin-form-field"><label for="productPrice">ราคา (บาท) *</label><input type="number" min="0.01" step="0.01" id="productPrice" name="price" required></div><div class="admin-form-field"><label for="productStock">จำนวนสต็อก *</label><input type="number" min="0" id="productStock" name="stock_quantity" value="10" required></div><div class="admin-form-field"><label for="productImageUrl">ที่อยู่รูปเดิม</label><input id="productImageUrl" name="image_url" placeholder="assets/images/products/placeholder.svg"></div><fieldset class="admin-form-field full" style="border:1px solid var(--border-color);padding:14px"><legend style="padding:0 7px;font-weight:700">สื่อหลักที่แสดงในหน้าสินค้า</legend><label style="display:inline-flex;align-items:center;gap:7px;margin-right:22px"><input type="radio" name="primary_media_type" id="primaryMediaImage" value="image" checked> รูปภาพ</label><label style="display:inline-flex;align-items:center;gap:7px"><input type="radio" name="primary_media_type" id="primaryMediaVideo" value="video"> วิดีโอ</label></fieldset><div class="admin-form-field full"><label for="productImage">รูปหลักสินค้า</label><input type="file" id="productImage" name="product_image" accept="image/jpeg,image/png,image/webp"><small>ตรวจสอบไฟล์จากเนื้อหาจริง รองรับ JPG, PNG และ WebP รูปละไม่เกิน 3 MB</small></div><div class="admin-form-field full"><label for="productGalleryImages">รูปแกลเลอรีเพิ่มเติม</label><input type="file" id="productGalleryImages" name="gallery_images[]" accept="image/jpeg,image/png,image/webp" multiple><small>เลือกพร้อมกันได้สูงสุด 8 รูป รูปเหล่านี้จะแสดงใต้รูปหลักในหน้ารายละเอียดสินค้า</small></div><div class="admin-form-field full"><label for="productVideo">อัปโหลดวิดีโอสินค้า</label><input type="file" id="productVideo" name="product_video" accept="video/mp4,video/webm"><small>รองรับ MP4 หรือ WebM ขนาดไม่เกิน 50 MB วิดีโอจะเล่นอัตโนมัติแบบปิดเสียง</small></div><div class="admin-form-field full"><label for="productDesc">รายละเอียดสินค้า</label><textarea id="productDesc" name="description" rows="4" maxlength="5000"></textarea></div><div class="admin-form-field full"><label><input type="checkbox" name="is_featured" id="productFeatured" value="1"> แสดงเป็นสินค้าแนะนำบนหน้าร้าน</label></div></div><button class="btn btn-primary" style="width:100%" type="submit"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลสินค้า</button>
 </form></div></div>
 <script nonce="<?php echo e(cspNonce()); ?>">
-function openAddProductModal(){document.getElementById('productModalTitle').textContent='เพิ่มสินค้าใหม่';document.getElementById('productAction').value='add';document.getElementById('productId').value='';document.getElementById('productName').value='';document.getElementById('productPrice').value='';document.getElementById('productStock').value='10';document.getElementById('productImageUrl').value='';document.getElementById('productDesc').value='';document.getElementById('productFeatured').checked=false;openModal('productFormModal')}
-function openEditProductModal(p){document.getElementById('productModalTitle').textContent='แก้ไข: '+p.name;document.getElementById('productAction').value='edit';document.getElementById('productId').value=p.id;document.getElementById('productName').value=p.name;document.getElementById('productCategory').value=p.category_id;document.getElementById('productPrice').value=p.price;document.getElementById('productStock').value=p.stock_quantity;document.getElementById('productImageUrl').value=p.image_url;document.getElementById('productDesc').value=p.description||'';document.getElementById('productFeatured').checked=Number(p.is_featured)===1;openModal('productFormModal')}
+function openAddProductModal(){document.getElementById('productModalTitle').textContent='เพิ่มสินค้าใหม่';document.getElementById('productAction').value='add';document.getElementById('productId').value='';document.getElementById('productName').value='';document.getElementById('productPrice').value='';document.getElementById('productStock').value='10';document.getElementById('productImageUrl').value='';document.getElementById('productImage').value='';document.getElementById('productGalleryImages').value='';document.getElementById('productVideo').value='';document.getElementById('primaryMediaImage').checked=true;document.getElementById('productDesc').value='';document.getElementById('productFeatured').checked=false;openModal('productFormModal')}
+function openEditProductModal(p){document.getElementById('productModalTitle').textContent='แก้ไข: '+p.name;document.getElementById('productAction').value='edit';document.getElementById('productId').value=p.id;document.getElementById('productName').value=p.name;document.getElementById('productCategory').value=p.category_id;document.getElementById('productPrice').value=p.price;document.getElementById('productStock').value=p.stock_quantity;document.getElementById('productImageUrl').value=p.image_url;document.getElementById('productImage').value='';document.getElementById('productGalleryImages').value='';document.getElementById('productVideo').value='';document.getElementById(p.primary_media_type==='video'?'primaryMediaVideo':'primaryMediaImage').checked=true;document.getElementById('productDesc').value=p.description||'';document.getElementById('productFeatured').checked=Number(p.is_featured)===1;openModal('productFormModal')}
 document.getElementById('productImageUrl').removeAttribute('name');document.getElementById('productImageUrl').closest('.admin-form-field').hidden=true;
 if(new URLSearchParams(location.search).get('action')==='add')window.addEventListener('DOMContentLoaded',openAddProductModal);
 </script>

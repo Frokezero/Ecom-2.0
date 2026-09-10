@@ -82,6 +82,27 @@ function openEditProductModal(product) {
 enhanceMallLabels();
 document.addEventListener('ajax:page-loaded', () => enhanceMallLabels());
 
+// Delegation keeps product media controls working after AJAX page replacement.
+document.addEventListener('click', event => {
+    const button = event.target.closest('[data-product-media]');
+    if (!button) return;
+    const gallery = button.closest('[data-product-gallery]');
+    const image = document.getElementById('mainProductImage');
+    const video = document.getElementById('mainProductVideo');
+    if (button.dataset.productMedia === 'video') {
+        if (!video) return;
+        if (image) image.hidden = true;
+        video.hidden = false;
+        video.play().catch(() => {});
+    } else {
+        if (!image) return;
+        if (button.dataset.src) image.src = button.dataset.src;
+        image.hidden = false;
+        if (video) { video.pause(); video.hidden = true; }
+    }
+    gallery?.querySelectorAll('[data-product-media]').forEach(item => item.classList.toggle('active', item === button));
+});
+
 const categoryMenuTrigger = document.querySelector('.category-menu-trigger');
 if (categoryMenuTrigger) {
     categoryMenuTrigger.addEventListener('click', () => {

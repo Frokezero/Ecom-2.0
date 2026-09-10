@@ -19,6 +19,7 @@ services:
     volumes:
       - product_uploads:/var/www/html/assets/images/products/uploads
       - banner_uploads:/var/www/html/assets/images/banners/uploads
+      - product_videos:/var/www/html/assets/videos/products/uploads
       - app_sessions:/var/www/html/.runtime-sessions
   db:
     image: mysql:8.0
@@ -40,4 +41,5 @@ volumes:
   database_data:
   product_uploads:
   banner_uploads:
+  product_videos:
   app_sessions:

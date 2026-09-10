@@ -1,10 +1,16 @@
 Options -Indexes
 ServerSignature Off
 
+<IfModule mod_php.c>
+  php_value upload_max_filesize 50M
+  php_value post_max_size 80M
+  php_value max_file_uploads 10
+</IfModule>
+
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
-  <FilesMatch "\.(css|js|jpg|jpeg|png|webp|svg|woff2)$">
+  <FilesMatch "\.(css|js|jpg|jpeg|png|webp|svg|woff2|mp4|webm)$">
     Header set Cache-Control "public, max-age=2592000, stale-while-revalidate=86400"
   </FilesMatch>
   <FilesMatch "\.(php|html)$">
