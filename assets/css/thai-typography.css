@@ -1,11 +1,16 @@
+/* Local LINE Seed Sans TH font (bundled for reliable Thai rendering without CDN). */
+@font-face{font-family:"LINE Seed Sans TH";src:url("../fonts/line-seed/LINESeedSansTH-Regular.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"LINE Seed Sans TH";src:url("../fonts/line-seed/LINESeedSansTH-Bold.woff2") format("woff2");font-style:normal;font-weight:700;font-display:swap}
+@font-face{font-family:"LINE Seed Sans TH";src:url("../fonts/line-seed/LINESeedSansTH-Heavy.woff2") format("woff2");font-style:normal;font-weight:800 900;font-display:swap}
 /* Readable Thai typography shared by storefront, seller center and admin. */
+html,body,button,input,select,textarea,table{font-family:"LINE Seed Sans TH","Prompt","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif}
 html[lang="th"] body,
 html[lang="th"] button,
 html[lang="th"] input,
 html[lang="th"] select,
 html[lang="th"] textarea,
 html[lang="th"] table {
-  font-family:"Prompt","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif;
+  font-family:"LINE Seed Sans TH","Prompt","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif;
   font-variant-ligatures:normal;
   text-rendering:optimizeLegibility;
 }
@@ -23,7 +28,7 @@ html[lang="th"] .admin-brand strong,
 html[lang="th"] .product-price,
 html[lang="th"] .detail-price strong,
 html[lang="th"] .stat-card strong {
-  font-family:"Prompt","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif!important;
+  font-family:"LINE Seed Sans TH","Prompt","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif!important;
   line-height:1.42;
   letter-spacing:0;
 }
