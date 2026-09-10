@@ -4,18 +4,27 @@ services:
     ports:
       - "8080:80"
     environment:
-      APP_ENV: development
+      APP_ENV: ${APP_ENV:-production}
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: kitchenmart_db
       DB_USER: kitchenmart
-      DB_PASS: kitchenmart
+      DB_PASS: ${DB_PASS:-kitchenmart-local-only}
       STORE_NAME: KitchenMart
-      APP_URL: http://localhost:8080/
+      APP_URL: ${APP_URL:-http://localhost:8080/}
+      APP_KEY: ${APP_KEY:-local-development-key-change-before-public-use-123456}
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:-local-webhook-secret-change-before-public-use}
       MAIL_ASYNC: "1"
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/healthz.php"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     volumes:
       - product_uploads:/var/www/html/assets/images/products/uploads
       - banner_uploads:/var/www/html/assets/images/banners/uploads
@@ -27,13 +36,14 @@ services:
     environment:
       MYSQL_DATABASE: kitchenmart_db
       MYSQL_USER: kitchenmart
-      MYSQL_PASSWORD: kitchenmart
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: ${DB_PASS:-kitchenmart-local-only}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-kitchenmart-root-local-only}
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 5s
       timeout: 5s
       retries: 20
+    restart: unless-stopped
     volumes:
       - ./database/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
       - database_data:/var/lib/mysql

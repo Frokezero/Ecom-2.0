@@ -1,0 +1,53 @@
+:root{
+  --green:#244A3A;
+  --green-2:#2f604b;
+  --cream:#F1EEE7;
+  --paper:#FAF8F3;
+  --orange:#E86A33;
+  --ink:#252525;
+  --muted:#6d6d68;
+  --line:#E5E2DC;
+  --primary:#244A3A;
+  --primary-hover:#19372b;
+  --primary-light:#EAF1EC;
+  --secondary:#252525;
+  --accent:#E86A33;
+  --warning:#B45309;
+  --surface:#fff;
+  --background:#FAF8F3;
+  --card-bg:#fff;
+  --text-main:#252525;
+  --text-muted:#6d6d68;
+  --border-color:#E5E2DC;
+  --danger:#D64545;
+  --shadow-sm:0 2px 8px rgba(36,74,58,.06);
+  --shadow-md:0 10px 28px rgba(36,74,58,.10);
+  --shadow-lg:0 20px 50px rgba(36,74,58,.14)
+}
+body,.seller-page,.seller-workspace,.shop-page,.coupon-center,.admin-body{background:#FAF8F3;color:var(--ink)}
+.announcement,.brand-mark,.category-menu-trigger,.search-box button,.btn-primary,.btn-success,.mobile-search-link i,.toast.success{background:#244A3A!important;color:#fff!important}
+.announcement i,.eyebrow,.product-category,.category-dropdown>a>i,.service-strip i{color:#E86A33}
+.site-header,.site-nav,.product-card,.category-card,.checkout-card,.admin-panel,.admin-detail-card,.seller-manager-card,.seller-application,.store-customize{background:#fff}
+.site-nav a.active:after,.category-scroller a.active,.admin-nav a.active{border-color:#f97316;box-shadow:inset 0 -3px #f97316}
+.btn-outline:hover,.btn-cart:hover{border-color:#f97316;color:#fff;background:#f97316}
+.btn-cart{border-color:#e56b00;color:#b54b00}
+.hero-banner,.product-gallery,.seller-application>aside,.store-customize>aside{background:#F1EEE7;border-color:#E5E2DC}
+.hero-feature,.quick-paths>a>span,.admin-user>i,.stat-card>i{background:#EAF1EC;color:#244A3A}
+.flash-sale-section{background:#FFF4EF;border-color:#E86A33}
+.flash-badge,.product-badge,.cart-link b,.mobile-bottom-nav b{background:#D64545}
+footer{background:#244A3A;color:#EAF1EC}
+.seller-hero,.storefront-hero,.shop-cover{background:#244A3A}
+.seller-hero aside{background:#2f604b}
+.seller-hero .eyebrow,.seller-hero li i{color:#F3B08D}
+.seller-hero>div>p:not(.eyebrow),.seller-hero ul{color:#DDEAE2}
+.seller-hero .btn{color:#244A3A}
+.admin-sidebar{background:#244A3A;color:#DDEAE2}
+.admin-brand{border-color:#47715d}.admin-brand small,.admin-nav>small{color:#a9c4b4}.admin-nav a i{color:#9fc0ad}.admin-nav a:hover,.admin-nav a.active{background:#2f604b}.admin-sidebar-footer{border-color:#47715d}.admin-sidebar-footer a,.admin-sidebar-footer button{color:#c9ded2}
+.admin-topbar{border-color:#E5E2DC}.admin-table th{background:#F1EEE7}.admin-table tbody tr:hover{background:#FAF8F3}
+input:focus,select:focus,textarea:focus{border-color:#E86A33!important;box-shadow:0 0 0 3px rgba(232,106,51,.16)}
+:focus-visible{outline-color:#E86A33}
+button,.btn,input,select,textarea,.product-card,.category-card,.checkout-card,.admin-panel,.admin-detail-card,.seller-manager-card,.seller-application,.store-customize,.quick-paths>a,.stat-card,.payment-option,.modal-content{border-radius:10px}
+.product-card,.category-card,.quick-paths>a,.stat-card{box-shadow:var(--shadow-sm)}
+.product-card:hover,.quick-paths>a:hover{box-shadow:var(--shadow-md)}
+.detail-price mark,.card-sale-price mark{background:#FCE7E7;color:#D64545}
+@media(max-width:720px){.mobile-bottom-nav{background:#FAF8F3;border-color:#E5E2DC}}

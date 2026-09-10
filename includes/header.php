@@ -41,6 +41,11 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/product-card-pricing.css?v=5">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/floating-product-video.css?v=1">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/floating-product-video-extra.css?v=1">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/thai-typography.css?v=2">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/sunrise-theme.css?v=2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <a class="skip-link" href="#main-content">ข้ามไปยังเนื้อหาหลัก</a>

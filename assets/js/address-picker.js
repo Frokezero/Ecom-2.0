@@ -28,5 +28,4 @@
   }
   window.initThaiAddressPickers=(scope=document)=>scope.querySelectorAll('textarea[data-address-picker], textarea[name="address"], textarea[name="shipping_address"], textarea[name="return_address"]').forEach(attach);
   document.addEventListener('DOMContentLoaded',()=>window.initThaiAddressPickers());
-  document.addEventListener('ajax:page-loaded',()=>window.initThaiAddressPickers());
 })();

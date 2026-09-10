@@ -19,5 +19,4 @@
   }
   window.initCouponSelectors=initCouponSelectors;
   initCouponSelectors();
-  document.addEventListener('ajax:page-loaded',()=>initCouponSelectors());
 })();

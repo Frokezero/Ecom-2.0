@@ -27,7 +27,8 @@ function recordSecurityEvent(PDO $db,string $type,int $points,?int $userId=null,
  // Every login event is handled by the identity/IP thresholds in api/auth.php.
  // Keeping login.success and login.new_ip out of this generic auto-block is also
  // important: their score may inherit earlier failures from the same shared IP.
- if($score>=60&&!str_starts_with($type,'login.')){$seconds=$score>=80?3600:900;securityBlock($db,'ip',$ipHash,$userId,'ตรวจพบกิจกรรมเสี่ยง: '.$type,$score,$seconds);createRoleNotification($db,'admin','security','ตรวจพบกิจกรรมผิดปกติ','เหตุการณ์ '.$type.' มีคะแนนความเสี่ยง '.$score.'/100',BASE_URL.'admin/security-center.php');}
+ $autoBlockTypes=['request.rate_limit','behavior.threshold','checkout.burst'];
+ if($score>=60&&in_array($type,$autoBlockTypes,true)){$seconds=$score>=80?3600:900;securityBlock($db,'ip',$ipHash,$userId,'ตรวจพบกิจกรรมเสี่ยง: '.$type,$score,$seconds);createRoleNotification($db,'admin','security','ตรวจพบกิจกรรมผิดปกติ','เหตุการณ์ '.$type.' มีคะแนนความเสี่ยง '.$score.'/100',BASE_URL.'admin/security-center.php');}
  return $score;
 }
 function enforceSecurityBlock(PDO $db,?int $userId=null,bool $json=true):void{

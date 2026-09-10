@@ -72,6 +72,5 @@
     }
 
     mountProductVideo();
-    document.addEventListener('ajax:page-loaded', mountProductVideo);
     new MutationObserver(mountProductVideo).observe(document.body, {childList: true, subtree: true});
 })();

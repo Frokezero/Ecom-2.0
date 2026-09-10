@@ -1,6 +1,13 @@
 Options -Indexes
 ServerSignature Off
 
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # Serve optimized photographic banners while preserving existing public URLs.
+  RewriteCond %{DOCUMENT_ROOT}/assets/images/banners/$1.jpg -f
+  RewriteRule ^assets/images/banners/(.+)\.png$ assets/images/banners/$1.jpg [L]
+</IfModule>
+
 <IfModule mod_php.c>
   php_value upload_max_filesize 50M
   php_value post_max_size 80M

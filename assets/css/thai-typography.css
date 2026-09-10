@@ -1,0 +1,46 @@
+/* Readable Thai typography shared by storefront, seller center and admin. */
+html[lang="th"] body,
+html[lang="th"] button,
+html[lang="th"] input,
+html[lang="th"] select,
+html[lang="th"] textarea,
+html[lang="th"] table {
+  font-family:"Prompt","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif;
+  font-variant-ligatures:normal;
+  text-rendering:optimizeLegibility;
+}
+html[lang="th"] h1,
+html[lang="th"] h2,
+html[lang="th"] h3,
+html[lang="th"] h4,
+html[lang="th"] h5,
+html[lang="th"] h6,
+html[lang="th"] .section-title,
+html[lang="th"] .product-title,
+html[lang="th"] .seller-review-title,
+html[lang="th"] .brand-logo strong,
+html[lang="th"] .admin-brand strong,
+html[lang="th"] .product-price,
+html[lang="th"] .detail-price strong,
+html[lang="th"] .stat-card strong {
+  font-family:"Prompt","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif!important;
+  line-height:1.42;
+  letter-spacing:0;
+}
+html[lang="th"] p,
+html[lang="th"] label,
+html[lang="th"] td,
+html[lang="th"] th,
+html[lang="th"] a,
+html[lang="th"] small,
+html[lang="th"] span {
+  line-height:1.55;
+}
+html[lang="th"] .eyebrow {
+  line-height:1.35;
+  letter-spacing:.13em;
+}
+@media(max-width:720px){
+  html[lang="th"] body{font-size:15px}
+  html[lang="th"] input,html[lang="th"] select,html[lang="th"] textarea{font-size:14px}
+}

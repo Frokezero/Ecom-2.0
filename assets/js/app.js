@@ -80,7 +80,6 @@ function openEditProductModal(product) {
 }
 
 enhanceMallLabels();
-document.addEventListener('ajax:page-loaded', () => enhanceMallLabels());
 
 // Delegation keeps product media controls working after AJAX page replacement.
 document.addEventListener('click', event => {

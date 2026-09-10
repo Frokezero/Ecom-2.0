@@ -27,5 +27,4 @@
 
   window.initPaymentOptions=initPaymentOptions;
   document.addEventListener('DOMContentLoaded',()=>initPaymentOptions());
-  document.addEventListener('ajax:page-loaded',()=>initPaymentOptions());
 })();

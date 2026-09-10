@@ -45,5 +45,4 @@
     }
 
     initPromotionPrice();
-    document.addEventListener('ajax:page-loaded', initPromotionPrice);
 })();

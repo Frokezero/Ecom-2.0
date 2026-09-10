@@ -1,4 +1,17 @@
 <?php
+function saveOptimizedRaster(array $file,string $directory,string $mime,string $fallbackExtension,int $maxDimension=1800,int $quality=82):string{
+    if(function_exists('imagewebp')){
+        $source=match($mime){'image/jpeg'=>@imagecreatefromjpeg($file['tmp_name']),'image/png'=>@imagecreatefrompng($file['tmp_name']),'image/webp'=>@imagecreatefromwebp($file['tmp_name']),default=>false};
+        if($source){
+            $width=imagesx($source);$height=imagesy($source);$scale=min(1,$maxDimension/max($width,$height));$newWidth=max(1,(int)round($width*$scale));$newHeight=max(1,(int)round($height*$scale));
+            $canvas=imagecreatetruecolor($newWidth,$newHeight);imagealphablending($canvas,false);imagesavealpha($canvas,true);$transparent=imagecolorallocatealpha($canvas,255,255,255,127);imagefilledrectangle($canvas,0,0,$newWidth,$newHeight,$transparent);imagecopyresampled($canvas,$source,0,0,0,0,$newWidth,$newHeight,$width,$height);
+            $name=bin2hex(random_bytes(24)).'.webp';$saved=imagewebp($canvas,$directory.DIRECTORY_SEPARATOR.$name,$quality);imagedestroy($canvas);imagedestroy($source);if($saved)return $name;
+        }
+    }
+    $name=bin2hex(random_bytes(24)).'.'.$fallbackExtension;
+    if(!move_uploaded_file($file['tmp_name'],$directory.DIRECTORY_SEPARATOR.$name))throw new RuntimeException('ไม่สามารถบันทึกไฟล์รูปภาพได้');
+    return $name;
+}
 function saveProductImageUpload(array $file): string {
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'] ?? '')) throw new RuntimeException('กรุณาอัปโหลดรูปสินค้า');
     if (($file['size'] ?? 0) < 1 || $file['size'] > 3 * 1024 * 1024) throw new RuntimeException('รูปต้องมีขนาดไม่เกิน 3 MB');
@@ -9,8 +22,7 @@ function saveProductImageUpload(array $file): string {
     if (!$size || $size[0] < 1 || $size[1] < 1 || $size[0] * $size[1] > 20000000) throw new RuntimeException('ขนาดหรือความละเอียดรูปภาพไม่ถูกต้อง');
     $directory = __DIR__ . '/../assets/images/products/uploads';
     if (!is_dir($directory) && !mkdir($directory, 0755, true)) throw new RuntimeException('ไม่สามารถเตรียมพื้นที่เก็บรูปได้');
-    $name = bin2hex(random_bytes(24)) . '.' . $types[$mime];
-    if (!move_uploaded_file($file['tmp_name'], $directory . DIRECTORY_SEPARATOR . $name)) throw new RuntimeException('ไม่สามารถบันทึกรูปภาพได้');
+    $name = saveOptimizedRaster($file,$directory,$mime,$types[$mime],1800,82);
     return 'assets/images/products/uploads/' . $name;
 }
 
@@ -36,7 +48,7 @@ function saveBannerImageUpload(array $file): string {
     if(!isset($types[$mime])) throw new RuntimeException('รองรับเฉพาะ JPG, PNG และ WebP');
     $size=@getimagesize($file['tmp_name']); if(!$size || $size[0]<1 || $size[1]<1 || $size[0]*$size[1]>30000000) throw new RuntimeException('ขนาดรูปไม่ถูกต้อง');
     $directory=__DIR__.'/../assets/images/banners/uploads'; if(!is_dir($directory)&&!mkdir($directory,0755,true)&&!is_dir($directory)) throw new RuntimeException('สร้างโฟลเดอร์แบนเนอร์ไม่ได้');
-    $name=bin2hex(random_bytes(24)).'.'.$types[$mime]; if(!move_uploaded_file($file['tmp_name'],$directory.'/'.$name)) throw new RuntimeException('บันทึกรูปแบนเนอร์ไม่ได้');
+    $name=saveOptimizedRaster($file,$directory,$mime,$types[$mime],1920,80);
     return 'assets/images/banners/uploads/'.$name;
 }
 function saveReturnEvidenceUpload(array $file): string {

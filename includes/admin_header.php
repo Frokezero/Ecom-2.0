@@ -23,6 +23,11 @@ function adminStatusLabel(string $status): string {
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notification-hover.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/promotions.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/accessibility.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/thai-typography.css?v=2">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/sunrise-theme.css?v=2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="admin-body">
 <div class="admin-shell">
