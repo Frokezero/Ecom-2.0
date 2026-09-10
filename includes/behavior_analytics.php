@@ -31,7 +31,7 @@ function behaviorThresholds(PDO $db): array {
 function behaviorEvaluateRuntime(PDO $db, int $activityId, ?int $userId, string $at): array {
     $features=behaviorFeatures($db,$userId,$at);$rules=behaviorThresholds($db);$hits=[];
     foreach($features as $code=>$value){if(!isset($rules[$code])||$value<=(float)$rules[$code]['threshold_value'])continue;$action='alerted';
-      if($code==='request_per_min'){$action='temporary_ip_block_15m';if(function_exists('securityBlock'))securityBlock($db,'ip',hash('sha256',behaviorClientIp()),$userId,'Behavior threshold: '.$code,70,900);}
+      if($code==='request_per_min'){$action='temporary_ip_block_15m';if(function_exists('securityBlock'))securityBlock($db,'ip',function_exists('securityIpHash')?securityIpHash():hash('sha256',behaviorClientIp()),$userId,'Behavior threshold: '.$code,70,900);}
       elseif($code==='order_per_hour'&&$userId){$action='temporary_user_block_30m';if(function_exists('securityBlock'))securityBlock($db,'user',hash('sha256','user:'.$userId),$userId,'Behavior threshold: '.$code,70,1800);}
       $stmt=$db->prepare("INSERT INTO behavior_detections(user_id,activity_log_id,feature_code,window_started_at,window_ended_at,observed_value,threshold_value,predicted_label,detection_time_ms,action_taken) VALUES(?,?,?,DATE_SUB(?,INTERVAL ? SECOND),?,?,?,?,?,?)");
       $stmt->execute([$userId,$activityId,$code,$at,(int)$rules[$code]['window_seconds'],$at,$value,(float)$rules[$code]['threshold_value'],'suspicious',0,$action]);$hits[]=$code;

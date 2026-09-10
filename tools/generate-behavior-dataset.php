@@ -3,8 +3,8 @@ if(PHP_SAPI!=='cli'){http_response_code(403);exit("CLI only\n");}
 require_once __DIR__.'/../config/database.php';require_once __DIR__.'/../includes/behavior_analytics.php';
 $db=(new Database())->getConnection();if(!$db)exit("Database unavailable\n");
 $users=$db->query("SELECT id,username FROM users WHERE email LIKE '%@simulation.kitchenmart.test' ORDER BY id LIMIT 100")->fetchAll();if(count($users)!==100)exit("Need exactly 100 simulated users; run tools/seed-simulated-users.php first\n");
-$ids=array_column($users,'id');$marks=implode(',',array_fill(0,count($ids),'?'));$db->beginTransaction();
-try{$db->prepare("DELETE FROM user_activity_logs WHERE source='simulation' AND user_id IN ($marks)")->execute($ids);$insert=$db->prepare('INSERT INTO user_activity_logs(user_id,occurred_at,ip_address,ip_hash,action,url,http_status,response_time_ms,login_success,request_count,order_amount,actual_label,source,experiment_case_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,\'simulation\',?)');$count=0;$start=strtotime(date('Y-m-d 00:00:00').' -29 days');
+$db->beginTransaction();
+try{$db->exec("DELETE FROM behavior_detections WHERE source='simulation'");$db->exec("DELETE FROM user_activity_logs WHERE source='simulation'");$insert=$db->prepare('INSERT INTO user_activity_logs(user_id,occurred_at,ip_address,ip_hash,action,url,http_status,response_time_ms,login_success,request_count,order_amount,actual_label,source,experiment_case_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,\'simulation\',?)');$count=0;$start=strtotime(date('Y-m-d 00:00:00').' -29 days');
 foreach($users as $ui=>$u){$suspiciousUser=$ui>=80;$ip='198.51.100.'.(($ui%200)+1);for($day=0;$day<30;$day++){$case=sprintf('U%03d-D%02d',$ui+1,$day+1);$actual=($suspiciousUser?'suspicious':'normal');$base=$start+$day*86400+9*3600+($ui%20)*60;
   $rows=[[$base,'login.success','/api/auth.php',200,1,1,0],[$base+120,'request','/products.php',200,null,12+($ui+$day)%7,0],[$base+600,'request','/product.php',200,null,14+($ui*3+$day)%9,0]];
   if(!$suspiciousUser&&($ui+$day)%2===0)$rows[]=[$base+1800,'order.created','/api/checkout.php',201,null,1,250+(($ui+$day)%8)*100];
