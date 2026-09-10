@@ -79,7 +79,7 @@
     <script src="<?php echo BASE_URL; ?>assets/js/image-crop.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/cart.js?v=4"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/payment.js?v=2"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/navigation.js?v=1"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/navigation.js?v=2"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/product-card-pricing.js?v=1"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/floating-product-video.js?v=3"></script>
     <?php if (basename($_SERVER['PHP_SELF'] ?? '') === 'index.php'): ?><script src="<?php echo BASE_URL; ?>assets/js/home-banner-carousel.js?v=2"></script><?php endif; ?>

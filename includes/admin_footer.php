@@ -9,7 +9,7 @@
 <script src="<?php echo BASE_URL; ?>assets/js/notifications.js?v=1"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/promotions.js?v=1"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/image-crop.js"></script>
-<script src="<?php echo BASE_URL; ?>assets/js/navigation.js?v=1"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/navigation.js?v=2"></script>
 <script src="<?php echo BASE_URL;?>assets/js/seller-promotions.js?v=2"></script>
 <script nonce="<?php echo e(cspNonce()); ?>">
 const adminSidebar=document.getElementById('adminSidebar'),adminSidebarScrim=document.getElementById('adminSidebarScrim');

@@ -125,13 +125,14 @@
         const explicitAction=form.getAttribute('action');
         const url = new URL(explicitAction || location.href, location.href);
         if (!canNavigate(url)) return;
+        const formData = event.submitter ? new FormData(form, event.submitter) : new FormData(form);
         if(form.method.toUpperCase()==='GET'){
-            event.preventDefault();url.search=new URLSearchParams(new FormData(form)).toString();navigate(url.href);return;
+            event.preventDefault();url.search=new URLSearchParams(formData).toString();navigate(url.href);return;
         }
         if(form.method.toUpperCase()!=='POST')return;
         event.preventDefault();setLoading(true);
         try{
-            const response=await fetch(url.href,{method:'POST',body:new FormData(form),headers:{'X-Requested-With':'XMLHttpRequest'}});
+            const response=await fetch(url.href,{method:'POST',body:formData,headers:{'X-Requested-With':'XMLHttpRequest'}});
             const type=response.headers.get('content-type')||'';
             if(!response.ok||!type.includes('text/html'))throw new Error(`Form failed: ${response.status}`);
             const nextDocument=new DOMParser().parseFromString(await response.text(),'text/html'),selector=contentSelector(),current=document.querySelector(selector),next=nextDocument.querySelector(selector);
