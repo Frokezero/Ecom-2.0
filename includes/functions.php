@@ -10,6 +10,48 @@ function productEffectivePrice(array $product): float {
     return !empty($product['sale_price'])&&(!$start||$start<=$now)&&(!$end||$end>$now)?(float)$product['sale_price']:(float)$product['price'];
 }
 function productSaleActive(array $product): bool { return productEffectivePrice($product)<(float)$product['price']; }
+function calculateOrderCharges(PDO $db, array $items, float $discount = 0.0, ?array $coupon = null): array {
+    $groups = [];
+    $productSeller = $db->prepare('SELECT seller_id FROM products WHERE id=?');
+    foreach ($items as $item) {
+        $sellerId = array_key_exists('seller_id', $item) ? $item['seller_id'] : null;
+        if (!array_key_exists('seller_id', $item)) {
+            $productSeller->execute([(int)($item['id'] ?? $item['product_id'] ?? 0)]);
+            $value = $productSeller->fetchColumn();
+            $sellerId = $value === false || $value === null ? null : (int)$value;
+        }
+        $key = $sellerId === null ? 'mall' : 'seller:'.$sellerId;
+        $groups[$key]['seller_id'] = $sellerId;
+        $groups[$key]['subtotal'] = ($groups[$key]['subtotal'] ?? 0.0) + (float)$item['price'] * (int)$item['quantity'];
+    }
+    $shipping = 0.0; $lines = [];
+    $sellerRule = $db->prepare('SELECT shop_name,shipping_fee,free_shipping_min FROM seller_profiles WHERE user_id=?');
+    foreach ($groups as $group) {
+        $sellerId = $group['seller_id'];
+        if ($sellerId === null) {
+            $name = APP_NAME;
+            $fee = max(0.0, (float)appConfig('MALL_SHIPPING_FEE', '50'));
+            $minimum = max(0.0, (float)appConfig('MALL_FREE_SHIPPING_MIN', '1000'));
+        } else {
+            $sellerRule->execute([$sellerId]); $rule = $sellerRule->fetch() ?: [];
+            $name = (string)($rule['shop_name'] ?? 'ร้านค้า');
+            $fee = max(0.0, (float)($rule['shipping_fee'] ?? 50));
+            $minimum = max(0.0, (float)($rule['free_shipping_min'] ?? 1000));
+        }
+        $naturallyFree = $group['subtotal'] >= $minimum;
+        $fullFee = $naturallyFree ? 0.0 : $fee;
+        $shipping += $fullFee;
+        $lines[] = ['seller_id'=>$sellerId,'name'=>$name,'subtotal'=>round($group['subtotal'],2),'shipping_amount'=>round($fullFee,2),'free_shipping_min'=>$minimum];
+    }
+    $shippingDiscount=0.0;$platformSubsidy=0.0;$sellerSubsidy=0.0;
+    if(($coupon['discount_type']??'')==='free_shipping'&&$shipping>0){$isMall=($coupon['seller_id']??null)===null&&!empty($coupon['mall_only']);$cap=($coupon['max_discount']??null)===null?$shipping:min($shipping,(float)$coupon['max_discount']);foreach($lines as &$line){$eligible=$isMall||(($coupon['seller_id']??null)!==null&&(int)$coupon['seller_id']===(int)$line['seller_id']);if(!$eligible||$line['shipping_amount']<=0)continue;$share=$shipping>0?min($line['shipping_amount'],$cap*$line['shipping_amount']/$shipping):0;$line['shipping_discount']=round($share,2);if($isMall){if($line['seller_id']===null){$line['platform_subsidy']=$share;$line['seller_subsidy']=0;}else{$line['platform_subsidy']=round($share*.60,2);$line['seller_subsidy']=round($share-$line['platform_subsidy'],2);}}else{$line['platform_subsidy']=0;$line['seller_subsidy']=$share;}$shippingDiscount+=$share;$platformSubsidy+=$line['platform_subsidy'];$sellerSubsidy+=$line['seller_subsidy'];}unset($line);}
+    $shipping=max(0,$shipping-$shippingDiscount);
+    $subtotal = array_sum(array_map(static fn($item)=>(float)$item['price']*(int)$item['quantity'], $items));
+    $net = max(0.0, $subtotal - max(0.0, $discount)) + $shipping;
+    $rate = min(100.0, max(0.0, (float)appConfig('VAT_RATE', '7')));
+    $tax = round($net * $rate / 100, 2);
+    return ['subtotal'=>round($subtotal,2),'discount'=>round($discount,2),'shipping'=>round($shipping,2),'shipping_discount'=>round($shippingDiscount,2),'platform_shipping_subsidy'=>round($platformSubsidy,2),'seller_shipping_subsidy'=>round($sellerSubsidy,2),'tax'=>$tax,'vat_rate'=>$rate,'total'=>round($net+$tax,2),'shipping_lines'=>$lines];
+}
 function productCardPriceHtml(array $product): string {
     $current=productEffectivePrice($product);$regular=(float)($product['compare_at_price']?:$product['price']);
     if($regular<=0||$current>=$regular)return '<strong class="product-price">'.formatCurrency($current).'</strong>';
@@ -56,17 +98,12 @@ function cancelOrderAndRestock(PDO $db, int $orderId, ?int $userId = null): void
         $items=$db->prepare('SELECT product_id,variant_id,quantity FROM order_items WHERE order_id=?');$items->execute([$orderId]);
         $restore=$db->prepare('UPDATE products SET stock_quantity=stock_quantity+? WHERE id=?');
         $restoreVariant=$db->prepare('UPDATE product_variants SET stock_quantity=stock_quantity+? WHERE id=?');
-        foreach($items->fetchAll() as $item){if(!empty($item['variant_id']))$restoreVariant->execute([(int)$item['quantity'],(int)$item['variant_id']]);else $restore->execute([(int)$item['quantity'],(int)$item['product_id']]);}
+        foreach($items->fetchAll() as $item){if(!empty($item['variant_id'])){$restoreVariant->execute([(int)$item['quantity'],(int)$item['variant_id']]);$db->prepare('UPDATE products SET stock_quantity=(SELECT COALESCE(SUM(stock_quantity),0) FROM product_variants WHERE product_id=?) WHERE id=?')->execute([(int)$item['product_id'],(int)$item['product_id']]);}else $restore->execute([(int)$item['quantity'],(int)$item['product_id']]);}
         $update=$db->prepare("UPDATE orders SET order_status='cancelled' WHERE id=? AND order_status<>'cancelled'");$update->execute([$orderId]);
         if($update->rowCount()!==1)throw new RuntimeException('สถานะคำสั่งซื้อถูกเปลี่ยนไปแล้ว');
-        if (!empty($order['coupon_id'])) {
-            $usage=$db->prepare('DELETE FROM coupon_usages WHERE order_id=?');
-            $usage->execute([$orderId]);
-            if ($usage->rowCount() > 0) {
-                $release=$db->prepare('UPDATE user_coupons SET used_count=GREATEST(0,used_count-1) WHERE coupon_id=? AND user_id=?');
-                $release->execute([(int)$order['coupon_id'],(int)$order['user_id']]);
-            }
-        }
+        $usedCoupons=$db->prepare('SELECT coupon_id,user_id FROM coupon_usages WHERE order_id=?');$usedCoupons->execute([$orderId]);$usedCoupons=$usedCoupons->fetchAll();
+        $db->prepare('DELETE FROM coupon_usages WHERE order_id=?')->execute([$orderId]);
+        $release=$db->prepare('UPDATE user_coupons SET used_count=GREATEST(0,used_count-1) WHERE coupon_id=? AND user_id=?');foreach($usedCoupons as $used)$release->execute([(int)$used['coupon_id'],(int)$used['user_id']]);
         if($ownsTransaction)$db->commit();
     }catch(Throwable $e){if($ownsTransaction&&$db->inTransaction())$db->rollBack();throw $e;}
 }
@@ -84,7 +121,26 @@ function jsonResponse($status, $message, $data = [], $httpCode = 200): void {
     echo json_encode(['status'=>$status, 'message'=>$message, 'data'=>$data], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
-function isLoggedIn(): bool { return isset($_SESSION['user_id']); }
+function isLoggedIn(): bool {
+    if (!isset($_SESSION['user_id'])) return false;
+    static $validated = null;
+    if ($validated !== null) return $validated;
+    try {
+        require_once __DIR__ . '/../config/database.php';
+        $db = (new Database())->getConnection();
+        if (!$db) return $validated = false;
+        $stmt = $db->prepare('SELECT auth_version FROM users WHERE id=? LIMIT 1');
+        $stmt->execute([(int)$_SESSION['user_id']]);
+        $version = $stmt->fetchColumn();
+        if ($version !== false && !isset($_SESSION['auth_version'])) $_SESSION['auth_version'] = (int)$version;
+        $validated = $version !== false && hash_equals((string)$version, (string)$_SESSION['auth_version']);
+        if (!$validated) unset($_SESSION['user_id'], $_SESSION['username'], $_SESSION['full_name'], $_SESSION['email'], $_SESSION['user_role'], $_SESSION['auth_version']);
+        return $validated;
+    } catch (Throwable $e) {
+        error_log('Session validation failed [request_id=' . appRequestId() . ']');
+        return $validated = false;
+    }
+}
 function isAdmin(): bool { return ($_SESSION['user_role'] ?? '') === 'admin'; }
 function isSeller(): bool { return ($_SESSION['user_role'] ?? '') === 'seller'; }
 function createNotification(PDO $db, int $userId, string $type, string $title, string $body = '', ?string $link = null, bool $sendImmediately = false): void {
@@ -147,13 +203,22 @@ function calculateCouponDiscount(PDO $db, string $code, int $userId, array $item
     if ($subtotal < (float)$coupon['min_order_amount']) return ['coupon'=>null,'discount'=>0.0,'error'=>'ยอดซื้อยังไม่ถึงขั้นต่ำของคูปองนี้'];
     if ($coupon['usage_limit'] !== null) { $used=(int)$db->query('SELECT COUNT(*) FROM coupon_usages WHERE coupon_id='.(int)$coupon['id'])->fetchColumn(); if ($used >= (int)$coupon['usage_limit']) return ['coupon'=>null,'discount'=>0.0,'error'=>'คูปองถูกใช้ครบจำนวนแล้ว']; }
     $userStmt=$db->prepare('SELECT used_count FROM user_coupons WHERE coupon_id=? AND user_id=?'.($lock?' FOR UPDATE':'')); $userStmt->execute([(int)$coupon['id'],$userId]); $userCoupon=$userStmt->fetch();
-    if ($userCoupon && (int)$userCoupon['used_count'] >= (int)$coupon['per_user_limit']) return ['coupon'=>null,'discount'=>0.0,'error'=>'คุณใช้คูปองนี้ครบจำนวนแล้ว'];
+    if ($userCoupon && (int)$coupon['per_user_limit']>0 && (int)$userCoupon['used_count'] >= (int)$coupon['per_user_limit']) return ['coupon'=>null,'discount'=>0.0,'error'=>'คุณใช้คูปองนี้ครบจำนวนแล้ว'];
     $eligibleSubtotal=$subtotal;
-    if($coupon['product_id']!==null||$coupon['category_id']!==null||($coupon['seller_id']??null)!==null||!empty($coupon['mall_only'])){$eligibleSubtotal=0.0;$productCheck=$db->prepare('SELECT category_id,seller_id FROM products WHERE id=?');foreach($items as $item){$productId=(int)($item['id']??$item['product_id']??0);$productCheck->execute([$productId]);$eligible=$productCheck->fetch();if($eligible&&($coupon['product_id']===null||(int)$coupon['product_id']===$productId)&&($coupon['category_id']===null||(int)$coupon['category_id']===(int)$eligible['category_id'])&&(($coupon['seller_id']??null)===null||(int)$coupon['seller_id']===(int)$eligible['seller_id'])&&(empty($coupon['mall_only'])||$eligible['seller_id']===null))$eligibleSubtotal+=(float)$item['price']*(int)$item['quantity'];}if($eligibleSubtotal<=0)return ['coupon'=>null,'discount'=>0.0,'error'=>'ไม่มีสินค้าในตะกร้าที่ร่วมรายการกับคูปองนี้'];}
+    $mallProductOnly=!empty($coupon['mall_only'])&&$coupon['discount_type']!=='free_shipping';
+    if($coupon['product_id']!==null||$coupon['category_id']!==null||($coupon['seller_id']??null)!==null||$mallProductOnly){$eligibleSubtotal=0.0;$productCheck=$db->prepare('SELECT category_id,seller_id FROM products WHERE id=?');foreach($items as $item){$productId=(int)($item['id']??$item['product_id']??0);$productCheck->execute([$productId]);$eligible=$productCheck->fetch();if($eligible&&($coupon['product_id']===null||(int)$coupon['product_id']===$productId)&&($coupon['category_id']===null||(int)$coupon['category_id']===(int)$eligible['category_id'])&&(($coupon['seller_id']??null)===null||(int)$coupon['seller_id']===(int)$eligible['seller_id'])&&(!$mallProductOnly||$eligible['seller_id']===null))$eligibleSubtotal+=(float)$item['price']*(int)$item['quantity'];}if($eligibleSubtotal<=0)return ['coupon'=>null,'discount'=>0.0,'error'=>'ไม่มีสินค้าในตะกร้าที่ร่วมรายการกับคูปองนี้'];}
     $discount = $coupon['discount_type']==='percent' ? $eligibleSubtotal*((float)$coupon['discount_value']/100) : min($eligibleSubtotal,(float)$coupon['discount_value']);
     if ($coupon['discount_type']==='free_shipping') $discount=0.0;
     if ($coupon['max_discount'] !== null) $discount=min($discount,(float)$coupon['max_discount']);
     return ['coupon'=>$coupon,'discount'=>min($subtotal,max(0,$discount)),'error'=>''];
+}
+function calculateCouponSet(PDO $db,array $codes,int $userId,array $items,float $subtotal,bool $lock=false):array{
+    $codes=array_values(array_unique(array_filter(array_map(static fn($code)=>strtoupper(trim((string)$code)),$codes))));
+    if(count($codes)>2)return ['error'=>'ใช้คูปองได้สูงสุด 2 ใบ'];
+    $product=null;$shipping=null;$discount=0.0;
+    foreach($codes as $code){$result=calculateCouponDiscount($db,$code,$userId,$items,$subtotal,$lock);if($result['error']!=='')return ['error'=>$result['error']];$coupon=$result['coupon'];if($coupon['discount_type']==='free_shipping'){if($shipping)return ['error'=>'ใช้คูปองส่งฟรีได้เพียง 1 ใบ'];$shipping=$coupon;}else{if($product)return ['error'=>'ใช้คูปองลดสินค้าได้เพียง 1 ใบ'];$product=$coupon;$discount=(float)$result['discount'];}}
+    $charges=calculateOrderCharges($db,$items,$discount,$shipping);
+    return ['error'=>'','product_coupon'=>$product,'shipping_coupon'=>$shipping,'coupons'=>array_values(array_filter([$product,$shipping])),'discount'=>$discount,'charges'=>$charges];
 }
 
 // Record every PHP request after the response is complete, then evaluate Request/min.

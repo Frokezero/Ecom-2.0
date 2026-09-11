@@ -20,6 +20,9 @@ return [
     'APP_KEY' => 'change-this-to-a-long-random-secret',
     // Secret สำหรับตรวจ HMAC-SHA256 ใน X-KitchenMart-Signature
     'PAYMENT_WEBHOOK_SECRET' => 'change-this-webhook-secret',
+    'VAT_RATE' => '7',
+    'MALL_SHIPPING_FEE' => '50',
+    'MALL_FREE_SHIPPING_MIN' => '1000',
     'MAIL_ASYNC' => '1',
     'TRUST_CLOUDFLARE' => '0',
     'TRUSTED_PROXY_CIDRS' => '',

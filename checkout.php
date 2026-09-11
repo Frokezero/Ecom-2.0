@@ -30,6 +30,7 @@ if ($profileDb) {
     $selectedAddressId=(int)($_GET['address_id']??0);$selectedAddress=null;foreach($savedAddresses as $saved){if(($selectedAddressId>0&&(int)$saved['id']===$selectedAddressId)||($selectedAddressId===0&&!$selectedAddress&&$saved['is_default']))$selectedAddress=$saved;}
     if($selectedAddress){$checkoutProfile['phone']=$selectedAddress['phone'];$checkoutProfile['address']=$selectedAddress['address_line'];$user['full_name']=$selectedAddress['recipient_name'];}
 }
+$checkoutCharges = $profileDb ? calculateOrderCharges($profileDb, $cart) : ['shipping'=>0,'tax'=>round($grand_total*.07,2),'total'=>round($grand_total*1.07,2),'vat_rate'=>7];
 ?>
 
 <div class="container" style="margin-top: 36px; margin-bottom: 60px;">
@@ -84,7 +85,7 @@ if ($profileDb) {
                     <!-- PromptPay Details Box -->
                     <div id="promptPayDetails" class="promptpay-box">
                         <h4 style="color: #003b6d; margin-bottom: 8px;"><i class="fa-solid fa-qrcode"></i> ชำระเงินด้วย PromptPay QR Code</h4>
-                        <p style="font-size: 0.9rem; color: var(--text-muted);">ยอดเงินชำระสุทธิ: <strong data-payable-total style="color: var(--primary); font-size: 1.1rem;"><?php echo formatCurrency($grand_total); ?></strong></p>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">ยอดเงินชำระสุทธิ: <strong data-payable-total style="color: var(--primary); font-size: 1.1rem;"><?php echo formatCurrency($checkoutCharges['total']); ?></strong></p>
                         
                         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px;">ระบบจะสร้าง QR จากยอดคำสั่งซื้อที่ตรวจสอบแล้ว หลังจากกดยืนยันคำสั่งซื้อ</p>
                     </div>
@@ -93,7 +94,7 @@ if ($profileDb) {
                     <div id="codDetails" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: var(--radius-md); margin-top: 20px; text-align: center;">
                         <i class="fa-solid fa-truck-ramp-box fa-2x" style="color: var(--accent); margin-bottom: 10px;"></i>
                         <h4 style="color: #166534; margin-bottom: 6px;">ชำระเงินปลายทาง (Cash on Delivery)</h4>
-                        <p style="font-size: 0.9rem; color: #15803d;">พนักงานจัดส่งจะทำการเก็บเงินจำนวน <strong data-payable-total><?php echo formatCurrency($grand_total); ?></strong> เมื่อสินค้าจัดส่งถึงที่อยู่ของคุณ</p>
+                        <p style="font-size: 0.9rem; color: #15803d;">พนักงานจัดส่งจะทำการเก็บเงินจำนวน <strong data-payable-total><?php echo formatCurrency($checkoutCharges['total']); ?></strong> เมื่อสินค้าจัดส่งถึงที่อยู่ของคุณ</p>
                     </div>
                 </div>
             </div>
@@ -116,7 +117,7 @@ if ($profileDb) {
                         <?php endforeach; ?>
                     </div>
 
-                    <div class="coupon-box" data-coupon-selector data-subtotal="<?php echo (float)$grand_total; ?>" data-total-target="checkoutTotal" data-discount-target="couponDiscount" data-discount-row="couponDiscountRow" style="margin-bottom:18px;padding:14px;background:#fff8ef;border:1px dashed var(--orange);">
+                    <div class="coupon-box" data-coupon-selector data-subtotal="<?php echo (float)$grand_total; ?>" data-base-total="<?php echo (float)$checkoutCharges['total']; ?>" data-base-shipping="<?php echo (float)$checkoutCharges['shipping']; ?>" data-base-tax="<?php echo (float)$checkoutCharges['tax']; ?>" data-total-target="checkoutTotal" data-discount-target="couponDiscount" data-discount-row="couponDiscountRow" data-shipping-target="checkoutShipping" data-tax-target="checkoutTax" style="margin-bottom:18px;padding:14px;background:#fff8ef;border:1px dashed var(--orange);">
                         <label style="display:block;font-weight:700;font-size:12px;margin-bottom:7px;">เลือกคูปองที่ต้องการใช้</label>
                         <select data-coupon-select style="width:100%;padding:9px;margin-bottom:8px;"><option value="">ไม่ใช้คูปอง</option></select>
                         <div style="display:flex;gap:7px;"><input data-coupon-input name="coupon_code" value="<?php echo e($_SESSION['coupon_code']??''); ?>" placeholder="หรือกรอกรหัสคูปอง" style="min-width:0;flex:1;padding:9px;"><button type="button" data-coupon-apply class="btn btn-outline" style="padding:7px 10px;font-size:11px;">ใช้โค้ด</button></div>
@@ -126,9 +127,11 @@ if ($profileDb) {
                     <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-bottom: 24px;">
                         <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;"><span>ยอดสินค้า</span><span><?php echo formatCurrency($grand_total); ?></span></div>
                         <div id="couponDiscountRow" style="display:none;justify-content:space-between;color:#b85b2c;font-size:12px;margin-top:7px;"><span>ส่วนลดคูปอง</span><span id="couponDiscount">-฿0.00</span></div>
+                        <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:7px;"><span>ค่าจัดส่ง</span><span id="checkoutShipping"><?php echo $checkoutCharges['shipping']>0?formatCurrency($checkoutCharges['shipping']):'ฟรี'; ?></span></div>
+                        <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:7px;"><span>VAT <?php echo (float)$checkoutCharges['vat_rate']; ?>%</span><span id="checkoutTax"><?php echo formatCurrency($checkoutCharges['tax']); ?></span></div>
                         <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.3rem; color: var(--secondary);">
                             <span>ยอดชำระทั้งหมด</span>
-                            <span id="checkoutTotal" style="color: var(--primary);"><?php echo formatCurrency($grand_total); ?></span>
+                            <span id="checkoutTotal" style="color: var(--primary);"><?php echo formatCurrency($checkoutCharges['total']); ?></span>
                         </div>
                     </div>
 

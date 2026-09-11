@@ -13,7 +13,7 @@ if (!$db) jsonResponse('error', 'ไม่สามารถเชื่อม�
 
 $userId = (int)$_SESSION['user_id'];
 enforceSecurityBlock($db,$userId,true);enforceRequestRate($db,'api.profile',30,60,$userId);
-$stmt = $db->prepare('SELECT id,username,email,password_hash,full_name,email_verified_at,two_factor_enabled,role FROM users WHERE id=? LIMIT 1');
+$stmt = $db->prepare('SELECT id,username,email,password_hash,auth_version,full_name,email_verified_at,two_factor_enabled,role FROM users WHERE id=? LIMIT 1');
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
 if (!$user) jsonResponse('error', 'ไม่พบบัญชีผู้ใช้', [], 404);
@@ -50,8 +50,9 @@ if ($action === 'update_password') {
     if (!password_verify($currentPassword, $user['password_hash'])) jsonResponse('error', 'รหัสผ่านปัจจุบันไม่ถูกต้อง', ['field' => 'current_password'], 422);
     if (strlen($password)<10 || strlen($password)>72 || !preg_match('/[A-Z]/',$password) || !preg_match('/[a-z]/',$password) || !preg_match('/\d/',$password) || preg_match('/\s|[\x00-\x1F\x7F]/',$password)) jsonResponse('error','รหัสผ่านต้องมี 10–72 ตัว พร้อมตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข โดยห้ามมีช่องว่าง',['field'=>'password'],422);
     if (!hash_equals($password, $passwordConfirm)) jsonResponse('error', 'รหัสผ่านใหม่ทั้งสองช่องไม่ตรงกัน', ['field' => 'password_confirm'], 422);
-    $update = $db->prepare('UPDATE users SET password_hash=? WHERE id=?');
+    $update = $db->prepare('UPDATE users SET password_hash=?,auth_version=auth_version+1 WHERE id=?');
     $update->execute([password_hash($password, PASSWORD_DEFAULT), $userId]);
+    $_SESSION['auth_version'] = (int)$user['auth_version'] + 1;
     recordSecurityEvent($db,'account.password_changed',20,$userId,[],'allowed');createNotification($db,$userId,'security','เปลี่ยนรหัสผ่านสำเร็จ','รหัสผ่านของบัญชีถูกเปลี่ยนแล้ว หากไม่ใช่คุณกรุณาติดต่อผู้ดูแลทันที',BASE_URL.'profile.php');
     session_regenerate_id(true);
     jsonResponse('success', 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว');

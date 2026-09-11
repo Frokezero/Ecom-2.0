@@ -5,7 +5,7 @@ SET NAMES utf8mb4;
 
 CREATE TABLE IF NOT EXISTS users (
  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) NOT NULL UNIQUE, email VARCHAR(100) NOT NULL UNIQUE,
- password_hash VARCHAR(255) NOT NULL, full_name VARCHAR(100) NOT NULL, phone VARCHAR(20), address TEXT,
+ password_hash VARCHAR(255) NOT NULL, auth_version INT UNSIGNED NOT NULL DEFAULT 1, full_name VARCHAR(100) NOT NULL, phone VARCHAR(20), address TEXT,
  preferred_payment_method ENUM('promptpay','cod') NOT NULL DEFAULT 'promptpay',
  role ENUM('customer','seller','admin') NOT NULL DEFAULT 'customer', email_verified_at DATETIME NULL,
  email_verification_token_hash CHAR(64) NULL, email_verification_expires_at DATETIME NULL, email_verification_sent_at DATETIME NULL,

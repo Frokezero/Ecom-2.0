@@ -10,6 +10,7 @@ $grand_total = 0;
 foreach ($cart as $item) {
     $grand_total += $item['price'] * $item['quantity'];
 }
+$cartCharges = $promoDb ? calculateOrderCharges($promoDb, $cart) : ['shipping'=>0,'tax'=>round($grand_total*.07,2),'total'=>round($grand_total*1.07,2),'vat_rate'=>7];
 ?>
 
 <div class="container cart-page" style="margin-top: 36px; margin-bottom: 60px;">
@@ -70,7 +71,7 @@ foreach ($cart as $item) {
             <div class="cart-summary" style="background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 24px; height: fit-content; box-shadow: var(--shadow-sm);">
                 <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--secondary); margin-bottom: 20px;">สรุปยอดสั่งซื้อ</h3>
                 
-                <div class="coupon-box" data-coupon-selector data-subtotal="<?php echo (float)$grand_total; ?>" data-total-target="cartTotal" data-discount-target="cartCouponDiscount" data-discount-row="cartCouponDiscountRow" style="margin-bottom:18px;padding:14px;background:#fff8ef;border:1px dashed var(--orange);"><label style="display:block;font-weight:700;font-size:12px;margin-bottom:7px;">เลือกคูปองที่ต้องการใช้</label><select data-coupon-select style="width:100%;padding:9px;margin-bottom:8px;"><option value="">ไม่ใช้คูปอง</option></select><div style="display:flex;gap:7px;"><input data-coupon-input placeholder="หรือกรอกรหัสคูปอง" style="min-width:0;flex:1;padding:9px;"><button type="button" data-coupon-apply class="btn btn-outline" style="padding:7px 10px;font-size:11px;">ใช้โค้ด</button></div><small data-coupon-message style="display:block;margin-top:6px;color:var(--muted);"></small></div>
+                <div class="coupon-box" data-coupon-selector data-subtotal="<?php echo (float)$grand_total; ?>" data-base-total="<?php echo (float)$cartCharges['total']; ?>" data-base-shipping="<?php echo (float)$cartCharges['shipping']; ?>" data-base-tax="<?php echo (float)$cartCharges['tax']; ?>" data-total-target="cartTotal" data-discount-target="cartCouponDiscount" data-discount-row="cartCouponDiscountRow" data-shipping-target="cartShipping" data-tax-target="cartTax" style="margin-bottom:18px;padding:14px;background:#fff8ef;border:1px dashed var(--orange);"><label style="display:block;font-weight:700;font-size:12px;margin-bottom:7px;">เลือกคูปองที่ต้องการใช้</label><select data-coupon-select style="width:100%;padding:9px;margin-bottom:8px;"><option value="">ไม่ใช้คูปอง</option></select><div style="display:flex;gap:7px;"><input data-coupon-input placeholder="หรือกรอกรหัสคูปอง" style="min-width:0;flex:1;padding:9px;"><button type="button" data-coupon-apply class="btn btn-outline" style="padding:7px 10px;font-size:11px;">ใช้โค้ด</button></div><small data-coupon-message style="display:block;margin-top:6px;color:var(--muted);"></small></div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px; color: var(--text-muted);">
                     <span>ยอดรวมสินค้า</span>
                     <span id="cartSubtotal" style="font-weight: 600; color: var(--text-main);"><?php echo formatCurrency($grand_total); ?></span>
@@ -78,13 +79,14 @@ foreach ($cart as $item) {
 
                 <div style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--text-muted);">
                     <span>ค่าจัดส่ง</span>
-                    <span style="font-weight: 600; color: var(--accent);">ฟรีค่าจัดส่ง</span>
+                    <span id="cartShipping" style="font-weight:600;color:var(--accent);"><?php echo $cartCharges['shipping']>0?formatCurrency($cartCharges['shipping']):'ฟรีค่าจัดส่ง'; ?></span>
                 </div>
                 <div id="cartCouponDiscountRow" style="display:none;justify-content:space-between;margin-bottom:12px;color:#b85b2c;"><span>ส่วนลดคูปอง</span><span id="cartCouponDiscount">-฿0.00</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:16px;color:var(--text-muted);"><span>ภาษีมูลค่าเพิ่ม <?php echo (float)$cartCharges['vat_rate']; ?>%</span><span id="cartTax" style="font-weight:600;color:var(--text-main);"><?php echo formatCurrency($cartCharges['tax']); ?></span></div>
 
                 <div style="border-top: 2px dashed var(--border-color); padding-top: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-weight: 700; font-size: 1.1rem; color: var(--secondary);">ยอดรวมสุทธิ</span>
-                    <span id="cartTotal" style="font-weight: 700; font-size: 1.6rem; color: var(--primary);"><?php echo formatCurrency($grand_total); ?></span>
+                    <span id="cartTotal" style="font-weight: 700; font-size: 1.6rem; color: var(--primary);"><?php echo formatCurrency($cartCharges['total']); ?></span>
                 </div>
 
                 <a href="<?php echo BASE_URL; ?>checkout.php" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: 700;">

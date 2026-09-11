@@ -1,6 +1,10 @@
 <?php
 require_once __DIR__ . '/functions.php';
-$cart_items = array_values($_SESSION['cart'] ?? []);
+$cart_items = [];
+foreach (($_SESSION['cart'] ?? []) as $cart_key => $cart_item) {
+    $cart_item['cart_key'] = (string)$cart_key;
+    $cart_items[] = $cart_item;
+}
 $cart_count = array_sum(array_map(fn($item) => (int)($item['quantity'] ?? 0), $cart_items));
 $cart_total = array_sum(array_map(fn($item) => (float)($item['price'] ?? 0) * (int)($item['quantity'] ?? 0), $cart_items));
 $cart_preview_items = array_slice($cart_items, 0, 3);
@@ -30,7 +34,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <title><?php echo isset($page_title) ? e($page_title).' - '.APP_NAME : APP_NAME; ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css?v=9">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css?v=10">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/address-picker.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notifications.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notification-hover.css">
@@ -87,7 +91,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
                     <div class="cart-dropdown">
                         <header><strong>ตะกร้าสินค้าของคุณ</strong><span><?php echo $cart_count; ?> ชิ้น</span></header>
                         <?php if ($cart_preview_items): ?>
-                            <div class="cart-preview-list"><?php foreach ($cart_preview_items as $item): ?><a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$item['id']; ?>" class="cart-preview-item"><img src="<?php echo e(productImageUrl($item['image_url'])); ?>" alt="<?php echo e($item['name']); ?>"><span><strong><?php echo e($item['name']); ?></strong><small><?php echo (int)$item['quantity']; ?> ชิ้น · <?php echo formatCurrency($item['price']); ?></small></span><b><?php echo formatCurrency((float)$item['price'] * (int)$item['quantity']); ?></b></a><?php endforeach; ?></div>
+                            <div class="cart-preview-list"><?php foreach ($cart_preview_items as $item): ?><article class="cart-preview-item"><a class="cart-preview-product" href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$item['id']; ?>"><img src="<?php echo e(productImageUrl($item['image_url'])); ?>" alt="<?php echo e($item['name']); ?>"><span><strong><?php echo e($item['name']); ?></strong><small><?php echo formatCurrency($item['price']); ?></small></span></a><div class="cart-preview-meta"><b><?php echo formatCurrency((float)$item['price'] * (int)$item['quantity']); ?></b><div class="cart-preview-controls"><button type="button" onclick="updateCartQuantity(<?php echo (int)$item['id']; ?>,<?php echo max(0,(int)$item['quantity']-1); ?>,'<?php echo e($item['cart_key']); ?>')" aria-label="ลดจำนวน">−</button><span><?php echo (int)$item['quantity']; ?></span><button type="button" onclick="updateCartQuantity(<?php echo (int)$item['id']; ?>,<?php echo (int)$item['quantity']+1; ?>,'<?php echo e($item['cart_key']); ?>')" aria-label="เพิ่มจำนวน">+</button><button type="button" class="cart-preview-remove" onclick="removeFromCart(<?php echo (int)$item['id']; ?>,'<?php echo e($item['cart_key']); ?>')" aria-label="ลบสินค้า" title="ลบสินค้า"><i class="fa-regular fa-trash-can"></i></button></div></div></article><?php endforeach; ?></div>
                             <?php if (count($cart_items) > count($cart_preview_items)): ?><p class="cart-more-items">และอีก <?php echo count($cart_items) - count($cart_preview_items); ?> รายการ</p><?php endif; ?>
                             <div class="cart-preview-total"><span>ยอดรวม</span><strong><?php echo formatCurrency($cart_total); ?></strong></div>
                             <div class="cart-dropdown-actions"><a href="<?php echo BASE_URL; ?>cart.php" class="cart-view-link">ดูตะกร้าสินค้า</a><a href="<?php echo BASE_URL; ?>checkout.php" class="cart-checkout-link">ชำระเงิน <i class="fa-solid fa-arrow-right"></i></a></div>

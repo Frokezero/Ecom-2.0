@@ -40,7 +40,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $promoTitle = trim((string)($_POST['promo_title'] ?? ''));
             $promoText = trim((string)($_POST['promo_text'] ?? ''));
             $promoUrl = cleanStoreUrl((string)($_POST['promo_url'] ?? ''));
+            $shippingFee = filter_var($_POST['shipping_fee'] ?? null, FILTER_VALIDATE_FLOAT);
+            $freeShippingMin = filter_var($_POST['free_shipping_min'] ?? null, FILTER_VALIDATE_FLOAT);
             if (mb_strlen($shopName) < 2 || mb_strlen($shopName) > 80) throw new RuntimeException('ชื่อร้านต้องมี 2–80 ตัวอักษร');
+            if ($shippingFee === false || $shippingFee < 0 || $shippingFee > 10000 || $freeShippingMin === false || $freeShippingMin < 0 || $freeShippingMin > 1000000) throw new RuntimeException('กรุณากำหนดค่าจัดส่งและยอดส่งฟรีให้ถูกต้อง');
             if (mb_strlen($description) > 1200 || mb_strlen($promoTitle) > 120 || mb_strlen($promoText) > 250) throw new RuntimeException('รายละเอียดร้านหรือข้อความโปรโมชันยาวเกินกำหนด');
 
             $images = [
@@ -51,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($images as $field => $current) {
                 if (uploadedFilePresent($field)) $images[$field] = saveStoreImageUpload($_FILES[$field]);
             }
-            $stmt = $db->prepare('UPDATE seller_profiles SET shop_name=?,shop_description=?,shop_logo=?,cover_image=?,promo_image=?,promo_title=?,promo_text=?,promo_url=? WHERE user_id=? AND status="approved"');
-            $stmt->execute([$shopName, $description ?: null, $images['shop_logo'], $images['cover_image'], $images['promo_image'], $promoTitle ?: null, $promoText ?: null, $promoUrl, $sellerId]);
+            $stmt = $db->prepare('UPDATE seller_profiles SET shop_name=?,shop_description=?,shop_logo=?,cover_image=?,promo_image=?,promo_title=?,promo_text=?,promo_url=?,shipping_fee=?,free_shipping_min=? WHERE user_id=? AND status="approved"');
+            $stmt->execute([$shopName, $description ?: null, $images['shop_logo'], $images['cover_image'], $images['promo_image'], $promoTitle ?: null, $promoText ?: null, $promoUrl, $shippingFee, $freeShippingMin, $sellerId]);
             $message = 'บันทึกหน้าร้านแล้ว';
         }
 
@@ -162,7 +165,7 @@ $coverStyle = $profile['cover_image'] ? ' style="background-image:linear-gradien
 
     <section class="store-customize" id="design">
         <aside><p class="eyebrow">STORE DESIGN</p><h2>ตกแต่งร้าน<br>ให้เป็นคุณ</h2><p>ลูกค้าจะเห็นข้อมูลเหล่านี้บนหน้าร้านของคุณ สามารถกลับมาเปลี่ยนได้ทุกเมื่อ</p><ul><li><i class="fa-solid fa-image"></i> โลโก้และภาพปก</li><li><i class="fa-solid fa-pen-nib"></i> เรื่องราวของร้าน</li><li><i class="fa-solid fa-bullhorn"></i> แบนเนอร์โปรโมชัน</li></ul></aside>
-        <form method="POST" enctype="multipart/form-data" class="seller-form"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>"><input type="hidden" name="action" value="save_store"><header><p class="eyebrow">STORE PROFILE</p><h2>โปรไฟล์และภาพปก</h2></header><div class="seller-fields"><label class="full">ชื่อร้าน<input name="shop_name" value="<?php echo e($profile['shop_name']); ?>" required maxlength="80"></label><label class="full">คำอธิบายร้าน<textarea name="shop_description" rows="4" maxlength="1200"><?php echo e($profile['shop_description']); ?></textarea></label><label>โลโก้ร้าน (สี่เหลี่ยม)<input type="file" name="shop_logo" data-image-crop data-crop-ratio="1" accept="image/jpeg,image/png,image/webp"><small>แนะนำ 1:1</small></label><label>ภาพปกหน้าร้าน<input type="file" name="cover_image" data-image-crop data-crop-ratio="3" accept="image/jpeg,image/png,image/webp"><small>แนะนำ 3:1</small></label></div>
+        <form method="POST" enctype="multipart/form-data" class="seller-form"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>"><input type="hidden" name="action" value="save_store"><header><p class="eyebrow">STORE PROFILE</p><h2>โปรไฟล์และภาพปก</h2></header><div class="seller-fields"><label class="full">ชื่อร้าน<input name="shop_name" value="<?php echo e($profile['shop_name']); ?>" required maxlength="80"></label><label class="full">คำอธิบายร้าน<textarea name="shop_description" rows="4" maxlength="1200"><?php echo e($profile['shop_description']); ?></textarea></label><label>ค่าจัดส่งต่อคำสั่งซื้อ (บาท)<input type="number" name="shipping_fee" min="0" max="10000" step="0.01" value="<?php echo e($profile['shipping_fee']); ?>" required></label><label>ส่งฟรีเมื่อซื้อร้านนี้ครบ (บาท)<input type="number" name="free_shipping_min" min="0" max="1000000" step="0.01" value="<?php echo e($profile['free_shipping_min']); ?>" required></label><label>โลโก้ร้าน (สี่เหลี่ยม)<input type="file" name="shop_logo" data-image-crop data-crop-ratio="1" accept="image/jpeg,image/png,image/webp"><small>แนะนำ 1:1</small></label><label>ภาพปกหน้าร้าน<input type="file" name="cover_image" data-image-crop data-crop-ratio="3" accept="image/jpeg,image/png,image/webp"><small>แนะนำ 3:1</small></label></div>
         <section class="store-promo-fields" id="promotion"><p class="eyebrow">PROMOTION BANNER</p><h2>แบนเนอร์โปรโมชัน</h2><div class="seller-fields"><label class="full">ภาพแบนเนอร์<input type="file" name="promo_image" data-image-crop data-crop-ratio="2.4" accept="image/jpeg,image/png,image/webp"><small>แนะนำ 12:5</small></label><label>หัวข้อโปรโมชัน<input name="promo_title" value="<?php echo e($profile['promo_title']); ?>" maxlength="120" placeholder="เช่น ลดพิเศษสำหรับลูกค้าใหม่"></label><label>ข้อความสั้น<input name="promo_text" value="<?php echo e($profile['promo_text']); ?>" maxlength="250" placeholder="เช่น ช้อปครบ 1,000 บาท รับส่วนลดทันที"></label><label class="full">ลิงก์ปุ่มโปรโมชัน<input name="promo_url" type="url" value="<?php echo e($profile['promo_url']); ?>" maxlength="500" placeholder="https://..."></label></div></section>
         <footer><span>รูปใหม่จะแสดงทันทีหลังบันทึก</span><button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> บันทึกหน้าร้าน</button></footer></form>
     </section>

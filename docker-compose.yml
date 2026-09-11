@@ -9,11 +9,11 @@ services:
       DB_PORT: 3306
       DB_NAME: kitchenmart_db
       DB_USER: kitchenmart
-      DB_PASS: ${DB_PASS:-kitchenmart-local-only}
+      DB_PASS: ${DB_PASS:?DB_PASS must be set}
       STORE_NAME: KitchenMart
-      APP_URL: ${APP_URL:-http://localhost:8080/}
-      APP_KEY: ${APP_KEY:-local-development-key-change-before-public-use-123456}
-      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:-local-webhook-secret-change-before-public-use}
+      APP_URL: ${APP_URL:?APP_URL must be set and use HTTPS in production}
+      APP_KEY: ${APP_KEY:?APP_KEY must be set}
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:?PAYMENT_WEBHOOK_SECRET must be set}
       MAIL_ASYNC: "1"
     depends_on:
       db:
@@ -36,8 +36,8 @@ services:
     environment:
       MYSQL_DATABASE: kitchenmart_db
       MYSQL_USER: kitchenmart
-      MYSQL_PASSWORD: ${DB_PASS:-kitchenmart-local-only}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-kitchenmart-root-local-only}
+      MYSQL_PASSWORD: ${DB_PASS:?DB_PASS must be set}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:?DB_ROOT_PASS must be set}
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 5s

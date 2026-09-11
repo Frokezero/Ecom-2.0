@@ -18,6 +18,7 @@ class Database {
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
         } catch (PDOException $e) {
+            error_log('Database connection failed [request_id=' . appRequestId() . ', code=' . $e->getCode() . ']');
             $this->conn = null;
         }
         return $this->conn;

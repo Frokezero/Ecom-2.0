@@ -1,0 +1,44 @@
+name: PHP tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: kitchenmart_db
+          MYSQL_ROOT_PASSWORD: test-root-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -ptest-root-password --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: kitchenmart_db
+      DB_USER: root
+      DB_PASS: test-root-password
+      APP_ENV: testing
+      APP_URL: http://127.0.0.1:8000/
+      APP_KEY: ci-only-app-key-at-least-32-characters
+      PAYMENT_WEBHOOK_SECRET: ci-only-webhook-secret-at-least-32-characters
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mbstring, gd, fileinfo
+      - name: Import schema
+        run: mysql -h127.0.0.1 -uroot -ptest-root-password < database/schema.sql
+      - name: Baseline and migrate
+        run: php tools/migrate.php --baseline && php tools/migrate.php
+      - name: Lint
+        run: find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+      - name: Test
+        run: for test in tests/*_test.php; do php "$test"; done
