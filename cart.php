@@ -15,14 +15,14 @@ $cartCharges = $promoDb ? calculateOrderCharges($promoDb, $cart) : ['shipping'=>
 
 <div class="container cart-page" style="margin-top: 36px; margin-bottom: 60px;">
     <?php if($cartBanners):$banner=$cartBanners[0];?><a class="catalog-promo-banner cart-promo-banner" href="<?php echo e($banner['target_url']?:'#');?>"><picture><?php if($banner['image_mobile']):?><source media="(max-width:720px)" srcset="<?php echo BASE_URL.e($banner['image_mobile']);?>"><?php endif;?><img src="<?php echo BASE_URL.e($banner['image_desktop']);?>" alt="<?php echo e($banner['title']);?>"></picture><span><strong><?php echo e($banner['title']);?></strong><small><?php echo e($banner['subtitle']);?></small></span></a><?php endif;?>
-    <h1 style="font-size: 1.8rem; font-weight: 700; color: var(--secondary); margin-bottom: 24px;"><i class="fa-solid fa-cart-shopping" style="color: var(--primary);"></i> ตะกร้าสินค้าของคุณ</h1>
+    <h1 style="font-size: 1.8rem; font-weight: 700; color: var(--secondary); margin-bottom: 24px;"><i class="fa-solid fa-cart-shopping" style="color: var(--primary);"></i> ตะกร้าสินค้า</h1>
 
     <?php if (empty($cart)): ?>
         <div style="text-align: center; padding: 60px 20px; background: white; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
             <i class="fa-solid fa-cart-arrow-down fa-3x" style="color: var(--text-muted); margin-bottom: 16px;"></i>
-            <h2>ตะกร้าสินค้าของคุณยังว่างเปล่า</h2>
-            <p style="color: var(--text-muted); margin-top: 8px;">เลือกอุปกรณ์ครัวชิ้นโปรด แล้วเพิ่มลงในตะกร้าได้เลย</p>
-            <a href="<?php echo BASE_URL; ?>products.php" class="btn btn-primary" style="margin-top: 24px; padding: 12px 28px;">ไปเลือกซื้อสินค้า</a>
+            <h2>ยังไม่มีสินค้าในตะกร้า</h2>
+            <p style="color: var(--text-muted); margin-top: 8px;">เลือกสินค้าที่ต้องการ แล้วเพิ่มลงตะกร้า</p>
+            <a href="<?php echo BASE_URL; ?>products.php" class="btn btn-primary" style="margin-top: 24px; padding: 12px 28px;">เลือกซื้อสินค้า</a>
         </div>
     <?php else: ?>
         <div class="cart-layout" style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 32px;">
@@ -93,7 +93,7 @@ $cartCharges = $promoDb ? calculateOrderCharges($promoDb, $cart) : ['shipping'=>
                 </div>
 
                 <a href="<?php echo BASE_URL; ?>checkout.php" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: 700;">
-                    เข้าสู่การชำระเงิน <i class="fa-solid fa-arrow-right"></i>
+                    ชำระเงิน <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
         </div>

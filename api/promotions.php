@@ -15,7 +15,7 @@ if($action==='claim'){
     $couponId=(int)($_POST['coupon_id']??0); $stmt=$db->prepare('SELECT id FROM coupons WHERE id=? AND is_active=1 AND starts_at<=NOW() AND ends_at>=NOW()');$stmt->execute([$couponId]);
     if(!$stmt->fetchColumn()) jsonResponse('error','คูปองนี้ไม่พร้อมใช้งาน',[],422);
     try{$ins=$db->prepare('INSERT INTO user_coupons(coupon_id,user_id) VALUES(?,?)');$ins->execute([$couponId,(int)$_SESSION['user_id']]);}catch(PDOException $e){if((int)$e->errorInfo[1]===1062)jsonResponse('success','คุณรับคูปองนี้แล้ว');throw $e;}
-    jsonResponse('success','รับคูปองเรียบร้อยแล้ว');
+    jsonResponse('success','รับคูปองแล้ว');
 }
 if($action==='claim_code'){
     if($_SERVER['REQUEST_METHOD']!=='POST') jsonResponse('error','อนุญาตเฉพาะ POST',[],405); requireCsrf();

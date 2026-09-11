@@ -34,8 +34,8 @@ $checkoutCharges = $profileDb ? calculateOrderCharges($profileDb, $cart) : ['shi
 ?>
 
 <div class="container" style="margin-top: 36px; margin-bottom: 60px;">
-    <h1 style="font-size: 1.8rem; font-weight: 700; color: var(--secondary); margin-bottom: 8px;">ชำระเงิน & กรอกข้อมูลจัดส่ง</h1>
-    <p style="color: var(--text-muted); margin-bottom: 28px;">เลือกวิธีการชำระเงินระหว่าง PromptPay QR Code จำลอง หรือชำระเงินปลายทาง (COD)</p>
+    <h1 style="font-size: 1.8rem; font-weight: 700; color: var(--secondary); margin-bottom: 8px;">ชำระเงิน</h1>
+    <p style="color: var(--text-muted); margin-bottom: 28px;">กรอกที่อยู่จัดส่งและเลือกวิธีชำระเงิน</p>
 
     <form id="checkoutForm" onsubmit="handleCheckoutSubmit(event)">
         <div class="checkout-grid">
@@ -87,14 +87,14 @@ $checkoutCharges = $profileDb ? calculateOrderCharges($profileDb, $cart) : ['shi
                         <h4 style="color: #003b6d; margin-bottom: 8px;"><i class="fa-solid fa-qrcode"></i> ชำระเงินด้วย PromptPay QR Code</h4>
                         <p style="font-size: 0.9rem; color: var(--text-muted);">ยอดเงินชำระสุทธิ: <strong data-payable-total style="color: var(--primary); font-size: 1.1rem;"><?php echo formatCurrency($checkoutCharges['total']); ?></strong></p>
                         
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px;">ระบบจะสร้าง QR จากยอดคำสั่งซื้อที่ตรวจสอบแล้ว หลังจากกดยืนยันคำสั่งซื้อ</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px;">QR จะแสดงหลังยืนยันคำสั่งซื้อ</p>
                     </div>
 
                     <!-- COD Details Box -->
                     <div id="codDetails" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: var(--radius-md); margin-top: 20px; text-align: center;">
                         <i class="fa-solid fa-truck-ramp-box fa-2x" style="color: var(--accent); margin-bottom: 10px;"></i>
                         <h4 style="color: #166534; margin-bottom: 6px;">ชำระเงินปลายทาง (Cash on Delivery)</h4>
-                        <p style="font-size: 0.9rem; color: #15803d;">พนักงานจัดส่งจะทำการเก็บเงินจำนวน <strong data-payable-total><?php echo formatCurrency($checkoutCharges['total']); ?></strong> เมื่อสินค้าจัดส่งถึงที่อยู่ของคุณ</p>
+                        <p style="font-size: 0.9rem; color: #15803d;">ชำระ <strong data-payable-total><?php echo formatCurrency($checkoutCharges['total']); ?></strong> เมื่อได้รับสินค้า</p>
                     </div>
                 </div>
             </div>
@@ -152,7 +152,7 @@ async function handleCheckoutSubmit(e) {
     e.preventDefault();
     const btn = document.getElementById('placeOrderBtn');
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกออเดอร์...`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังสร้างคำสั่งซื้อ...`;
 
     const formData = new FormData(e.target);
 
@@ -164,7 +164,7 @@ async function handleCheckoutSubmit(e) {
 
         const res = await response.json();
         if (res.status === 'success') {
-            showToast('บันทึกคำสั่งซื้อเรียบร้อยแล้ว!', 'success');
+            showToast('สั่งซื้อสำเร็จ', 'success');
             setTimeout(() => {
                 location.href = res.data.redirect;
             }, 800);

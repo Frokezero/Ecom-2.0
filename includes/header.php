@@ -57,7 +57,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
         <div class="container header-main">
             <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo" aria-label="KitchenMart หน้าแรก">
                 <span class="brand-mark"><i class="fa-solid fa-kitchen-set"></i></span>
-                <span><strong>KitchenMart</strong><small>ของดีสำหรับทุกครัว</small></span>
+                <span><strong>KitchenMart</strong><small>อุปกรณ์ครัวสำหรับทุกบ้าน</small></span>
             </a>
             <form action="<?php echo BASE_URL; ?>products.php" method="GET" class="search-box" role="search">
                 <i class="fa-solid fa-magnifying-glass"></i>

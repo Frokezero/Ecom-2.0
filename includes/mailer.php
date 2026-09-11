@@ -93,7 +93,7 @@ function verificationEmailHtml(string $safeName, string $safeUrl): string {
         . '<table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td style="border-radius:4px;background:#173f32"><a href="' . $safeUrl . '" style="display:inline-block;padding:14px 23px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700">ยืนยันอีเมลของฉัน&nbsp; →</a></td></tr></table>'
         . '<div style="margin-top:31px;padding:16px 18px;background:#f8f7f2;border-left:3px solid #d88b4d"><p style="margin:0;font-size:12px;line-height:1.65;color:#68746f">หากคุณไม่ได้สมัครสมาชิก KitchenMart คุณไม่ต้องดำเนินการใด ๆ และสามารถละเว้นอีเมลฉบับนี้ได้</p></div>'
         . '<p style="margin:27px 0 0;font-size:11px;line-height:1.65;color:#7b857f">ปุ่มไม่ทำงาน? คัดลอกลิงก์นี้ไปวางในเบราว์เซอร์:<br><a href="' . $safeUrl . '" style="color:#28614d;word-break:break-all">' . $safeUrl . '</a></p>'
-        . '</td></tr><tr><td style="padding:21px 32px;background:#173f32;text-align:center;color:#b9cec3;font-size:11px;line-height:1.6">KitchenMart · ของดีสำหรับทุกครัว<br>อีเมลนี้ถูกส่งเพื่อยืนยันความเป็นเจ้าของบัญชีของคุณ</td></tr>'
+        . '</td></tr><tr><td style="padding:21px 32px;background:#173f32;text-align:center;color:#b9cec3;font-size:11px;line-height:1.6">KitchenMart · อุปกรณ์ครัวสำหรับทุกบ้าน<br>อีเมลนี้ใช้สำหรับยืนยันบัญชี</td></tr>'
         . '</table></td></tr></table></body></html>';
 }
 

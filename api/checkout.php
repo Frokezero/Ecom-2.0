@@ -61,7 +61,7 @@ if ($action === 'create_order') {
         $activity=behaviorLog($db,['user_id'=>(int)$_SESSION['user_id'],'action'=>'order.created','status'=>201,'order_amount'=>$payable]);behaviorEvaluateRuntime($db,$activity,(int)$_SESSION['user_id'],date('Y-m-d H:i:s'));
         createNotification($db, (int)$_SESSION['user_id'], 'order', 'สั่งซื้อสำเร็จ', 'คำสั่งซื้อ '.$orderNo.' ถูกบันทึกแล้ว', BASE_URL.'order-detail.php?id='.$orderId);
         createRoleNotification($db, 'admin', 'order', 'มีคำสั่งซื้อใหม่', 'คำสั่งซื้อ '.$orderNo.' รอตรวจสอบ', BASE_URL.'admin/orders.php?order_status=pending');
-        jsonResponse('success','สร้างคำสั่งซื้อเรียบร้อย',['order_id'=>$orderId,'order_no'=>$orderNo,'payment_method'=>$method,'total_amount'=>$payable,'discount_amount'=>$discount,'shipping_amount'=>$shipping,'tax_amount'=>$tax,'redirect'=>BASE_URL.'order-success.php?order_id='.$orderId]);
+        jsonResponse('success','สั่งซื้อสำเร็จ',['order_id'=>$orderId,'order_no'=>$orderNo,'payment_method'=>$method,'total_amount'=>$payable,'discount_amount'=>$discount,'shipping_amount'=>$shipping,'tax_amount'=>$tax,'redirect'=>BASE_URL.'order-success.php?order_id='.$orderId]);
     } catch (Throwable $e) {
         if ($db->inTransaction()) $db->rollBack();
         jsonResponse('error',$e instanceof RuntimeException ? $e->getMessage() : 'ไม่สามารถสร้างคำสั่งซื้อได้',[],409);

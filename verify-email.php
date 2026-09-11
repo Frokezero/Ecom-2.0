@@ -37,9 +37,9 @@ require_once __DIR__ . '/includes/header.php';
             <div class="result-icon is-success"><i class="fa-solid fa-check"></i></div>
             <p class="eyebrow">ACCOUNT ACTIVATED</p>
             <h1 id="resultTitle">ยืนยันอีเมลสำเร็จแล้ว</h1>
-            <p class="result-lead">บัญชี KitchenMart ของคุณพร้อมใช้งานแล้ว เลือกของดีเข้าครัวได้เลย</p>
+            <p class="result-lead">ยืนยันบัญชีสำเร็จ เริ่มเลือกซื้อสินค้าได้เลย</p>
             <?php if ($email): ?><div class="result-email"><i class="fa-regular fa-envelope"></i><?php echo e($email); ?></div><?php endif; ?>
-            <a class="btn btn-primary result-action" href="<?php echo BASE_URL; ?>login.php"><i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบเพื่อเริ่มช้อป</a>
+            <a class="btn btn-primary result-action" href="<?php echo BASE_URL; ?>login.php"><i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ</a>
             <div class="result-perks"><span><i class="fa-solid fa-bag-shopping"></i> สั่งซื้อสะดวก</span><span><i class="fa-solid fa-truck-fast"></i> ติดตามสถานะได้</span><span><i class="fa-solid fa-star"></i> รีวิวสินค้าได้</span></div>
         <?php else: ?>
             <div class="result-icon is-warning"><i class="fa-solid <?php echo $expired ? 'fa-clock-rotate-left' : 'fa-link-slash'; ?>"></i></div>

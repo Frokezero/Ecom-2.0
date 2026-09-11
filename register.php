@@ -9,7 +9,7 @@ require_once __DIR__.'/includes/header.php';
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/auth.css">
 <div class="auth-page"><section class="auth-shell">
     <aside class="auth-intro">
-        <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo"><span class="brand-mark"><i class="fa-solid fa-kitchen-set"></i></span><span><strong>KitchenMart</strong><small>ของดีสำหรับทุกครัว</small></span></a>
+        <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo"><span class="brand-mark"><i class="fa-solid fa-kitchen-set"></i></span><span><strong>KitchenMart</strong><small>อุปกรณ์ครัวสำหรับทุกบ้าน</small></span></a>
         <p class="eyebrow">JOIN KITCHENMART</p><h1>เริ่มต้นครัวที่ใช่ด้วยบัญชีของคุณ</h1><p>สมัครฟรี ใช้เวลาไม่นาน และพร้อมสั่งซื้อสินค้าได้ทันที</p>
         <ul class="auth-benefits"><li><i class="fa-solid fa-basket-shopping"></i> สั่งซื้อและชำระเงินสะดวก</li><li><i class="fa-solid fa-location-dot"></i> เก็บข้อมูลสำหรับจัดส่ง</li><li><i class="fa-solid fa-circle-check"></i> รีวิวได้เฉพาะผู้ซื้อจริง</li></ul>
         <div class="auth-security-note"><i class="fa-solid fa-shield-halved"></i> เราจัดเก็บรหัสผ่านแบบเข้ารหัสและไม่เปิดเผยข้อมูลส่วนตัว</div>

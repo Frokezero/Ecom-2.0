@@ -4,7 +4,7 @@ $sellerLinks = [
     ['seller-dashboard.php','fa-chart-line','ภาพรวม'],
     ['my-store.php','fa-store','หน้าร้านและสินค้า'],
     ['seller-inventory.php','fa-boxes-stacked','คลังสินค้า'],
-    ['seller-orders.php','fa-truck-fast','ออเดอร์และจัดส่ง'],
+    ['seller-orders.php','fa-truck-fast','คำสั่งซื้อและจัดส่ง'],
     ['seller-marketplace.php','fa-tags','การตลาด'],
     ['seller-wallet.php','fa-wallet','การเงิน'],
     ['messages.php','fa-comments','ข้อความ'],

@@ -12,7 +12,7 @@ require_once __DIR__ . '/includes/header.php';
         <aside class="verification-aside">
             <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo">
                 <span class="brand-mark"><i class="fa-solid fa-kitchen-set"></i></span>
-                <span><strong>KitchenMart</strong><small>ของดีสำหรับทุกครัว</small></span>
+                <span><strong>KitchenMart</strong><small>อุปกรณ์ครัวสำหรับทุกบ้าน</small></span>
             </a>
             <div class="mail-illustration" aria-hidden="true"><i class="fa-regular fa-envelope"></i><span class="mail-illustration-seal"><i class="fa-solid fa-check"></i></span></div>
             <p class="eyebrow">ONE LAST STEP</p>
@@ -25,7 +25,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="status-badge <?php echo $deliveryFailed ? 'is-warning' : ''; ?>"><i class="fa-solid <?php echo $deliveryFailed ? 'fa-triangle-exclamation' : 'fa-paper-plane'; ?>"></i> <?php echo $deliveryFailed ? 'ส่งอีเมลไม่สำเร็จ' : 'ส่งอีเมลแล้ว'; ?></div>
                 <h2 id="verificationTitle"><?php echo $deliveryFailed ? 'ส่งลิงก์ใหม่ให้คุณได้' : 'ตรวจสอบกล่องอีเมลของคุณ'; ?></h2>
                 <?php if ($deliveryFailed): ?>
-                    <p class="verification-lead">บัญชีถูกสร้างเรียบร้อยแล้ว แต่การส่งลิงก์ครั้งก่อนมีปัญหา กดส่งอีกครั้งเพื่อรับลิงก์ใหม่ได้ทันที</p>
+                    <p class="verification-lead">สร้างบัญชีแล้ว แต่ยังส่งลิงก์ยืนยันไม่ได้ กดส่งอีกครั้งเพื่อรับลิงก์ใหม่</p>
                 <?php else: ?>
                     <p class="verification-lead">เราได้ส่งลิงก์ยืนยันที่ใช้ได้ภายใน <strong>30 นาที</strong> ไปยังอีเมลนี้แล้ว</p>
                 <?php endif; ?>

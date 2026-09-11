@@ -62,14 +62,14 @@ if ($order['payment_method'] === 'promptpay' && $order['payment_status'] === 'pe
         <?php elseif ($order['payment_method'] === 'promptpay' && $order['payment_status'] === 'paid'): ?>
             <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: var(--radius-md); margin-bottom: 32px; color: #166534;">
                 <i class="fa-solid fa-circle-check fa-2x" style="margin-bottom: 8px;"></i>
-                <h3 style="margin-bottom: 4px;">ชำระเงินผ่าน PromptPay เรียบร้อยแล้ว!</h3>
+                <h3 style="margin-bottom: 4px;">ชำระเงินสำเร็จ</h3>
                 <p style="font-size: 0.9rem;">สถานะคำสั่งซื้อกำลังเตรียมจัดส่งสินค้า</p>
             </div>
         <?php else: ?>
             <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: var(--radius-md); margin-bottom: 32px; color: #166534;">
                 <i class="fa-solid fa-truck-ramp-box fa-2x" style="margin-bottom: 8px;"></i>
                 <h3 style="margin-bottom: 4px;">วิธีชำระเงิน: เก็บเงินปลายทาง (COD)</h3>
-                <p style="font-size: 0.9rem;">เจ้าหน้าที่จะทำการเก็บเงินจำนวน <strong><?php echo formatCurrency($order['total_amount']); ?></strong> เมื่อนำพัสดุไปส่งถึงบ้านคุณ</p>
+                <p style="font-size: 0.9rem;">ชำระ <strong><?php echo formatCurrency($order['total_amount']); ?></strong> เมื่อได้รับสินค้า</p>
             </div>
         <?php endif; ?>
 

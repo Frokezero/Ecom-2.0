@@ -26,7 +26,7 @@ if($action==='save'){
     if($length<5||$length>1000)jsonResponse('error','ความคิดเห็นต้องมีความยาว 5–1,000 ตัวอักษร',[],422);
     $stmt=$db->prepare('INSERT INTO product_reviews(product_id,user_id,rating,comment) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE rating=VALUES(rating),comment=VALUES(comment),updated_at=CURRENT_TIMESTAMP');
     $stmt->execute([(int)$productId,(int)$_SESSION['user_id'],(int)$rating,$comment]);
-    jsonResponse('success','บันทึกรีวิวเรียบร้อยแล้ว');
+    jsonResponse('success','บันทึกรีวิวแล้ว');
 }
 if($action==='delete'){
     $stmt=$db->prepare('DELETE FROM product_reviews WHERE product_id=? AND user_id=?');

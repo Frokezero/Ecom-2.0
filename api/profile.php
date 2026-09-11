@@ -55,7 +55,7 @@ if ($action === 'update_password') {
     $_SESSION['auth_version'] = (int)$user['auth_version'] + 1;
     recordSecurityEvent($db,'account.password_changed',20,$userId,[],'allowed');createNotification($db,$userId,'security','เปลี่ยนรหัสผ่านสำเร็จ','รหัสผ่านของบัญชีถูกเปลี่ยนแล้ว หากไม่ใช่คุณกรุณาติดต่อผู้ดูแลทันที',BASE_URL.'profile.php');
     session_regenerate_id(true);
-    jsonResponse('success', 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว');
+    jsonResponse('success', 'เปลี่ยนรหัสผ่านแล้ว');
 }
 
 if ($action === 'update_email') {
