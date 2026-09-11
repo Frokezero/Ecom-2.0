@@ -35,7 +35,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
     <title><?php echo isset($page_title) ? e($page_title).' - '.APP_NAME : APP_NAME; ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css?v=10">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/address-picker.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/address-picker.css?v=2">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notifications.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notification-hover.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/promotions.css">
