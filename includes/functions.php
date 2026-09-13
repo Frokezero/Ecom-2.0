@@ -48,9 +48,10 @@ function calculateOrderCharges(PDO $db, array $items, float $discount = 0.0, ?ar
     $shipping=max(0,$shipping-$shippingDiscount);
     $subtotal = array_sum(array_map(static fn($item)=>(float)$item['price']*(int)$item['quantity'], $items));
     $net = max(0.0, $subtotal - max(0.0, $discount)) + $shipping;
-    $rate = min(100.0, max(0.0, (float)appConfig('VAT_RATE', '7')));
-    $tax = round($net * $rate / 100, 2);
-    return ['subtotal'=>round($subtotal,2),'discount'=>round($discount,2),'shipping'=>round($shipping,2),'shipping_discount'=>round($shippingDiscount,2),'platform_shipping_subsidy'=>round($platformSubsidy,2),'seller_shipping_subsidy'=>round($sellerSubsidy,2),'tax'=>$tax,'vat_rate'=>$rate,'total'=>round($net+$tax,2),'shipping_lines'=>$lines];
+    // ราคาที่ลูกค้าเห็นเป็นราคาสินค้าสุทธิ ระบบนี้ไม่บวก VAT แยกต่างหาก
+    $rate = 0.0;
+    $tax = 0.0;
+    return ['subtotal'=>round($subtotal,2),'discount'=>round($discount,2),'shipping'=>round($shipping,2),'shipping_discount'=>round($shippingDiscount,2),'platform_shipping_subsidy'=>round($platformSubsidy,2),'seller_shipping_subsidy'=>round($sellerSubsidy,2),'tax'=>$tax,'vat_rate'=>$rate,'total'=>round($net,2),'shipping_lines'=>$lines];
 }
 function productCardPriceHtml(array $product): string {
     $current=productEffectivePrice($product);$regular=(float)($product['compare_at_price']?:$product['price']);

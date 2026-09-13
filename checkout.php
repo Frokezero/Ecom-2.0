@@ -30,7 +30,7 @@ if ($profileDb) {
     $selectedAddressId=(int)($_GET['address_id']??0);$selectedAddress=null;foreach($savedAddresses as $saved){if(($selectedAddressId>0&&(int)$saved['id']===$selectedAddressId)||($selectedAddressId===0&&!$selectedAddress&&$saved['is_default']))$selectedAddress=$saved;}
     if($selectedAddress){$checkoutProfile['phone']=$selectedAddress['phone'];$checkoutProfile['address']=$selectedAddress['address_line'];$user['full_name']=$selectedAddress['recipient_name'];}
 }
-$checkoutCharges = $profileDb ? calculateOrderCharges($profileDb, $cart) : ['shipping'=>0,'tax'=>round($grand_total*.07,2),'total'=>round($grand_total*1.07,2),'vat_rate'=>7];
+$checkoutCharges = $profileDb ? calculateOrderCharges($profileDb, $cart) : ['shipping'=>0,'tax'=>0,'total'=>round($grand_total,2),'vat_rate'=>0];
 ?>
 
 <div class="container" style="margin-top: 36px; margin-bottom: 60px;">
@@ -126,7 +126,6 @@ $checkoutCharges = $profileDb ? calculateOrderCharges($profileDb, $cart) : ['shi
                         <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;"><span>ยอดสินค้า</span><span><?php echo formatCurrency($grand_total); ?></span></div>
                         <div id="couponDiscountRow" style="display:none;justify-content:space-between;color:#b85b2c;font-size:12px;margin-top:7px;"><span>ส่วนลดคูปอง</span><span id="couponDiscount">-฿0.00</span></div>
                         <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:7px;"><span>ค่าจัดส่ง</span><span id="checkoutShipping"><?php echo $checkoutCharges['shipping']>0?formatCurrency($checkoutCharges['shipping']):'ฟรี'; ?></span></div>
-                        <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:7px;"><span>VAT <?php echo (float)$checkoutCharges['vat_rate']; ?>%</span><span id="checkoutTax"><?php echo formatCurrency($checkoutCharges['tax']); ?></span></div>
                         <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.3rem; color: var(--secondary);">
                             <span>ยอดชำระทั้งหมด</span>
                             <span id="checkoutTotal" style="color: var(--primary);"><?php echo formatCurrency($checkoutCharges['total']); ?></span>

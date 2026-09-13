@@ -10,7 +10,7 @@ $grand_total = 0;
 foreach ($cart as $item) {
     $grand_total += $item['price'] * $item['quantity'];
 }
-$cartCharges = $promoDb ? calculateOrderCharges($promoDb, $cart) : ['shipping'=>0,'tax'=>round($grand_total*.07,2),'total'=>round($grand_total*1.07,2),'vat_rate'=>7];
+$cartCharges = $promoDb ? calculateOrderCharges($promoDb, $cart) : ['shipping'=>0,'tax'=>0,'total'=>round($grand_total,2),'vat_rate'=>0];
 ?>
 
 <div class="container cart-page" style="margin-top: 36px; margin-bottom: 60px;">
@@ -85,8 +85,6 @@ $cartCharges = $promoDb ? calculateOrderCharges($promoDb, $cart) : ['shipping'=>
                     <span id="cartShipping" style="font-weight:600;color:var(--accent);"><?php echo $cartCharges['shipping']>0?formatCurrency($cartCharges['shipping']):'ฟรีค่าจัดส่ง'; ?></span>
                 </div>
                 <div id="cartCouponDiscountRow" style="display:none;justify-content:space-between;margin-bottom:12px;color:#b85b2c;"><span>ส่วนลดคูปอง</span><span id="cartCouponDiscount">-฿0.00</span></div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:16px;color:var(--text-muted);"><span>ภาษีมูลค่าเพิ่ม <?php echo (float)$cartCharges['vat_rate']; ?>%</span><span id="cartTax" style="font-weight:600;color:var(--text-main);"><?php echo formatCurrency($cartCharges['tax']); ?></span></div>
-
                 <div style="border-top: 2px dashed var(--border-color); padding-top: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-weight: 700; font-size: 1.1rem; color: var(--secondary);">ยอดรวมสุทธิ</span>
                     <span id="cartTotal" style="font-weight: 700; font-size: 1.6rem; color: var(--primary);"><?php echo formatCurrency($cartCharges['total']); ?></span>

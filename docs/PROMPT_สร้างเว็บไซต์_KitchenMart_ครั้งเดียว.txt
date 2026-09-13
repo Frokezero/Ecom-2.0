@@ -1,0 +1,178 @@
+คุณคือ Senior Full-stack Developer, UX/UI Designer, Database Architect, Security Engineer และ QA Engineer ให้สร้างเว็บไซต์ E-commerce Marketplace ภาษาไทยชื่อ “KitchenMart” สำหรับจำหน่ายอุปกรณ์เครื่องครัว โดยส่งมอบซอร์สโค้ดที่ทำงานได้จริงครบทั้งระบบในครั้งเดียว ห้ามส่งเพียงตัวอย่าง ห้ามใช้ pseudo-code ห้ามละส่วนที่จำเป็น ห้ามถามคำถามกลับ หากรายละเอียดใดไม่ได้กำหนดให้เลือกแนวทางที่ปลอดภัย ใช้งานง่าย และเหมาะกับระบบจริง พร้อมบันทึกสมมติฐานไว้ใน README
+
+เป้าหมาย
+สร้าง Marketplace ที่มีผู้ใช้งาน 3 บทบาท ได้แก่ ลูกค้า ผู้ขาย และผู้ดูแลระบบ รองรับหน้าร้าน ตะกร้า การสั่งซื้อ การชำระเงินจำลอง คูปอง ค่าจัดส่ง ร้านค้าหลายร้าน การคืนสินค้า การแจ้งเตือน ศูนย์ช่วยเหลือ ระบบหลังบ้าน และระบบตรวจจับพฤติกรรมผิดปกติ เว็บไซต์ต้องเป็นภาษาไทย อ่านเป็นธรรมชาติ ไม่ใช้ข้อความที่ดูเหมือน AI และ Responsive ตั้งแต่มือถือ 320px แท็บเล็ต จนถึง Desktop
+
+เทคโนโลยีบังคับ
+- PHP 8.0 ขึ้นไป แบบไม่ใช้ Framework และไม่ใช้ Composer
+- MySQL หรือ MariaDB ผ่าน PDO และ Prepared Statements เท่านั้น
+- HTML5, CSS3 และ Vanilla JavaScript ไม่ใช้ npm หรือระบบ build
+- รองรับ Apache/XAMPP และ PHP Development Server
+- ใช้ UTF-8/utf8mb4 ทุกส่วน เขตเวลา Asia/Bangkok และสกุลเงินบาท
+- โครงสร้างต้องแยก public pages, admin/, api/, assets/, config/, database/, includes/, tools/, tests/ และ docs/
+- การตั้งค่าลับต้องอยู่ใน environment variables หรือ config/local.php ที่ถูก .gitignore ห้ามฝังรหัสผ่าน Token หรือข้อมูลจริงใน Git
+
+แนวทางหน้าตา
+- ภาพลักษณ์ร้านเครื่องครัวร่วมสมัย สีหลักเขียวเข้ม สีพื้นครีมหรือขาว สีส้มใช้เป็นสีเน้น และสีแดงใช้กับคำเตือน/การลบ
+- ใช้ฟอนต์ภาษาไทยที่อ่านง่าย เช่น LINE Seed Sans TH หรือฟอนต์ระบบสำรอง
+- Header มีโลโก้ ช่องค้นหา เมนูหมวดสินค้า บัญชี การแจ้งเตือน และตะกร้า
+- Cart dropdown ต้องแสดงรูป ชื่อ ราคา จำนวน ยอดรวม และมีปุ่มลดจำนวน เพิ่มจำนวน และลบสินค้าได้ทันที
+- ทุกปุ่มต้องมี hover, focus, disabled และ loading state พร้อมข้อความแจ้งผลที่มนุษย์อ่านเข้าใจ
+- Empty state ใช้คำสั้นและเป็นธรรมชาติ เช่น “ยังไม่มีสินค้าในตะกร้า” และ “เลือกซื้อสินค้า”
+- ตารางหลังบ้านต้องเปลี่ยนเป็น card/list ที่อ่านได้บนมือถือ ห้ามเกิด horizontal overflow โดยไม่จำเป็น
+- Modal เลือกคูปองต้องแยกหมวด “ส่วนลดค่าส่ง” และ “ส่วนลดสินค้า” อย่างชัดเจน พร้อมแสดงคูปองที่เลือกอยู่ เงื่อนไข วันหมดอายุ เหตุผลที่ใช้ไม่ได้ และปุ่มยกเลิกการใช้คูปอง
+- ใช้ semantic HTML, label ที่ถูกต้อง, keyboard navigation, visible focus และ contrast ตาม WCAG 2.1 AA
+
+ระบบสมาชิกและความปลอดภัยบัญชี
+- สมัครสมาชิกด้วย username, email, ชื่อ, โทรศัพท์ และรหัสผ่าน
+- ยืนยันอีเมลผ่าน token แบบหมดอายุภายใน 30 นาที จึงเข้าสู่ระบบได้
+- Login/Logout, Forgot Password, Reset Password, เปลี่ยนอีเมล และเปลี่ยนรหัสผ่าน
+- รหัสผ่านเก็บด้วย password_hash/password_verify ห้ามเก็บ plain text
+- รองรับ 2FA ทางอีเมล โดยแอดมินต้องเปิด 2FA เสมอ
+- Session cookie ต้อง HttpOnly, SameSite=Lax และ Secure เมื่อเป็น HTTPS; regenerate session ID หลัง login
+- เมื่อเปลี่ยนรหัสผ่านหรือระงับบัญชี ต้องยกเลิก session เดิมด้วย auth_version
+- Rate limit การเข้าสู่ระบบ บันทึก login attempts และล็อกชั่วคราวเมื่อผิดซ้ำ
+- Role guard แยก customer, seller, admin ทั้งระดับหน้าและ API ห้ามเชื่อ role จาก client
+- ทุก state-changing request ใช้ CSRF token และตรวจ Content-Type/HTTP method ให้ถูกต้อง
+- Escape output เพื่อป้องกัน XSS, ตรวจไฟล์อัปโหลดด้วย MIME จริง, จำกัดขนาดและนามสกุล, สุ่มชื่อไฟล์ และห้าม execute ไฟล์ใน uploads
+- เพิ่ม Security Headers ได้แก่ CSP, X-Content-Type-Options, Referrer-Policy, Permissions-Policy และ frame-ancestors
+
+ระบบลูกค้า
+- หน้าแรกมี banner โปรโมชั่น หมวดสินค้า สินค้าแนะนำ สินค้าขายดี ร้านค้าแนะนำ และสินค้า Mall
+- หน้ารวมสินค้ารองรับค้นหา หมวด ราคา ร้านค้า Mall rating เรียงราคา/ล่าสุด/ยอดขาย และ pagination
+- หน้ารายละเอียดสินค้ามีหลายรูป variant/SKU ราคา stock จำนวนที่เหลือ ข้อมูลร้าน คะแนน รีวิว ยอดขาย ปุ่มเพิ่มตะกร้า ซื้อทันที รายการโปรด และรายงานสินค้า
+- Wishlist, ติดตามร้าน, สนทนากับร้าน และการแจ้งเตือน
+- สมุดที่อยู่หลายรายการ เพิ่ม/แก้ไข/ลบ/ตั้งค่าเริ่มต้น และค้นหาที่อยู่ด้วยรหัสไปรษณีย์
+- โปรไฟล์และวิธีชำระเงินที่ต้องการ
+- ประวัติคำสั่งซื้อ รายละเอียดคำสั่งซื้อ timeline สถานะ ใบเสร็จ และปุ่มขอคืนสินค้าเมื่อเข้าเงื่อนไข
+- ระบบรีวิวให้รีวิวได้เฉพาะสินค้าที่ซื้อจริงและคำสั่งซื้อสำเร็จ ป้องกันรีวิวซ้ำ
+- ศูนย์ช่วยเหลือแบบ ticket และข้อความโต้ตอบ
+- หน้าความเป็นส่วนตัวและบันทึก consent
+
+ระบบตะกร้า
+- ตะกร้าผูกกับ session/ผู้ใช้และจัดกลุ่มสินค้าตามร้าน
+- เพิ่ม ลด เพิ่มจำนวน และลบได้ทั้งใน cart dropdown และหน้าตะกร้า โดยอัปเดตยอดผ่าน API โดยไม่ reload
+- จำนวนต้องไม่ต่ำกว่า 1 และไม่เกิน stock; เมื่อเหลือ 1 แล้วกดลดให้ถามยืนยันก่อนลบหรือคงไว้ที่ 1
+- ตรวจ stock และราคาจากฐานข้อมูลซ้ำทุกครั้ง ห้ามเชื่อราคา subtotal discount tax หรือ shipping จาก client
+- แสดงราคาต่อชิ้น จำนวน ยอดต่อรายการ ยอดรวมสินค้า ส่วนลด ค่าส่ง และยอดสุทธิอย่างชัดเจน
+
+ภาษีและค่าจัดส่ง
+- ไม่บวก VAT 7% เพิ่มจากราคาสินค้าที่แสดงแก่ลูกค้า
+- แสดง “ยอดสินค้า”, “ค่าจัดส่ง”, “ส่วนลดสินค้า”, “ส่วนลดค่าจัดส่ง” และ “ยอดสุทธิ” แยกบรรทัด
+- แต่ละร้านกำหนดค่าจัดส่งพื้นฐานและยอดซื้อขั้นต่ำเพื่อส่งฟรีได้
+- คำนวณค่าจัดส่งแยกตามร้าน แล้วรวมเป็นค่าจัดส่งของคำสั่งซื้อ
+- ถ้ายอดสินค้าของร้านถึงเงื่อนไขส่งฟรีของร้าน ให้ค่าจัดส่งร้านนั้นเป็น 0
+- ถ้าไม่ถึงเงื่อนไข ให้คิดค่าจัดส่งตามที่ร้านกำหนด
+- บันทึก snapshot ของราคาสินค้า ส่วนลด ค่าส่ง และเงื่อนไขที่ใช้ลงใน order เพื่อให้ข้อมูลเดิมไม่เปลี่ยนเมื่อร้านแก้การตั้งค่า
+- ใช้ DECIMAL และปัดเงิน 2 ตำแหน่งแบบสม่ำเสมอ ห้ามใช้ float สำหรับการตัดสินใจทางการเงิน
+
+ระบบคูปองและโปรโมชั่น
+- คูปองมีประเภท fixed amount, percentage และ free shipping พร้อม code, ชื่อ, รายละเอียด, min_spend, max_discount, วันเริ่ม/หมดอายุ, usage_limit, per_user_limit, สถานะ, ขอบเขต Mall หรือร้านค้า
+- ผู้ใช้หนึ่งบัญชีใช้คูปองได้เรื่อย ๆ หาก per_user_limit = 0; ถ้ามีค่ามากกว่า 0 ให้บังคับตามจำนวนที่กำหนด
+- ต่อหนึ่งคำสั่งซื้อเลือกคูปองพร้อมกันได้สูงสุด 2 ใบ โดยเป็นคูปองส่วนลดสินค้า/เงินสดได้ไม่เกิน 1 ใบ และคูปองส่วนลดค่าส่งได้ไม่เกิน 1 ใบ
+- ห้ามเลือกคูปองส่วนลดเป็นเงินหรือเปอร์เซ็นต์พร้อมกัน 2 ใบ
+- หน้าสรุปคำสั่งซื้อต้องมีช่องเลือก “ส่วนลดสินค้า” และ “ส่วนลดค่าส่ง” แยกกัน ไม่ใช้ dropdown รวมช่องเดียว
+- แสดงชื่อและรหัสคูปองที่กำลังใช้อย่างเด่นชัด รวมมูลค่าที่ลดจริง และกดเอาออกได้
+- คูปองส่งฟรีของ Mall ใช้กับสินค้าทุกประเภทและทุกร้านเมื่อยอดตามเงื่อนไข แต่ลดได้ไม่เกินค่าจัดส่งจริง
+- ค่าใช้จ่ายจากคูปองส่งฟรีของ Mall แบ่งความรับผิดชอบระหว่าง Mall 60% และผู้ขาย 40% ของส่วนลดค่าส่งที่เกิดกับร้านนั้น
+- บันทึก order_coupons และ order_shipping_allocations แยกรายร้าน โดยเก็บ original_shipping, shipping_discount, mall_subsidy 60%, seller_subsidy 40% และ final_shipping
+- ต้องสร้างคูปองตัวอย่าง 2 ใบ: ส่งฟรีเมื่อซื้อครบ 500 บาท และลดสินค้า 50 บาทเมื่อซื้อครบ 200 บาท
+- ตรวจคูปองใน transaction ตอน checkout เพื่อป้องกันใช้เกินสิทธิ์หรือ race condition
+
+Checkout และคำสั่งซื้อ
+- Checkout ต้องเลือกที่อยู่ คูปองทั้งสองประเภท และวิธีชำระเงิน
+- รองรับ PromptPay QR แบบจำลองและเก็บเงินปลายทาง (COD)
+- สร้าง QR หลัง backend สร้าง order แล้วเท่านั้น และยอด QR ต้องอ่านจาก orders.total_amount
+- การเปิดหรือดาวน์โหลด QR ไม่ถือว่าชำระเงินแล้ว ต้องเปลี่ยนสถานะผ่านการยืนยันหรือ webhook ที่ตรวจลายเซ็นและรองรับ idempotency
+- Checkout ทั้งหมดต้องทำใน database transaction พร้อม lock stock/variant ตรวจราคา หัก stock สร้าง order/items/coupons/shipping allocations/payment record และ rollback เมื่อผิดพลาด
+- Order number ต้องไม่ซ้ำและคาดเดายากพอสมควร
+- สถานะคำสั่งซื้อ: pending, confirmed, processing, shipped, delivered, completed, cancelled
+- สถานะชำระเงิน: pending, paid, cod_pending, failed, expired, refunded, partially_refunded
+- เก็บ order status history และ audit log ทุกการเปลี่ยนสถานะสำคัญ
+
+ระบบคืนสินค้าและคืนเงิน
+- ลูกค้าเลือกสินค้าและจำนวนที่ต้องการคืน ระบุเหตุผล อัปโหลดหลักฐาน และส่งคำขอภายในช่วงเวลาที่กำหนด
+- ผู้ดูแลหรือผู้ขายตามสิทธิ์อนุมัติ/ปฏิเสธ พร้อมเหตุผล
+- บันทึกบริษัทขนส่ง เลขติดตาม และเวลาที่ส่งคืน
+- รองรับคืนเงินเต็มจำนวนหรือบางส่วน ป้องกันยอดคืนเกินยอดที่ชำระ และบันทึก refund transaction กับ seller ledger
+
+ระบบผู้ขาย
+- สมัครเป็นผู้ขายและรออนุมัติจากแอดมิน
+- ตั้งค่าหน้าร้าน: ชื่อร้าน slug โลโก้ banner คำอธิบาย ที่อยู่ ช่องทางติดต่อ สีธีม สถานะพักร้าน เวลาตอบกลับ ค่าส่งพื้นฐาน และยอดขั้นต่ำส่งฟรี
+- ตั้งค่ารับเงิน PromptPay, บัญชีธนาคาร หรือทั้งสองแบบ
+- Dashboard แสดงยอดขาย ออเดอร์ สินค้า stock ต่ำ ยอดพร้อมถอน และกราฟสรุป
+- CRUD สินค้า รูปหลัก รูปหลายรูป variant/SKU ราคา stock และ bundle
+- สินค้าผู้ขายต้องผ่าน approval status: pending, approved, rejected พร้อม admin note
+- จัดการออเดอร์เฉพาะรายการของร้าน อัปเดต fulfillment บริษัทขนส่งและ tracking number
+- Inventory movement ledger ทุกครั้งที่ stock เปลี่ยน
+- กระเป๋าผู้ขาย seller ledger, ค่าธรรมเนียม, เงินอุดหนุนค่าส่ง, refund และคำขอถอนเงิน
+- ระบบ strike และการพักร้าน โดยแอดมินตรวจสอบย้อนหลังได้
+
+ระบบผู้ดูแล
+- Dashboard สรุปยอดขาย ผู้ใช้ ร้านค้า สินค้า ออเดอร์ คืนสินค้า ticket เหตุการณ์ความปลอดภัย และอีเมลค้าง
+- CRUD/ตรวจสอบผู้ใช้ เปลี่ยนสถานะ ระงับบัญชี และห้ามแสดง password hash
+- อนุมัติผู้ขายและสินค้า จัดการร้าน สินค้า หมวด หมวดหมู่ โปรโมชั่น banner และคูปอง Mall
+- จัดการออเดอร์ รายละเอียดผู้ขายในแต่ละรายการ การชำระเงิน การจัดส่ง การคืนสินค้า และคืนเงิน
+- จัดการคำขอถอนเงินและตรวจ seller ledger
+- ศูนย์แจ้งเตือนและ Email Delivery Logs: queued, sending, sent, failed พร้อม retry ที่ปลอดภัย ลบรายการค้างตามสิทธิ์ และป้องกัน worker ส่งซ้ำ
+- ศูนย์ความปลอดภัยดู event, rule, IP/user block, ปลดบล็อก และ audit trail
+- ทุกหน้าแอดมินต้องมี pagination, filter, search, CSRF และตรวจ role ฝั่ง server
+
+ระบบตรวจจับพฤติกรรมผิดปกติ
+- บันทึก user activity log สำหรับ login สำเร็จ/ล้มเหลว request สำคัญ การเข้าหน้า admin การสร้าง order การเปลี่ยนโปรไฟล์ และเหตุการณ์เสี่ยง
+- Feature ตามช่วงเวลา ได้แก่ login ต่อ 1 นาที, failed login ต่อ 10 นาที, request ต่อ 1 นาที และ order ต่อ 1 ชั่วโมง
+- สร้าง baseline จากพฤติกรรมปกติและ threshold ที่อธิบายเหตุผลได้
+- จำแนก normal/suspicious พร้อม risk score, rule ที่เข้าเงื่อนไข, evidence และเวลา detection
+- Response ได้แก่แจ้งเตือน admin/ผู้ใช้, rate limit และ temporary IP/user block ตามระดับความเสี่ยง
+- มีเครื่องมือสร้างข้อมูลจำลอง 100 ผู้ใช้ x 30 วัน = 3,000 กรณี แบ่ง Normal 2,400 และ Suspicious 600
+- มีคำสั่งทดลองที่คำนวณ TP, TN, FP, FN, Accuracy, Precision, Recall, F1-score, False Positive Rate, detection time, response time, throughput, CPU และ peak memory โดยห้ามใช้ actual label ช่วยการทำนาย
+- แยกข้อมูล runtime กับ simulation และ rollback/cleanup ข้อมูลทดลองได้
+
+ฐานข้อมูลขั้นต่ำ
+สร้าง database/schema.sql และ migrations ที่รันซ้ำอย่างปลอดภัย ครอบคลุมอย่างน้อย users, categories, products, product_images, product_variants, seller_profiles, store_followers, store_conversations, store_messages, product_bundles, product_bundle_items, carts หรือกลไกตะกร้า, orders, order_items, order_fulfillments, order_status_history, payment_transactions, coupons, user_coupons, coupon_usages, order_coupons, order_shipping_allocations, product_reviews, wishlists, notifications, promotional_banners, return_requests, return_request_items, refunds, seller_ledger, seller_payout_requests, inventory_movements, seller_strikes, product_reports, support_tickets, support_messages, privacy_consents, email_delivery_logs, webhook_events, login_attempts, password_reset_tokens, auth_challenges, audit_logs, security_events, security_blocks, security_rules, request_rate_counters, user_login_locations, user_activity_logs, behavior_baselines, behavior_detections, behavior_experiments และ schema_migrations
+
+API และมาตรฐานการตอบกลับ
+- API ส่ง JSON รูปแบบสม่ำเสมอ เช่น {success, message, data, errors, request_id}
+- ใช้ HTTP status code ถูกต้อง และไม่ส่ง stack trace/SQL error ให้ client
+- Endpoints ครอบคลุม auth, profile, addresses, products, marketplace, cart, wishlist, checkout, orders, reviews, returns, notifications, seller และ admin
+- ใช้ idempotency key กับ checkout, payment webhook และ refund ที่เสี่ยงถูกเรียกซ้ำ
+- ทุก query ต้องระบุ column ที่ต้องใช้ หลีกเลี่ยง SELECT * ในส่วนสำคัญ และมี index สำหรับ foreign key/filter ที่ใช้บ่อย
+
+อีเมลและการแจ้งเตือน
+- ใช้ email queue แยกจาก HTTP request
+- รองรับ SMTP ผ่านค่าตั้งต้น SMTP_HOST, SMTP_PORT, SMTP_ENCRYPTION, SMTP_USER, SMTP_PASS, SMTP_FROM_EMAIL และ SMTP_FROM_NAME
+- Template ภาษาไทยสำหรับยืนยันอีเมล รีเซ็ตรหัสผ่าน 2FA สั่งซื้อสำเร็จ เปลี่ยนสถานะ จัดส่ง คืนสินค้า คืนเงิน เหตุการณ์เสี่ยง และผลคำขอผู้ขาย
+- Worker ต้อง claim งานแบบ atomic, retry แบบจำกัด, เก็บ last_error อย่างปลอดภัย และป้องกัน stuck status
+
+ไฟล์และเครื่องมือที่ต้องส่งมอบ
+- ซอร์สโค้ดทุกหน้าและทุก API ที่กล่าวมา
+- database/schema.sql, migrations และ seed ข้อมูลสินค้า/หมวด/คูปองตัวอย่าง
+- config/local.php.example และ .env.production.example ที่ไม่มี secret จริง
+- tools/migrate.php, create-admin.php, process-email-queue.php, health-check.php, production-readiness.php, cleanup-orphan-uploads.php และเครื่องมือทดลองพฤติกรรม
+- Dockerfile และ docker-compose.yml เป็นทางเลือกเพิ่มเติม แต่ XAMPP ต้องรันได้โดยไม่ใช้ Docker
+- README.md ภาษาไทย อธิบายติดตั้ง XAMPP, import schema, migrate, ตั้ง SMTP/PromptPay, สร้าง admin, เปิด server, ทดสอบ และนำขึ้น production
+- docs/ อธิบาย ER diagram, business rules ของราคา/ค่าส่ง/คูปอง และ behavior analytics
+- .gitignore ต้องกัน local config, secrets, upload ชั่วคราว, logs และ runtime sessions
+
+การทดสอบและเกณฑ์ยอมรับ
+- เขียน automated tests เท่าที่ทำได้โดยไม่เพิ่ม Framework และมี smoke test ผ่าน HTTP
+- ทดสอบสมัคร/ยืนยันอีเมล/login/2FA/reset password/role guard/CSRF/rate limit
+- ทดสอบตะกร้าเพิ่ม ลด ลบ stock หมด และการกดพร้อมกัน
+- ทดสอบยอดสินค้า ส่วนลด และค่าจัดส่งด้วยค่าที่ตรวจสอบด้วยมือได้
+- ทดสอบค่าส่งแยกร้าน เงื่อนไขส่งฟรีร้านค้า และ snapshot
+- ทดสอบใช้คูปองเงินสดหนึ่งใบร่วมกับส่งฟรีหนึ่งใบ ใช้เงินสดสองใบไม่ได้ และส่วนลดไม่ติดลบ
+- ทดสอบคูปอง Mall ส่งฟรีพร้อมการแบ่ง Mall 60%/ผู้ขาย 40% รวมแล้วเท่ากับส่วนลดค่าส่งจริง
+- ทดสอบ checkout transaction, stock race, payment idempotency, order history, return และ partial refund
+- ทดสอบสิทธิ์ลูกค้า/ผู้ขาย/แอดมิน รวมถึง IDOR โดยผู้ใช้ต้องอ่านหรือแก้ข้อมูลของคนอื่นไม่ได้
+- ทดสอบ Responsive ที่ 320, 375, 768, 1024 และ 1440px โดยไม่มีข้อความหรือปุ่มล้น
+- healthz ต้องตอบสถานะเว็บและฐานข้อมูล และ production-readiness ต้องเตือน demo data, admin password อ่อน, admin ไม่มี 2FA, email queue ค้าง และ config ที่ไม่ปลอดภัย
+
+รูปแบบการส่งคำตอบ
+1. เริ่มจากแสดงโครงสร้างไฟล์ทั้งหมด
+2. จากนั้นสร้างไฟล์จริงครบทุกไฟล์ใน workspace ไม่ใช่เพียงอธิบาย
+3. หากระบบตอบกลับจำกัดความยาว ให้ดำเนินการสร้างไฟล์ต่อเนื่องจนเสร็จโดยอัตโนมัติ ห้ามหยุดกลางทางหรือให้ผู้ใช้พิมพ์ “ต่อ”
+4. รัน syntax check, migrations และ tests แล้วแก้ข้อผิดพลาดจนผ่าน
+5. สรุปไฟล์ที่สร้าง วิธีเปิดใช้งาน URL บัญชีแอดมินที่ผู้ใช้ต้องสร้างเอง และผลการทดสอบ
+6. ห้ามสร้างบัญชีที่มีรหัสผ่านค่าเริ่มต้นร่วมกัน ห้ามใส่ secret จริง และห้ามรายงานว่างานเสร็จหากยังมีหน้า/API ที่เป็น placeholder
+
+จงเริ่มสร้างเว็บไซต์ KitchenMart ฉบับสมบูรณ์ตอนนี้ และทำงานต่อเนื่องจนทุกเกณฑ์ข้างต้นผ่าน

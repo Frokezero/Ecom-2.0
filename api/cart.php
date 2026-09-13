@@ -16,7 +16,7 @@ function cartSummary(): array {
         $item['formatted_subtotal']=formatCurrency($subtotal); $items[]=$item;
         $count+=(int)$item['quantity']; $total+=$subtotal;
     }
-    $charges=$db?calculateOrderCharges($db,$items):['shipping'=>0,'tax'=>0,'total'=>$total,'vat_rate'=>7,'shipping_lines'=>[]];
+    $charges=$db?calculateOrderCharges($db,$items):['shipping'=>0,'tax'=>0,'total'=>$total,'vat_rate'=>0,'shipping_lines'=>[]];
     return ['items'=>$items,'total_items'=>$count,'subtotal'=>$total,'shipping_amount'=>$charges['shipping'],'tax_amount'=>$charges['tax'],'vat_rate'=>$charges['vat_rate'],'shipping_lines'=>$charges['shipping_lines'],'grand_total'=>$charges['total'],'formatted_grand_total'=>formatCurrency($charges['total'])];
 }
 

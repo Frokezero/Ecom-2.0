@@ -6,7 +6,9 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from pathlib import Path
 
-OUT=Path(r'D:\โฟลเดอร์ใหม่ (6)\แบบเสนอเค้าโครงวิชาสัมมนา_KitchenMart.docx')
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+OUT = PROJECT_ROOT / 'docs' / 'แบบเสนอเค้าโครงวิชาสัมมนา_KitchenMart_อ้างอิงงานวิจัย.docx'
+OUT.parent.mkdir(parents=True, exist_ok=True)
 d=Document(); sec=d.sections[0];sec.page_height=Cm(29.7);sec.page_width=Cm(21);sec.top_margin=Cm(2.54);sec.bottom_margin=Cm(2.54);sec.left_margin=Cm(3.5);sec.right_margin=Cm(2.5)
 style=d.styles['Normal'];style.font.name='TH Sarabun New';style.font.size=Pt(16);style._element.rPr.rFonts.set(qn('w:eastAsia'),'TH Sarabun New')
 style.paragraph_format.line_spacing=1.0;style.paragraph_format.space_after=Pt(0)
@@ -122,14 +124,25 @@ item('เป็นแนวทางต่อยอดสู่ Adaptive Thresho
 h('9. งานวิจัยที่เกี่ยวข้อง')
 table([['ชื่องานวิจัย/แหล่งอ้างอิง','รายละเอียดผลสังเขป','ความสอดคล้องกับโครงงาน'],['Effective fraud detection in e-commerce: Leveraging machine learning and big data analytics (2024)','เสนอการใช้ข้อมูลธุรกรรม การวิเคราะห์รูปแบบและ Anomaly Detection เพื่อลดความเสี่ยงการฉ้อโกง E-commerce','สนับสนุนการใช้ข้อมูลกิจกรรมและธุรกรรมเพื่อจำแนกพฤติกรรมผิดปกติ'],['Real-time anomaly detection using deep learning in e-commerce platform (2025)','ประเมินโมเดลหลายชนิดด้วย Accuracy, Precision, Recall และ F1-score และเน้น Low-latency deployment','สอดคล้องกับการตรวจจับแบบใกล้เวลาจริงและตัวชี้วัดที่ใช้'],['OWASP Automated Threats to Web Applications','จำแนก Credential Cracking, Credential Stuffing, Denial of Inventory, Scraping และ Vulnerability Scanning พร้อมแนวทางควบคุม','ใช้เป็นฐานกำหนดสถานการณ์ Suspicious, Rate Limit, Alert และ Temporary Block']])
 
+h('9.1 งานวิจัยภาษาไทยจากชุดเอกสารอ้างอิงที่ผู้จัดทำรวบรวม')
+table([
+    ['งานวิจัย', 'สาระสำคัญ', 'การนำมาใช้กับโครงงาน KitchenMart'],
+    ['มีประสาท และศรีราชันทร์ (2566) การพัฒนาเว็บไซต์สำหรับการจัดการข้อมูลพฤติกรรมของนักศึกษาระหว่างการศึกษา', 'พัฒนาเว็บไซต์สำหรับบันทึกและจัดการข้อมูลพฤติกรรม โดยประเมินคุณภาพระบบและความพึงพอใจของผู้ใช้', 'ใช้เป็นแนวทางออกแบบการจัดเก็บข้อมูลพฤติกรรม การแบ่งสิทธิ์ผู้ใช้ และการประเมินระบบ'],
+    ['แย้มทุ่ง และพร้าโมต (2568) การออกแบบและพัฒนาระบบสารสนเทศกิจกรรมนักศึกษาผ่านเว็บแอปพลิเคชัน', 'พัฒนาระบบเป็น 5 ขั้นตอน ตั้งแต่ศึกษาปัญหา วิเคราะห์ ออกแบบ พัฒนา และทดสอบระบบ', 'ใช้สนับสนุนกระบวนการพัฒนาเว็บแอปพลิเคชันและการประเมินประสิทธิภาพของระบบ'],
+    ['อุ่นแก้ว และคณะ (2569) การพัฒนาเว็บแอปพลิเคชันเพื่อสนับสนุนการบริหารจัดการกิจกรรมนักศึกษา', 'พัฒนาเว็บแอปพลิเคชันที่จัดการข้อมูลหลายบทบาทและประเมินผลจากผู้เชี่ยวชาญกับผู้ใช้งาน', 'ใช้เป็นแนวทางออกแบบระบบหลายบทบาท ได้แก่ ลูกค้า ผู้ขาย และผู้ดูแลระบบ รวมถึงการทดสอบการใช้งาน']
+])
+
 page();h('10. บรรณานุกรม (รูปแบบ APA 7)')
 p('Al-Hashedi, K. G., & Magalingam, P. (2024). Effective fraud detection in e-commerce: Leveraging machine learning and big data analytics. Measurement: Sensors, 33, 101138. https://doi.org/10.1016/j.measen.2024.101138',indent=0)
 p('Guo, Y., Li, Z., Zhang, H., & Liu, Y. (2023). Supervised and hybrid learning-based zero-day attack detection. Computer Communications, 198, 175–185.',indent=0)
-p('National Institute of Standards and Technology. (2001). Intrusion detection systems (NIST Special Publication 800-31). U.S. Department of Commerce. https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-31.pdf',indent=0)
+p('Scarfone, K., & Mell, P. (2007). Guide to intrusion detection and prevention systems (IDPS) (NIST Special Publication 800-94). National Institute of Standards and Technology. https://doi.org/10.6028/NIST.SP.800-94',indent=0)
 p('Open Worldwide Application Security Project. (n.d.). Automated threats to web applications. https://owasp.org/www-project-automated-threats-to-web-applications/',indent=0)
 p('Open Worldwide Application Security Project. (n.d.). Bot management and anti-automation cheat sheet. https://cheatsheetseries.owasp.org/cheatsheets/Bot_Management_and_Anti-Automation_Cheat_Sheet.html',indent=0)
 p('Open Worldwide Application Security Project. (n.d.). Credential stuffing prevention cheat sheet. https://cheatsheetseries.owasp.org/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.html',indent=0)
 p('Open Worldwide Application Security Project. (n.d.). OAT-007 credential cracking. https://owasp.org/www-project-automated-threats-to-web-applications/assets/oats/EN/OAT-007_Credential_Cracking',indent=0)
 p('Real-time anomaly detection using deep learning in e-commerce platform. (2025). Procedia Computer Science, 269, 309–320. https://doi.org/10.1016/j.procs.2025.08.283',indent=0)
+p('ธนกร มีประสาท และ ณัฐพัชญ์ ศรีราชันทร์. (2566). การพัฒนาเว็บไซต์สำหรับการจัดการข้อมูลพฤติกรรมของนักศึกษาระหว่างการศึกษา. วารสารวิทยสารสนเทศและเทคโนโลยี, 4(1), 59–73.',indent=0)
+p('ธนพล แย้มทุ่ง และ อรอุมา พร้าโมต. (2568). การออกแบบและพัฒนาระบบสารสนเทศกิจกรรมนักศึกษาผ่านเว็บแอปพลิเคชัน กรณีศึกษาสาขาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยราชภัฏพิบูลสงคราม. วารสารก้าวทันโลกวิทยาศาสตร์, 25(1), 63–84.',indent=0)
+p('กิตติพงศ์ อุ่นแก้ว, มาริสา กัณฑาทรัพย์, ธมนวรรณ บุญไทย, ฤทธิรงค์ แสงสร้อย, และ ปรกฤษฎิ์ สายหัสฤดี. (2569). การพัฒนาเว็บแอปพลิเคชันเพื่อสนับสนุนการบริหารจัดการกิจกรรมนักศึกษาในมหาวิทยาลัยพิษณุโลก. วารสารวิชาการเทคโนโลยีอุตสาหกรรมและวิศวกรรม มหาวิทยาลัยราชภัฏพิบูลสงคราม, 8(2), 144–161.',indent=0)
 p('หมายเหตุ: โปรดกรอกชื่อ-สกุลและรหัสนักศึกษาที่หน้าแรกก่อนส่งอาจารย์',bold=True,indent=0)
 d.save(OUT);print(OUT)
