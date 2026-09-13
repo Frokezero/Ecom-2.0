@@ -29,7 +29,7 @@ function adminStatusLabel(string $status): string {
 <body class="admin-body">
 <div class="admin-shell">
     <aside class="admin-sidebar" id="adminSidebar">
-        <a class="admin-brand" href="<?php echo BASE_URL; ?>admin/index.php"><span><i class="fa-solid fa-kitchen-set"></i></span><div><strong>KitchenMart</strong><small>ADMIN CONSOLE</small></div></a>
+        <a class="admin-brand" href="<?php echo BASE_URL; ?>admin/index.php"><span><i class="fa-solid fa-kitchen-set"></i></span><div><strong>KitchenMate</strong><small>ADMIN CONSOLE</small></div></a>
         <nav class="admin-nav" aria-label="เมนูผู้ดูแล">
             <small>ภาพรวม</small>
             <a href="<?php echo BASE_URL; ?>admin/index.php" class="<?php echo $admin_page==='index.php'?'active':''; ?>"><i class="fa-solid fa-chart-pie"></i><span>แดชบอร์ด</span></a>

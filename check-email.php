@@ -12,13 +12,13 @@ require_once __DIR__ . '/includes/header.php';
         <aside class="verification-aside">
             <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo">
                 <span class="brand-mark"><i class="fa-solid fa-kitchen-set"></i></span>
-                <span><strong>KitchenMart</strong><small>อุปกรณ์ครัวสำหรับทุกบ้าน</small></span>
+                <span><strong>KitchenMate</strong><small>อุปกรณ์ครัวสำหรับทุกบ้าน</small></span>
             </a>
             <div class="mail-illustration" aria-hidden="true"><i class="fa-regular fa-envelope"></i><span class="mail-illustration-seal"><i class="fa-solid fa-check"></i></span></div>
             <p class="eyebrow">ONE LAST STEP</p>
             <h1>ยืนยันอีเมล<br>ก่อนเริ่มช้อป</h1>
             <p>เราใช้ขั้นตอนนี้เพื่อปกป้องบัญชีและให้ทุกคำสั่งซื้อเป็นของคุณจริง ๆ</p>
-            <ol class="verification-steps"><li class="is-done"><span>1</span> เปิดอีเมลจาก KitchenMart</li><li><span>2</span> กดปุ่มยืนยันบัญชี</li><li><span>3</span> กลับมาเลือกสินค้าที่ชอบ</li></ol>
+            <ol class="verification-steps"><li class="is-done"><span>1</span> เปิดอีเมลจาก KitchenMate</li><li><span>2</span> กดปุ่มยืนยันบัญชี</li><li><span>3</span> กลับมาเลือกสินค้าที่ชอบ</li></ol>
         </aside>
         <div class="verification-content">
             <div class="verification-copy">

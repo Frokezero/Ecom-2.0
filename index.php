@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__.'/config/config.php';
 $page_title='หน้าแรก - ร้านอุปกรณ์ครัว';
-$page_description='KitchenMart คัดสรรอุปกรณ์ครัวที่ทน ใช้ง่าย พร้อมโปรโมชั่น รีวิวจากผู้ซื้อ และจัดส่งทั่วประเทศ';
+$page_description='KitchenMate คัดสรรอุปกรณ์ครัวที่ทน ใช้ง่าย พร้อมโปรโมชั่น รีวิวจากผู้ซื้อ และจัดส่งทั่วประเทศ';
 $page_canonical=BASE_URL.'index.php';
 $structured_data=['@context'=>'https://schema.org','@type'=>'Organization','name'=>APP_NAME,'url'=>$page_canonical,'description'=>$page_description];
 require_once __DIR__.'/includes/header.php';
@@ -32,7 +32,7 @@ $promo_banners=$db?activePromotionalBanners($db,'hero'):[];
             <span>สินค้าแนะนำประจำสัปดาห์</span>
             <?php if($hero_product): ?><a class="hero-feature-image" href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$hero_product['id']; ?>"><img src="<?php echo e(productImageUrl($hero_product['image_url'])); ?>" alt="<?php echo e($hero_product['name']); ?>"></a>
             <div><strong><?php echo formatCurrency($hero_product['price']); ?></strong><a href="<?php echo BASE_URL; ?>product-detail.php?id=<?php echo (int)$hero_product['id']; ?>">ดูรายละเอียดสินค้า <i class="fa-solid fa-arrow-right"></i></a></div>
-            <?php else: ?><img src="<?php echo BASE_URL; ?>assets/images/products/placeholder.svg" alt="สินค้าแนะนำ KitchenMart"><div><strong>สินค้าใหม่เร็ว ๆ นี้</strong><a href="<?php echo BASE_URL; ?>products.php">ดูสินค้าทั้งหมด <i class="fa-solid fa-arrow-right"></i></a></div><?php endif; ?>
+            <?php else: ?><img src="<?php echo BASE_URL; ?>assets/images/products/placeholder.svg" alt="สินค้าแนะนำ KitchenMate"><div><strong>สินค้าใหม่เร็ว ๆ นี้</strong><a href="<?php echo BASE_URL; ?>products.php">ดูสินค้าทั้งหมด <i class="fa-solid fa-arrow-right"></i></a></div><?php endif; ?>
         </div>
     </section>
     <section class="service-strip" aria-label="บริการของร้าน"><div><i class="fa-solid fa-truck-fast"></i><span><strong>ส่งฟรี ฿1,000+</strong><small>ทั่วประเทศ</small></span></div><div><i class="fa-solid fa-box-open"></i><span><strong>แพ็กอย่างดี</strong><small>ลดความเสียหายระหว่างส่ง</small></span></div><div><i class="fa-solid fa-shield-halved"></i><span><strong>ชำระปลอดภัย</strong><small>PromptPay หรือ COD</small></span></div></section>

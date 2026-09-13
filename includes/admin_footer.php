@@ -1,5 +1,5 @@
         </main>
-        <footer class="admin-footer">KitchenMart Admin · ข้อมูลอัปเดตจากระบบจริง</footer>
+        <footer class="admin-footer">KitchenMate Admin · ข้อมูลอัปเดตจากระบบจริง</footer>
     </div>
 </div>
 <div class="toast-container" id="toastContainer"></div>

@@ -32,7 +32,7 @@ require_once __DIR__ . '/includes/header.php';
         <div class="profile-breadcrumb"><a href="<?php echo BASE_URL; ?>index.php">หน้าแรก</a><i class="fa-solid fa-chevron-right"></i><span>โปรไฟล์ของฉัน</span></div>
         <section class="profile-hero">
             <div class="profile-avatar" aria-hidden="true"><?php echo e($initial); ?></div>
-            <div class="profile-hero-copy"><p class="eyebrow">MY KITCHENMART</p><h1 class="profile-name"><?php echo e($user['full_name']); ?></h1><p>@<?php echo e($user['username']); ?> · สมาชิกตั้งแต่ <?php echo date('d/m/Y', strtotime($user['created_at'])); ?></p></div>
+            <div class="profile-hero-copy"><p class="eyebrow">MY KITCHENMATE</p><h1 class="profile-name"><?php echo e($user['full_name']); ?></h1><p>@<?php echo e($user['username']); ?> · สมาชิกตั้งแต่ <?php echo date('d/m/Y', strtotime($user['created_at'])); ?></p></div>
             <div class="profile-verified <?php echo $user['email_verified_at'] ? '' : 'is-pending'; ?>"><i class="fa-solid <?php echo $user['email_verified_at'] ? 'fa-circle-check' : 'fa-clock'; ?>"></i><?php echo $user['email_verified_at'] ? 'ยืนยันอีเมลแล้ว' : 'รอยืนยันอีเมล'; ?></div>
         </section>
 
@@ -42,7 +42,7 @@ require_once __DIR__ . '/includes/header.php';
             <button type="button" data-profile-tab="payment"><i class="fa-solid <?php echo $user['preferred_payment_method'] === 'promptpay' ? 'fa-qrcode' : 'fa-truck-ramp-box'; ?>"></i><span><small>วิธีชำระเงินหลัก</small><strong><?php echo $user['preferred_payment_method'] === 'promptpay' ? 'PromptPay' : 'เก็บเงินปลายทาง'; ?></strong></span><i class="fa-solid fa-pen"></i></button>
         </section>
 
-        <a class="profile-seller-cta" href="<?php echo BASE_URL; ?><?php echo isSeller() ? 'my-store.php' : 'seller.php'; ?>"><span class="profile-seller-icon"><i class="fa-solid fa-store"></i></span><span><small><?php echo isSeller() ? 'จัดการหน้าร้านและสินค้าของคุณ' : 'อยากเริ่มขายสินค้ากับเรา?'; ?></small><strong><?php echo isSeller() ? 'ร้านค้าของฉัน' : 'เปิดร้านกับ KitchenMart'; ?></strong><em><?php echo isSeller() ? 'แก้ไขสินค้า ตกแต่งร้าน และจัดโปรโมชันได้จากที่เดียว' : 'ใช้บัญชีเดิม สมัครได้ในไม่กี่ขั้นตอน'; ?></em></span><i class="fa-solid fa-arrow-right"></i></a>
+        <a class="profile-seller-cta" href="<?php echo BASE_URL; ?><?php echo isSeller() ? 'my-store.php' : 'seller.php'; ?>"><span class="profile-seller-icon"><i class="fa-solid fa-store"></i></span><span><small><?php echo isSeller() ? 'จัดการหน้าร้านและสินค้าของคุณ' : 'อยากเริ่มขายสินค้ากับเรา?'; ?></small><strong><?php echo isSeller() ? 'ร้านค้าของฉัน' : 'เปิดร้านกับ KitchenMate'; ?></strong><em><?php echo isSeller() ? 'แก้ไขสินค้า ตกแต่งร้าน และจัดโปรโมชันได้จากที่เดียว' : 'ใช้บัญชีเดิม สมัครได้ในไม่กี่ขั้นตอน'; ?></em></span><i class="fa-solid fa-arrow-right"></i></a>
 
         <div class="profile-layout">
             <aside class="profile-sidebar">

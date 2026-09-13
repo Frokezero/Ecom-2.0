@@ -1,6 +1,6 @@
 {
-  "name": "KitchenMart",
-  "short_name": "KitchenMart",
+  "name": "KitchenMate",
+  "short_name": "KitchenMate",
   "description": "ร้านอุปกรณ์ครัวออนไลน์",
   "start_url": "./index.php",
   "scope": "./",

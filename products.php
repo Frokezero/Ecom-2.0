@@ -87,7 +87,7 @@ $categoryBanners=$db?activePromotionalBanners($db,'category',$cat_id):[];
 
     <header class="catalog-header">
         <div>
-            <p class="eyebrow">KITCHENMART CATALOG</p>
+            <p class="eyebrow">KITCHENMATE CATALOG</p>
             <h1><?php echo $activeCategory ? e($activeCategory['name']) : ($q !== '' ? 'ผลการค้นหา “'.e($q).'”' : 'อุปกรณ์ครัวทั้งหมด'); ?></h1>
             <p>พบ <?php echo number_format($totalProducts); ?> รายการที่พร้อมให้คุณเลือก</p>
         </div>

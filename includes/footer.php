@@ -17,7 +17,7 @@
                 <div class="footer-col">
                     <div class="brand-logo" style="color: white; margin-bottom: 12px;">
                         <i class="fa-solid fa-kitchen-set" style="color: #d98a55;"></i>
-                        <span>KitchenMart</span>
+                        <span>KitchenMate</span>
                     </div>
                     <p style="font-size: 0.9rem; line-height: 1.6;">ศูนย์รวมอุปกรณ์ครัวที่คัดสรรเพื่อการใช้งานจริง จัดส่งทั่วประเทศ ชำระสะดวกด้วย PromptPay หรือเก็บเงินปลายทาง</p>
                 </div>

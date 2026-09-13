@@ -9,7 +9,7 @@ $cart_count = array_sum(array_map(fn($item) => (int)($item['quantity'] ?? 0), $c
 $cart_total = array_sum(array_map(fn($item) => (float)($item['price'] ?? 0) * (int)($item['quantity'] ?? 0), $cart_items));
 $cart_preview_items = array_slice($cart_items, 0, 3);
 $current_page = basename($_SERVER['PHP_SELF']);
-$page_description=$page_description??'เลือกซื้ออุปกรณ์ครัวคุณภาพ พร้อมข้อมูลสินค้า รีวิวจากผู้ซื้อ และการจัดส่งที่ตรวจสอบได้จาก KitchenMart';
+$page_description=$page_description??'เลือกซื้ออุปกรณ์ครัวคุณภาพ พร้อมข้อมูลสินค้า รีวิวจากผู้ซื้อ และการจัดส่งที่ตรวจสอบได้จาก KitchenMate';
 $canonicalPath=parse_url($_SERVER['REQUEST_URI']??'/index.php',PHP_URL_PATH)?:'/index.php';
 $page_canonical=$page_canonical??rtrim(BASE_URL,'/').$canonicalPath;
 $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholder.svg';
@@ -56,9 +56,9 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
     <div class="announcement"><div class="container"><span><i class="fa-solid fa-truck-fast"></i> จัดส่งฟรีเมื่อสั่งซื้อครบ ฿1,000</span><span class="announcement-detail"><i class="fa-solid fa-shield-heart"></i> ชำระปลอดภัย · ตรวจสอบคำสั่งซื้อได้ทุกขั้นตอน</span></div></div>
     <header class="site-header">
         <div class="container header-main">
-            <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo" aria-label="KitchenMart หน้าแรก">
+            <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo" aria-label="KitchenMate หน้าแรก">
                 <span class="brand-mark"><i class="fa-solid fa-kitchen-set"></i></span>
-                <span><strong>KitchenMart</strong><small>อุปกรณ์ครัวสำหรับทุกบ้าน</small></span>
+                <span><strong>KitchenMate</strong><small>อุปกรณ์ครัวสำหรับทุกบ้าน</small></span>
             </a>
             <form action="<?php echo BASE_URL; ?>products.php" method="GET" class="search-box" role="search">
                 <i class="fa-solid fa-magnifying-glass"></i>

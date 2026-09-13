@@ -10,7 +10,7 @@ require_once __DIR__.'/includes/header.php';
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/auth.css">
 <div class="auth-page"><section class="auth-shell">
     <aside class="auth-intro">
-        <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo"><span class="brand-mark"><i class="fa-solid fa-kitchen-set"></i></span><span><strong>KitchenMart</strong><small>อุปกรณ์ครัวสำหรับทุกบ้าน</small></span></a>
+        <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo"><span class="brand-mark"><i class="fa-solid fa-kitchen-set"></i></span><span><strong>KitchenMate</strong><small>อุปกรณ์ครัวสำหรับทุกบ้าน</small></span></a>
         <p class="eyebrow">WELCOME BACK</p><h1>กลับมาจัดการทุกเรื่องในครัวของคุณ</h1><p>เข้าสู่ระบบเพื่อสั่งซื้อสินค้า ติดตามสถานะ และดูประวัติคำสั่งซื้อได้ในที่เดียว</p>
         <ul class="auth-benefits"><li><i class="fa-solid fa-clock-rotate-left"></i> ดูประวัติและรายละเอียดคำสั่งซื้อ</li><li><i class="fa-solid fa-truck-fast"></i> ติดตามสถานะการจัดส่ง</li><li><i class="fa-solid fa-star"></i> รีวิวสินค้าที่ซื้อแล้ว</li></ul>
         <div class="auth-security-note"><i class="fa-solid fa-lock"></i> ข้อมูลเข้าสู่ระบบถูกส่งผ่านการตรวจสอบ CSRF และรหัสผ่านถูกจัดเก็บแบบเข้ารหัส</div>
@@ -29,9 +29,9 @@ require_once __DIR__.'/includes/header.php';
         <p class="auth-switch">ยังไม่มีบัญชี? <a href="<?php echo BASE_URL; ?>register.php">สมัครสมาชิกฟรี</a></p>
     </div>
 </section>
-<a class="seller-login-banner" href="<?php echo BASE_URL; ?>register.php?seller=1" aria-label="สมัครเปิดร้านค้ากับ KitchenMart">
+<a class="seller-login-banner" href="<?php echo BASE_URL; ?>register.php?seller=1" aria-label="สมัครเปิดร้านค้ากับ KitchenMate">
     <span class="seller-login-banner-icon"><i class="fa-solid fa-store"></i></span>
-    <span class="seller-login-banner-copy"><small>KITCHENMART SELLER</small><strong>อยากขายสินค้ากับเรา?</strong><em>สมัครเปิดร้าน ส่งข้อมูลให้ทีมงานตรวจสอบ และเริ่มจัดการสินค้าผ่านศูนย์ผู้ขาย</em></span>
+    <span class="seller-login-banner-copy"><small>KITCHENMATE SELLER</small><strong>อยากขายสินค้ากับเรา?</strong><em>สมัครเปิดร้าน ส่งข้อมูลให้ทีมงานตรวจสอบ และเริ่มจัดการสินค้าผ่านศูนย์ผู้ขาย</em></span>
     <span class="seller-login-banner-action">สมัครเป็นร้านค้า <i class="fa-solid fa-arrow-right"></i></span>
 </a>
 </div>

@@ -92,10 +92,10 @@ if (!headers_sent()) {
     header((appConfig('CSP_REPORT_ONLY', '0') === '1' ? 'Content-Security-Policy-Report-Only: ' : 'Content-Security-Policy: ') . $csp);
     if (requestIsHttps()) header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 }
-define('APP_NAME', appConfig('STORE_NAME', 'KitchenMart'));
+define('APP_NAME', appConfig('STORE_NAME', 'KitchenMate'));
 define('STORE_TAGLINE', appConfig('STORE_TAGLINE', 'ครบทุกเรื่องครัว เพื่อทุกมื้อที่คุณรัก'));
 define('PROMPTPAY_ID', appConfig('PROMPTPAY_ID', appConfig('PROMPTPAY_NUMBER', '')));
-define('PROMPTPAY_NAME', appConfig('PROMPTPAY_NAME', 'KitchenMart Demo Store'));
+define('PROMPTPAY_NAME', appConfig('PROMPTPAY_NAME', 'KitchenMate Demo Store'));
 
 $protocol = requestIsHttps() ? 'https://' : 'http://';
 $configuredUrl = trim(appConfig('APP_URL', ''));
