@@ -22,6 +22,21 @@ $db=(new Database())->getConnection();
 if (!$db) jsonResponse('error','ไม่สามารถเชื่อมต่อฐานข้อมูลได้',[],503);
 enforceSecurityBlock($db,isLoggedIn()?(int)$_SESSION['user_id']:null,true);
 enforceRequestRate($db,'api.auth',60,60,isLoggedIn()?(int)$_SESSION['user_id']:null);
+if ($action === 'verify_seller_otp') {
+    $userId=(int)($_SESSION['seller_otp_user_id']??0);$code=preg_replace('/\D/','',(string)($_POST['code']??''));
+    if($userId<1||strlen($code)!==6)jsonResponse('error','กรุณากรอกรหัส OTP 6 หลัก',[],422);
+    try{$db->beginTransaction();$stmt=$db->prepare("SELECT o.*,u.username,u.email,u.full_name,u.role,u.auth_version FROM seller_email_otps o JOIN users u ON u.id=o.user_id WHERE o.user_id=? AND o.used_at IS NULL ORDER BY o.id DESC LIMIT 1 FOR UPDATE");$stmt->execute([$userId]);$otp=$stmt->fetch();
+        if(!$otp||$otp['role']!=='seller'||strtotime($otp['expires_at'])<time()||(int)$otp['attempts']>=5||!password_verify($code,$otp['code_hash'])){if($otp)$db->prepare('UPDATE seller_email_otps SET attempts=attempts+1 WHERE id=?')->execute([(int)$otp['id']]);$db->commit();jsonResponse('error','รหัส OTP ไม่ถูกต้อง หมดอายุ หรือกรอกเกินจำนวนครั้ง',[],401);}
+        $db->prepare('UPDATE seller_email_otps SET used_at=NOW() WHERE id=?')->execute([(int)$otp['id']]);$db->prepare('UPDATE users SET email_verified_at=COALESCE(email_verified_at,NOW()),email_verification_token_hash=NULL,email_verification_expires_at=NULL,email_verification_sent_at=NULL WHERE id=?')->execute([$userId]);$db->commit();
+        unset($_SESSION['seller_otp_user_id']);session_regenerate_id(true);$_SESSION['user_id']=$userId;$_SESSION['username']=$otp['username'];$_SESSION['full_name']=$otp['full_name'];$_SESSION['email']=$otp['email'];$_SESSION['user_role']='seller';$_SESSION['auth_version']=(int)$otp['auth_version'];auditLog($db,'seller.email_otp.verified','user',$userId);jsonResponse('success','ยืนยันอีเมลสำเร็จ กำลังเข้าสู่ศูนย์ผู้ขาย',['redirect'=>BASE_URL.'seller-dashboard.php']);
+    }catch(Throwable $e){if($db->inTransaction())$db->rollBack();jsonResponse('error','ไม่สามารถยืนยัน OTP ได้ กรุณาลองใหม่',[],500);}
+}
+if ($action === 'resend_seller_otp') {
+    $userId=(int)($_SESSION['seller_otp_user_id']??0);if($userId<1)jsonResponse('error','ไม่พบคำขอยืนยันบัญชี กรุณาสมัครใหม่',[],401);
+    $stmt=$db->prepare("SELECT u.id,u.email,u.full_name,u.email_verified_at,(SELECT sent_at FROM seller_email_otps WHERE user_id=u.id ORDER BY id DESC LIMIT 1) last_sent FROM users u WHERE u.id=? AND u.role='seller' LIMIT 1");$stmt->execute([$userId]);$user=$stmt->fetch();if(!$user||$user['email_verified_at'])jsonResponse('error','บัญชีนี้ยืนยันแล้วหรือไม่พบข้อมูล',[],409);
+    if($user['last_sent']&&time()-strtotime($user['last_sent'])<60)jsonResponse('error','กรุณารอ 60 วินาทีก่อนส่ง OTP ใหม่',['retry_after'=>60-(time()-strtotime($user['last_sent']))],429);
+    try{sendSellerVerificationOtp($db,$userId,$user['email'],$user['full_name']);}catch(Throwable $e){jsonResponse('error','ส่ง OTP ไม่สำเร็จ กรุณาตรวจสอบระบบอีเมลแล้วลองใหม่',[],503);}jsonResponse('success','ส่ง OTP ใหม่ไปยังอีเมลแล้ว');
+}
 if ($action === 'resend_verification') {
     $email=strtolower(trim($_POST['email'] ?? ''));
     if (!filter_var($email,FILTER_VALIDATE_EMAIL)) jsonResponse('error','กรุณากรอกอีเมลให้ถูกต้อง',['field'=>'email'],422);
@@ -38,6 +53,7 @@ if($action==='verify_2fa'){
     try{$db->beginTransaction();$stmt=$db->prepare('SELECT c.*,u.username,u.email,u.full_name,u.role FROM auth_challenges c JOIN users u ON u.id=c.user_id WHERE c.token_hash=? AND c.used_at IS NULL AND c.expires_at>NOW() LIMIT 1 FOR UPDATE');$stmt->execute([hash('sha256',$token)]);$c=$stmt->fetch();if(!$c||$c['attempts']>=5||!password_verify($code,$c['code_hash'])){if($c)$db->prepare('UPDATE auth_challenges SET attempts=attempts+1 WHERE id=?')->execute([(int)$c['id']]);$db->commit();jsonResponse('error','รหัสไม่ถูกต้องหรือหมดอายุ',[],401);}$db->prepare('UPDATE auth_challenges SET used_at=NOW() WHERE id=?')->execute([(int)$c['id']]);$db->commit();unset($_SESSION['two_factor_challenge']);session_regenerate_id(true);$_SESSION['user_id']=(int)$c['user_id'];$_SESSION['username']=$c['username'];$_SESSION['full_name']=$c['full_name'];$_SESSION['email']=$c['email'];$_SESSION['user_role']=$c['role'];auditLog($db,'security.2fa.verify','user',(int)$c['user_id']);jsonResponse('success','ยืนยันตัวตนสำเร็จ',['redirect'=>BASE_URL.($c['role']==='admin'?'admin/index.php':'index.php')]);}catch(Throwable $e){if($db->inTransaction())$db->rollBack();jsonResponse('error','ไม่สามารถยืนยันตัวตนได้',[],500);}
 }
 if ($action === 'register') {
+    try{$db->exec("DELETE FROM users WHERE role='seller' AND email_verified_at IS NULL AND created_at<DATE_SUB(NOW(),INTERVAL 7 DAY)");}catch(Throwable $ignored){}
     $username=trim($_POST['username'] ?? ''); $email=strtolower(trim($_POST['email'] ?? '')); $password=$_POST['password'] ?? '';
     $passwordConfirm=$_POST['password_confirm'] ?? '';
     $fullName=trim($_POST['full_name'] ?? ''); $phone=trim($_POST['phone'] ?? '');
@@ -59,9 +75,10 @@ if ($action === 'register') {
     try{$stmt=$db->prepare("INSERT INTO users (username,email,password_hash,full_name,phone,address,role,email_verified_at) VALUES (?,?,?,?,?,'',?,NULL)");$stmt->execute([$username,$email,password_hash($password,PASSWORD_DEFAULT),$fullName,$phone,$accountType]);}
     catch(PDOException $e){if((int)($e->errorInfo[1]??0)===1062)jsonResponse('error','ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้แล้ว กรุณาเข้าสู่ระบบหรือเลือกข้อมูลอื่น',['field'=>'username'],409);throw $e;}
     $userId=(int)$db->lastInsertId();$delivery='sent';
-    try{sendVerificationEmail($db,$userId,$email,$fullName);}
+    try{if($accountType==='seller')sendSellerVerificationOtp($db,$userId,$email,$fullName);else sendVerificationEmail($db,$userId,$email,$fullName);}
     catch(Throwable $e){$delivery='failed';$db->prepare('UPDATE users SET email_verification_sent_at=NULL WHERE id=?')->execute([$userId]);}
-    $redirect=BASE_URL.'check-email.php?email='.rawurlencode($email).($delivery==='failed'?'&delivery=failed':'');
+    if($accountType==='seller')$_SESSION['seller_otp_user_id']=$userId;
+    $redirect=BASE_URL.($accountType==='seller'?'verify-seller-otp.php':'check-email.php?email='.rawurlencode($email)).($delivery==='failed'?($accountType==='seller'?'?delivery=failed':'&delivery=failed'):'');
     jsonResponse('success',$delivery==='sent'?($accountType==='seller'?'สร้างบัญชีผู้ขายแล้ว กรุณายืนยันอีเมลก่อนกรอกข้อมูลร้าน':'สมัครสมาชิกแล้ว กรุณาตรวจอีเมลเพื่อยืนยันบัญชี'):'สร้างบัญชีแล้ว แต่ยังส่งอีเมลไม่ได้ กรุณาตั้งค่า SMTP และกดส่งซ้ำ',['redirect'=>$redirect,'delivery'=>$delivery]);
 }
 if ($action === 'login') {
@@ -88,7 +105,10 @@ if ($action === 'login') {
     $requestHost=$_SERVER['HTTP_HOST'] ?? '';
     $isLocalRequest=(bool)preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/i',$requestHost);
     if($user['role']==='admin' && !$isLocalRequest && appConfig('ALLOW_PUBLIC_ADMIN','0')!=='1')jsonResponse('error','ปิดการเข้าสู่ระบบผู้ดูแลผ่านลิงก์สาธารณะเพื่อความปลอดภัย กรุณาเข้าสู่ระบบจากเครื่องเซิร์ฟเวอร์',[],403);
-    if (!$user['email_verified_at']) jsonResponse('error','กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ',['field'=>'username_email','email'=>$user['email'],'verification_required'=>true],403);
+    if (!$user['email_verified_at']) {
+        if($user['role']==='seller'){$_SESSION['seller_otp_user_id']=(int)$user['id'];jsonResponse('error','กรุณากรอก OTP เพื่อยืนยันอีเมลผู้ขาย',['field'=>'username_email','email'=>$user['email'],'verification_required'=>true,'verification_url'=>BASE_URL.'verify-seller-otp.php'],403);}
+        jsonResponse('error','กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ',['field'=>'username_email','email'=>$user['email'],'verification_required'=>true],403);
+    }
     if(!empty($user['two_factor_enabled'])){$code=(string)random_int(100000,999999);$token=bin2hex(random_bytes(32));$db->prepare('UPDATE auth_challenges SET used_at=NOW() WHERE user_id=? AND used_at IS NULL')->execute([(int)$user['id']]);$db->prepare('INSERT INTO auth_challenges(user_id,token_hash,code_hash,expires_at) VALUES(?,?,?,?)')->execute([(int)$user['id'],hash('sha256',$token),password_hash($code,PASSWORD_DEFAULT),date('Y-m-d H:i:s',time()+600)]);try{sendTwoFactorCode($user['email'],$user['full_name'],$code);}catch(Throwable $e){jsonResponse('error','ไม่สามารถส่งรหัสยืนยันได้ กรุณาติดต่อผู้ดูแลระบบ',[],503);}$_SESSION['two_factor_challenge']=$token;jsonResponse('success','ส่งรหัสยืนยันไปยังอีเมลแล้ว',['redirect'=>BASE_URL.'verify-two-factor.php','two_factor_required'=>true]);}
     unset($attemptMap[$identityHash]);$_SESSION['login_attempts']=$attemptMap;
     $db->prepare('INSERT INTO login_attempts(identifier_hash,ip_hash,was_successful) VALUES(?,?,1)')->execute([$identityHash,$ipHash]);

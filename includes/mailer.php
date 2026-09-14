@@ -109,6 +109,22 @@ function sendVerificationEmail(PDO $db, int $userId, string $email, string $full
     sendAppMail($email, 'ยืนยันอีเมลสำหรับบัญชี KitchenMate', verificationEmailHtml($safeName, $safeUrl));
 }
 
+function sendSellerVerificationOtp(PDO $db, int $userId, string $email, string $fullName): void {
+    $code = (string)random_int(100000, 999999);
+    $db->prepare('UPDATE seller_email_otps SET used_at=NOW() WHERE user_id=? AND used_at IS NULL')->execute([$userId]);
+    $stmt = $db->prepare('INSERT INTO seller_email_otps(user_id,code_hash,expires_at,sent_at) VALUES(?,?,DATE_ADD(NOW(),INTERVAL 10 MINUTE),NOW())');
+    $stmt->execute([$userId, password_hash($code, PASSWORD_DEFAULT)]);
+    $safeName = htmlspecialchars($fullName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $safeCode = htmlspecialchars($code, ENT_QUOTES, 'UTF-8');
+    $html = '<!doctype html><html lang="th"><meta charset="UTF-8"><body style="margin:0;background:#f4f1e9;font-family:Arial,Tahoma,sans-serif;padding:30px"><div style="max-width:560px;margin:auto;background:#fff;padding:32px;border-top:8px solid #173f32"><p style="color:#b45c28;font-weight:700">SELLER VERIFICATION</p><h1 style="color:#173f32">ยืนยันอีเมลผู้ขาย</h1><p>สวัสดี '.$safeName.' รหัส OTP สำหรับเปิดใช้งานบัญชีผู้ขายของคุณคือ</p><div style="font-size:36px;font-weight:800;letter-spacing:10px;padding:22px;background:#f4f1e9;text-align:center;color:#173f32">'.$safeCode.'</div><p>รหัสนี้มีอายุ 10 นาที ใช้ได้ครั้งเดียว และห้ามส่งต่อให้ผู้อื่น</p></div></body></html>';
+    try {
+        sendAppMail($email, 'รหัส OTP ยืนยันบัญชีผู้ขาย KitchenMate', $html);
+    } catch (Throwable $error) {
+        $db->prepare('UPDATE seller_email_otps SET used_at=NOW() WHERE user_id=? AND used_at IS NULL')->execute([$userId]);
+        throw $error;
+    }
+}
+
 function sendPasswordResetEmail(string $email, string $fullName, string $token): void {
     $safeName=htmlspecialchars($fullName,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
     $url=mailAppUrl().'reset-password.php?token='.rawurlencode($token);

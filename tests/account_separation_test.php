@@ -23,4 +23,10 @@ $assert(str_contains($functions,'SELECT username,full_name,email,role,auth_versi
 $profile=$read('profile.php');
 $assert(!str_contains($profile,'profile-seller-cta'),'buyer profile must not show a seller signup banner');
 $assert(str_contains($profile,'seller-dashboard.php'),'seller must not open the buyer profile page');
+$otpPage=$read('verify-seller-otp.php');
+$assert(str_contains($otpPage,'verify_seller_otp'),'seller OTP page must submit the verification action');
+$assert(str_contains($auth,'resend_seller_otp'),'seller OTP must support protected resend');
+$assert(str_contains($auth,"['attempts']>=5"),'seller OTP must limit verification attempts');
+$mailer=$read('includes/mailer.php');
+$assert(str_contains($mailer,'sendSellerVerificationOtp'),'seller registration must send an email OTP');
 echo "Account separation tests passed\n";
