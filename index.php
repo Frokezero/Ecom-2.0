@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__.'/config/config.php';
 $page_title='หน้าแรก - ร้านอุปกรณ์ครัว';
-$page_description='KitchenMate คัดสรรอุปกรณ์ครัวที่ทน ใช้ง่าย พร้อมโปรโมชั่น รีวิวจากผู้ซื้อ และจัดส่งทั่วประเทศ';
+$page_description='เลือกซื้ออุปกรณ์ครัว ดูรีวิว และสั่งจัดส่งได้ทั่วประเทศ';
 $page_canonical=BASE_URL.'index.php';
 $structured_data=['@context'=>'https://schema.org','@type'=>'Organization','name'=>APP_NAME,'url'=>$page_canonical,'description'=>$page_description];
 require_once __DIR__.'/includes/header.php';
@@ -23,7 +23,7 @@ $promo_banners=$db?activePromotionalBanners($db,'hero'):[];
     <section class="home-banner-carousel" data-home-banner aria-label="สินค้าและโปรโมชั่นแนะนำ"><div class="home-banner-track" data-banner-track><?php if($flash_sale_products):?><a class="home-banner-slide" href="#flash-sale"><img src="<?php echo BASE_URL;?>assets/images/banners/flash-sale-home-v1.png" alt="FLASH SALE ลดแรง เวลาจำกัด ช้อปเลย"><span><b><?php echo count($flash_sale_products);?></b> รายการกำลังลดราคา</span></a><?php endif;?><a class="home-banner-slide" href="<?php echo BASE_URL;?>products.php?category=1"><img src="<?php echo BASE_URL;?>assets/images/banners/category-cookware-v1.png" alt="ครบเรื่องปรุงอาหาร หม้อและกระทะสำหรับทุกเมนู"></a><a class="home-banner-slide" href="<?php echo BASE_URL;?>products.php?category=4"><img src="<?php echo BASE_URL;?>assets/images/banners/category-appliances-v1.png" alt="ครัวทันสมัย เครื่องใช้ไฟฟ้าที่ช่วยประหยัดเวลา"></a><a class="home-banner-slide" href="<?php echo BASE_URL;?>products.php?category=5"><img src="<?php echo BASE_URL;?>assets/images/banners/category-baking-v1.png" alt="สนุกกับการทำขนม อุปกรณ์เบเกอรีครบทุกขั้นตอน"></a></div><button class="home-banner-arrow prev" type="button" data-banner-prev aria-label="แบนเนอร์ก่อนหน้า"><i class="fa-solid fa-chevron-left"></i></button><button class="home-banner-arrow next" type="button" data-banner-next aria-label="แบนเนอร์ถัดไป"><i class="fa-solid fa-chevron-right"></i></button><div class="home-banner-dots" data-banner-dots aria-label="เลือกแบนเนอร์"></div></section>
     <section class="hero-banner">
         <div class="hero-copy">
-            <p class="eyebrow">KITCHEN ESSENTIALS · 2026</p>
+            <p class="eyebrow">อุปกรณ์ครัวสำหรับทุกบ้าน</p>
             <h1>ครัวที่ดี<br>เริ่มจากของที่ใช้ถนัด</h1>
             <p>เราเลือกอุปกรณ์ที่ทน ใช้ง่าย และดูแลไม่ยุ่งยาก เพื่อให้การทำอาหารทุกวันเป็นเรื่องน่าสนุกขึ้น</p>
             <div class="hero-actions"><a href="<?php echo BASE_URL; ?>products.php" class="btn btn-primary">เลือกซื้อสินค้า <i class="fa-solid fa-arrow-right"></i></a><a href="#categories" class="text-link">ดูตามหมวดหมู่</a></div>

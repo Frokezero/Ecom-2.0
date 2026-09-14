@@ -11,7 +11,7 @@ require_once __DIR__.'/includes/header.php';
 <div class="auth-page"><section class="auth-shell">
     <aside class="auth-intro">
         <a href="<?php echo BASE_URL; ?>index.php" class="brand-logo"><span class="brand-mark"><i class="fa-solid fa-kitchen-set"></i></span><span><strong>KitchenMate</strong><small>อุปกรณ์ครัวสำหรับทุกบ้าน</small></span></a>
-        <p class="eyebrow">WELCOME BACK</p><h1>กลับมาจัดการทุกเรื่องในครัวของคุณ</h1><p>เข้าสู่ระบบเพื่อสั่งซื้อสินค้า ติดตามสถานะ และดูประวัติคำสั่งซื้อได้ในที่เดียว</p>
+        <p class="eyebrow">เข้าสู่ระบบ</p><h1>ยินดีต้อนรับกลับมา</h1><p>เข้าสู่ระบบเพื่อสั่งซื้อสินค้า ติดตามพัสดุ หรือจัดการร้านค้า</p>
         <ul class="auth-benefits"><li><i class="fa-solid fa-clock-rotate-left"></i> ดูประวัติและรายละเอียดคำสั่งซื้อ</li><li><i class="fa-solid fa-truck-fast"></i> ติดตามสถานะการจัดส่ง</li><li><i class="fa-solid fa-star"></i> รีวิวสินค้าที่ซื้อแล้ว</li></ul>
         <div class="auth-security-note"><i class="fa-solid fa-lock"></i> ข้อมูลเข้าสู่ระบบถูกส่งผ่านการตรวจสอบ CSRF และรหัสผ่านถูกจัดเก็บแบบเข้ารหัส</div>
     </aside>

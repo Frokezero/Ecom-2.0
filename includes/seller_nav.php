@@ -11,7 +11,7 @@ $sellerLinks = [
 ];
 ?>
 <nav class="seller-center-nav" aria-label="เมนูศูนย์ผู้ขาย">
-  <div class="seller-center-nav-title"><i class="fa-solid fa-store"></i><span><strong>ศูนย์ผู้ขาย</strong><small>จัดการร้านในที่เดียว</small></span></div>
+  <div class="seller-center-nav-title"><i class="fa-solid fa-store"></i><span><strong>ศูนย์ผู้ขาย</strong><small>จัดการร้านและสินค้า</small></span></div>
   <div class="seller-center-nav-links">
     <?php foreach($sellerLinks as [$file,$icon,$label]): ?>
       <a href="<?php echo BASE_URL.e($file); ?>" class="<?php echo $sellerCurrent===$file?'active':''; ?>"><i class="fa-solid <?php echo e($icon); ?>"></i><span><?php echo e($label); ?></span></a>

@@ -28,14 +28,14 @@ if ($action === 'verify_seller_otp') {
     try{$db->beginTransaction();$stmt=$db->prepare("SELECT o.*,u.username,u.email,u.full_name,u.role,u.auth_version FROM seller_email_otps o JOIN users u ON u.id=o.user_id WHERE o.user_id=? AND o.used_at IS NULL ORDER BY o.id DESC LIMIT 1 FOR UPDATE");$stmt->execute([$userId]);$otp=$stmt->fetch();
         if(!$otp||$otp['role']!=='seller'||strtotime($otp['expires_at'])<time()||(int)$otp['attempts']>=5||!password_verify($code,$otp['code_hash'])){if($otp)$db->prepare('UPDATE seller_email_otps SET attempts=attempts+1 WHERE id=?')->execute([(int)$otp['id']]);$db->commit();jsonResponse('error','รหัส OTP ไม่ถูกต้อง หมดอายุ หรือกรอกเกินจำนวนครั้ง',[],401);}
         $db->prepare('UPDATE seller_email_otps SET used_at=NOW() WHERE id=?')->execute([(int)$otp['id']]);$db->prepare('UPDATE users SET email_verified_at=COALESCE(email_verified_at,NOW()),email_verification_token_hash=NULL,email_verification_expires_at=NULL,email_verification_sent_at=NULL WHERE id=?')->execute([$userId]);$db->commit();
-        unset($_SESSION['seller_otp_user_id']);session_regenerate_id(true);$_SESSION['user_id']=$userId;$_SESSION['username']=$otp['username'];$_SESSION['full_name']=$otp['full_name'];$_SESSION['email']=$otp['email'];$_SESSION['user_role']='seller';$_SESSION['auth_version']=(int)$otp['auth_version'];auditLog($db,'seller.email_otp.verified','user',$userId);jsonResponse('success','ยืนยันอีเมลสำเร็จ กำลังเข้าสู่ศูนย์ผู้ขาย',['redirect'=>BASE_URL.'seller-dashboard.php']);
-    }catch(Throwable $e){if($db->inTransaction())$db->rollBack();jsonResponse('error','ไม่สามารถยืนยัน OTP ได้ กรุณาลองใหม่',[],500);}
+        unset($_SESSION['seller_otp_user_id']);session_regenerate_id(true);$_SESSION['user_id']=$userId;$_SESSION['username']=$otp['username'];$_SESSION['full_name']=$otp['full_name'];$_SESSION['email']=$otp['email'];$_SESSION['user_role']='seller';$_SESSION['auth_version']=(int)$otp['auth_version'];auditLog($db,'seller.email_otp.verified','user',$userId);jsonResponse('success','ยืนยันอีเมลแล้ว',['redirect'=>BASE_URL.'seller-dashboard.php']);
+    }catch(Throwable $e){if($db->inTransaction())$db->rollBack();jsonResponse('error','ยืนยัน OTP ไม่สำเร็จ ลองอีกครั้ง',[],500);}
 }
 if ($action === 'resend_seller_otp') {
     $userId=(int)($_SESSION['seller_otp_user_id']??0);if($userId<1)jsonResponse('error','ไม่พบคำขอยืนยันบัญชี กรุณาสมัครใหม่',[],401);
     $stmt=$db->prepare("SELECT u.id,u.email,u.full_name,u.email_verified_at,(SELECT sent_at FROM seller_email_otps WHERE user_id=u.id ORDER BY id DESC LIMIT 1) last_sent FROM users u WHERE u.id=? AND u.role='seller' LIMIT 1");$stmt->execute([$userId]);$user=$stmt->fetch();if(!$user||$user['email_verified_at'])jsonResponse('error','บัญชีนี้ยืนยันแล้วหรือไม่พบข้อมูล',[],409);
     if($user['last_sent']&&time()-strtotime($user['last_sent'])<60)jsonResponse('error','กรุณารอ 60 วินาทีก่อนส่ง OTP ใหม่',['retry_after'=>60-(time()-strtotime($user['last_sent']))],429);
-    try{sendSellerVerificationOtp($db,$userId,$user['email'],$user['full_name']);}catch(Throwable $e){jsonResponse('error','ส่ง OTP ไม่สำเร็จ กรุณาตรวจสอบระบบอีเมลแล้วลองใหม่',[],503);}jsonResponse('success','ส่ง OTP ใหม่ไปยังอีเมลแล้ว');
+    try{sendSellerVerificationOtp($db,$userId,$user['email'],$user['full_name']);}catch(Throwable $e){jsonResponse('error','ส่ง OTP ไม่สำเร็จ ลองอีกครั้งในภายหลัง',[],503);}jsonResponse('success','ส่ง OTP ใหม่แล้ว กรุณาตรวจสอบอีเมล');
 }
 if ($action === 'resend_verification') {
     $email=strtolower(trim($_POST['email'] ?? ''));

@@ -17,13 +17,13 @@ require_once __DIR__ . '/includes/header.php';
             <div class="mail-illustration" aria-hidden="true"><i class="fa-regular fa-envelope"></i><span class="mail-illustration-seal"><i class="fa-solid fa-check"></i></span></div>
             <p class="eyebrow">ONE LAST STEP</p>
             <h1>ยืนยันอีเมล<br>ก่อนเริ่มช้อป</h1>
-            <p>เราใช้ขั้นตอนนี้เพื่อปกป้องบัญชีและให้ทุกคำสั่งซื้อเป็นของคุณจริง ๆ</p>
+            <p>หากไม่พบอีเมล ลองตรวจสอบโฟลเดอร์สแปมหรือกดส่งใหม่</p>
             <ol class="verification-steps"><li class="is-done"><span>1</span> เปิดอีเมลจาก KitchenMate</li><li><span>2</span> กดปุ่มยืนยันบัญชี</li><li><span>3</span> กลับมาเลือกสินค้าที่ชอบ</li></ol>
         </aside>
         <div class="verification-content">
             <div class="verification-copy">
                 <div class="status-badge <?php echo $deliveryFailed ? 'is-warning' : ''; ?>"><i class="fa-solid <?php echo $deliveryFailed ? 'fa-triangle-exclamation' : 'fa-paper-plane'; ?>"></i> <?php echo $deliveryFailed ? 'ส่งอีเมลไม่สำเร็จ' : 'ส่งอีเมลแล้ว'; ?></div>
-                <h2 id="verificationTitle"><?php echo $deliveryFailed ? 'ส่งลิงก์ใหม่ให้คุณได้' : 'ตรวจสอบกล่องอีเมลของคุณ'; ?></h2>
+                <h2 id="verificationTitle"><?php echo $deliveryFailed ? 'ยังส่งอีเมลไม่สำเร็จ' : 'เปิดอีเมลเพื่อยืนยันบัญชี'; ?></h2>
                 <?php if ($deliveryFailed): ?>
                     <p class="verification-lead">สร้างบัญชีแล้ว แต่ยังส่งลิงก์ยืนยันไม่ได้ กดส่งอีกครั้งเพื่อรับลิงก์ใหม่</p>
                 <?php else: ?>

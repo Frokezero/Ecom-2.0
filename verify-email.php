@@ -47,7 +47,7 @@ require_once __DIR__ . '/includes/header.php';
             <div class="result-icon is-warning"><i class="fa-solid <?php echo $expired ? 'fa-clock-rotate-left' : 'fa-link-slash'; ?>"></i></div>
             <p class="eyebrow">VERIFICATION LINK</p>
             <h1 id="resultTitle"><?php echo $expired ? 'ลิงก์ยืนยันหมดอายุแล้ว' : 'ลิงก์นี้ใช้งานไม่ได้'; ?></h1>
-            <p class="result-lead"><?php echo $expired ? 'ลิงก์ยืนยันมีอายุ 30 นาที เพื่อความปลอดภัยของบัญชี ขอรับลิงก์ใหม่ได้ทันที' : 'ลิงก์อาจถูกใช้งานแล้ว หรือข้อมูลในลิงก์ไม่ครบ ลองขอลิงก์ยืนยันฉบับใหม่อีกครั้ง'; ?></p>
+            <p class="result-lead"><?php echo $expired ? 'ลิงก์นี้หมดอายุแล้ว กดขอลิงก์ใหม่ด้านล่าง' : 'ลิงก์นี้อาจถูกใช้ไปแล้ว หากยังเข้าใช้งานไม่ได้ให้ขอลิงก์ใหม่'; ?></p>
             <?php if ($email): ?><div class="result-email"><i class="fa-regular fa-envelope"></i><?php echo e($email); ?></div><?php endif; ?>
             <a class="btn btn-primary result-action" href="<?php echo BASE_URL; ?>check-email.php<?php echo $email ? '?email=' . rawurlencode($email) : ''; ?>"><i class="fa-regular fa-paper-plane"></i> ส่งลิงก์ยืนยันใหม่</a>
             <a class="result-back-link" href="<?php echo BASE_URL; ?>login.php"><i class="fa-solid fa-arrow-left"></i> กลับไปหน้าเข้าสู่ระบบ</a>

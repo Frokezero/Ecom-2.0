@@ -19,7 +19,7 @@
                         <i class="fa-solid fa-kitchen-set" style="color: #d98a55;"></i>
                         <span>KitchenMate</span>
                     </div>
-                    <p style="font-size: 0.9rem; line-height: 1.6;">ศูนย์รวมอุปกรณ์ครัวที่คัดสรรเพื่อการใช้งานจริง จัดส่งทั่วประเทศ ชำระสะดวกด้วย PromptPay หรือเก็บเงินปลายทาง</p>
+                    <p style="font-size: 0.9rem; line-height: 1.6;">เลือกซื้ออุปกรณ์ครัว จัดส่งทั่วประเทศ ชำระผ่าน PromptPay หรือเก็บเงินปลายทาง</p>
                 </div>
 
                 <div class="footer-col">

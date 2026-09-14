@@ -9,14 +9,14 @@ require_once __DIR__ . '/includes/header.php';
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/seller-otp.css">
 <main class="verification-page" id="main-content"><section class="verification-result seller-otp-card">
  <div class="result-icon <?php echo $hasChallenge?'is-success':'is-warning'; ?>"><i class="fa-solid fa-key"></i></div>
- <p class="eyebrow">SELLER VERIFICATION</p><h1>ยืนยันอีเมลด้วย OTP</h1>
- <?php if($hasChallenge):?><p class="result-lead">กรอกรหัสตัวเลข 6 หลักที่ส่งไปยังอีเมล รหัสมีอายุ 10 นาทีและใช้ได้ครั้งเดียว</p>
+ <p class="eyebrow">ยืนยันบัญชีผู้ขาย</p><h1>กรอกรหัส OTP</h1>
+ <?php if($hasChallenge):?><p class="result-lead">กรอกรหัส 6 หลักจากอีเมล รหัสใช้ได้ 10 นาที</p>
  <div class="auth-error" id="otpError"><i class="fa-solid fa-circle-exclamation"></i><span></span></div>
  <form id="sellerOtpForm" class="auth-form"><input type="hidden" name="action" value="verify_seller_otp"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>">
   <div class="auth-field"><label for="otpCode">รหัส OTP</label><div class="auth-input"><i class="fa-solid fa-shield-halved"></i><input id="otpCode" class="otp-input" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus></div></div>
   <button class="btn btn-primary auth-submit" id="verifyOtpBtn" type="submit">ยืนยันและเข้าสู่ระบบ</button>
  </form><button class="otp-resend" id="resendOtpBtn" type="button">ส่ง OTP ใหม่</button><p class="resend-result" id="resendResult"></p>
- <?php else:?><p class="result-lead">ไม่พบคำขอยืนยัน กรุณากลับไปสมัครบัญชีผู้ขายใหม่</p><a class="btn btn-primary result-action" href="<?php echo BASE_URL; ?>seller-register.php">สมัครบัญชีผู้ขาย</a><?php endif;?>
+ <?php else:?><p class="result-lead">ไม่พบรายการที่รอยืนยัน โปรดสมัครบัญชีผู้ขายอีกครั้ง</p><a class="btn btn-primary result-action" href="<?php echo BASE_URL; ?>seller-register.php">สมัครบัญชีผู้ขาย</a><?php endif;?>
 </section></main>
 <?php if($hasChallenge):?><script>
 const otpForm=document.getElementById('sellerOtpForm'),otpError=document.getElementById('otpError');
