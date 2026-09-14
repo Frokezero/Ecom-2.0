@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/security_monitor.php';
 if (!isLoggedIn()) jsonResponse('error', 'กรุณาเข้าสู่ระบบ', [], 401);
+if (!isSeller()) jsonResponse('error', 'ต้องใช้บัญชีผู้ขายที่สมัครแยกจากบัญชีผู้ซื้อ', [], 403);
 requireCsrf();
 if (($_POST['action'] ?? '') !== 'apply') jsonResponse('error', 'คำขอไม่ถูกต้อง', [], 400);
 require_once __DIR__ . '/../config/database.php';

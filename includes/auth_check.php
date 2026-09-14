@@ -25,5 +25,9 @@ function requireAdmin() {
 }
 function requireSeller() {
     requireLogin();
-    if (!isSeller()) { recordUnauthorizedAccess('seller'); header("Location: " . BASE_URL . "seller.php"); exit; }
+    if (!isSeller()) { recordUnauthorizedAccess('seller'); header("Location: " . BASE_URL . "seller-register.php?error=separate_account"); exit; }
+}
+function requireBuyer() {
+    requireLogin();
+    if (($_SESSION['user_role'] ?? '') !== 'customer') { recordUnauthorizedAccess('customer'); header("Location: " . BASE_URL . "index.php?error=buyer_account_required"); exit; }
 }

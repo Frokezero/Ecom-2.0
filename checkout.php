@@ -2,7 +2,7 @@
 // checkout.php
 $page_title = "ชำระเงิน";
 require_once __DIR__ . '/includes/auth_check.php';
-requireLogin();
+requireBuyer();
 require_once __DIR__ . '/config/database.php';
 
 $cart = $_SESSION['cart'] ?? [];

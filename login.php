@@ -29,7 +29,7 @@ require_once __DIR__.'/includes/header.php';
         <p class="auth-switch">ยังไม่มีบัญชี? <a href="<?php echo BASE_URL; ?>register.php">สมัครสมาชิกฟรี</a></p>
     </div>
 </section>
-<a class="seller-login-banner" href="<?php echo BASE_URL; ?>register.php?seller=1" aria-label="สมัครเปิดร้านค้ากับ KitchenMate">
+<a class="seller-login-banner" href="<?php echo BASE_URL; ?>seller-register.php" aria-label="สมัครบัญชีผู้ขายกับ KitchenMate">
     <span class="seller-login-banner-icon"><i class="fa-solid fa-store"></i></span>
     <span class="seller-login-banner-copy"><small>KITCHENMATE SELLER</small><strong>อยากขายสินค้ากับเรา?</strong><em>สมัครเปิดร้าน ส่งข้อมูลให้ทีมงานตรวจสอบ และเริ่มจัดการสินค้าผ่านศูนย์ผู้ขาย</em></span>
     <span class="seller-login-banner-action">สมัครเป็นร้านค้า <i class="fa-solid fa-arrow-right"></i></span>

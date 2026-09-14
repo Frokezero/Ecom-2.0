@@ -2,7 +2,7 @@
 // my-orders.php
 $page_title = "คำสั่งซื้อของฉัน";
 require_once __DIR__ . '/includes/auth_check.php';
-requireLogin();
+requireBuyer();
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/header.php';

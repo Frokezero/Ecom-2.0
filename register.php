@@ -2,7 +2,6 @@
 require_once __DIR__.'/includes/functions.php';
 if(isLoggedIn()){header('Location: '.BASE_URL.(isAdmin()?'admin/index.php':'index.php'));exit;}
 $sellerRegistration=($_GET['seller']??'')==='1';
-if($sellerRegistration)$_SESSION['redirect_url']=parse_url(BASE_URL,PHP_URL_PATH).'seller.php';
 $page_title='สมัครสมาชิก';
 require_once __DIR__.'/includes/header.php';
 ?>
@@ -22,10 +21,11 @@ require_once __DIR__.'/includes/header.php';
             <div class="auth-form-row"><div class="auth-field"><label for="email">อีเมล</label><div class="auth-input"><i class="fa-regular fa-envelope"></i><input type="email" id="email" name="email" required maxlength="100" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="email@example.com"></div><p class="field-hint">ใช้อีเมลจริงเพื่อรับลิงก์ยืนยันบัญชี</p></div><div class="auth-field"><label for="phone">เบอร์โทรศัพท์ <small>ไม่บังคับ</small></label><div class="auth-input"><i class="fa-solid fa-phone"></i><input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" maxlength="12" pattern="(?:0[0-9]{8,9}|\+66[0-9]{8,9})" placeholder="0898765432"></div><p class="field-hint">ตัวเลข 9–10 หลัก ห้ามเว้นวรรคหรือใส่ขีดกลาง</p></div></div>
             <div class="auth-form-row"><div class="auth-field"><label for="password">รหัสผ่าน</label><div class="auth-input"><i class="fa-solid fa-key"></i><input type="password" id="password" name="password" required minlength="10" maxlength="72" autocomplete="new-password" placeholder="อย่างน้อย 10 ตัว"><button class="password-toggle" type="button" data-password-toggle="password" aria-label="แสดงรหัสผ่าน"><i class="fa-regular fa-eye"></i></button></div><div class="password-meter"><span id="passwordMeter"></span></div><p class="password-strength" id="passwordStrength">ต้องมีตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข</p></div><div class="auth-field"><label for="passwordConfirm">ยืนยันรหัสผ่าน</label><div class="auth-input"><i class="fa-solid fa-key"></i><input type="password" id="passwordConfirm" name="password_confirm" required minlength="10" maxlength="72" autocomplete="new-password" placeholder="กรอกอีกครั้ง"><button class="password-toggle" type="button" data-password-toggle="passwordConfirm" aria-label="แสดงรหัสผ่าน"><i class="fa-regular fa-eye"></i></button></div><p class="field-hint" id="matchHint"></p></div></div>
             <label class="terms-check"><input type="checkbox" name="accept_terms" value="1" required> <span>ฉันยืนยันว่าข้อมูลถูกต้อง และยอมรับเงื่อนไขการใช้งาน ระบบจะส่งลิงก์ยืนยันไปยังอีเมลนี้</span></label>
-            <input type="hidden" name="action" value="register"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>">
+            <input type="hidden" name="action" value="register"><input type="hidden" name="account_type" value="<?php echo $sellerRegistration?'seller':'customer'; ?>"><input type="hidden" name="csrf_token" value="<?php echo e(getCsrfToken()); ?>">
             <button type="submit" id="registerBtn" class="btn btn-primary auth-submit"><span>สร้างบัญชีสมาชิก</span><i class="fa-solid fa-user-plus"></i></button>
         </form>
         <p class="auth-switch">มีบัญชีอยู่แล้ว? <a href="<?php echo BASE_URL; ?>login.php">เข้าสู่ระบบ</a></p>
+        <p class="auth-switch"><?php if($sellerRegistration):?>ต้องการซื้อสินค้า? <a href="<?php echo BASE_URL; ?>register.php">สมัครบัญชีผู้ซื้อ</a><?php else:?>ต้องการเปิดร้าน? <a href="<?php echo BASE_URL; ?>seller-register.php">สมัครบัญชีผู้ขายใหม่</a><?php endif;?></p>
     </div>
 </section></div>
 <script nonce="<?php echo e(cspNonce()); ?>">

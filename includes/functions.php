@@ -130,11 +130,18 @@ function isLoggedIn(): bool {
         require_once __DIR__ . '/../config/database.php';
         $db = (new Database())->getConnection();
         if (!$db) return $validated = false;
-        $stmt = $db->prepare('SELECT auth_version FROM users WHERE id=? LIMIT 1');
+        $stmt = $db->prepare('SELECT username,full_name,email,role,auth_version FROM users WHERE id=? LIMIT 1');
         $stmt->execute([(int)$_SESSION['user_id']]);
-        $version = $stmt->fetchColumn();
+        $account = $stmt->fetch(PDO::FETCH_ASSOC);
+        $version = $account['auth_version'] ?? false;
         if ($version !== false && !isset($_SESSION['auth_version'])) $_SESSION['auth_version'] = (int)$version;
         $validated = $version !== false && hash_equals((string)$version, (string)$_SESSION['auth_version']);
+        if ($validated) {
+            $_SESSION['username'] = (string)$account['username'];
+            $_SESSION['full_name'] = (string)$account['full_name'];
+            $_SESSION['email'] = (string)$account['email'];
+            $_SESSION['user_role'] = (string)$account['role'];
+        }
         if (!$validated) unset($_SESSION['user_id'], $_SESSION['username'], $_SESSION['full_name'], $_SESSION['email'], $_SESSION['user_role'], $_SESSION['auth_version']);
         return $validated;
     } catch (Throwable $e) {

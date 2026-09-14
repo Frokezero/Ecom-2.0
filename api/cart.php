@@ -22,6 +22,7 @@ function cartSummary(): array {
 
 if ($action === 'get') jsonResponse('success', 'โหลดตะกร้าสำเร็จ', cartSummary());
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonResponse('error', 'อนุญาตเฉพาะ POST', [], 405);
+if (isSeller() || isAdmin()) jsonResponse('error', 'ตะกร้าสินค้าใช้ได้เฉพาะบัญชีผู้ซื้อ', [], 403);
 requireCsrf();
 if (!$db) jsonResponse('error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', [], 503);
 protectApiMutation($db,'api.cart',90,60);

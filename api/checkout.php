@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/commerce_workflow.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonResponse('error','อนุญาตเฉพาะ POST',[],405);
 if (!isLoggedIn()) jsonResponse('error','กรุณาเข้าสู่ระบบ',[],401);
+if (($_SESSION['user_role']??'') !== 'customer') jsonResponse('error','การสั่งซื้อต้องใช้บัญชีผู้ซื้อ กรุณาเข้าสู่ระบบด้วยบัญชีผู้ซื้อ',[],403);
 requireCsrf();
 $db=(new Database())->getConnection();
 if (!$db) jsonResponse('error','ไม่สามารถเชื่อมต่อฐานข้อมูลได้',[],503);

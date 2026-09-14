@@ -1,6 +1,10 @@
 <?php
 require_once __DIR__ . '/includes/auth_check.php';
 requireLogin();
+if (isSeller()) {
+    header('Location: ' . BASE_URL . 'seller-dashboard.php');
+    exit;
+}
 require_once __DIR__ . '/config/database.php';
 
 $db = (new Database())->getConnection();
@@ -41,8 +45,6 @@ require_once __DIR__ . '/includes/header.php';
             <div><i class="fa-solid fa-receipt"></i><span><small>ยอดสั่งซื้อสะสม</small><strong><?php echo formatCurrency($orderStats['spent']); ?></strong></span></div>
             <button type="button" data-profile-tab="payment"><i class="fa-solid <?php echo $user['preferred_payment_method'] === 'promptpay' ? 'fa-qrcode' : 'fa-truck-ramp-box'; ?>"></i><span><small>วิธีชำระเงินหลัก</small><strong><?php echo $user['preferred_payment_method'] === 'promptpay' ? 'PromptPay' : 'เก็บเงินปลายทาง'; ?></strong></span><i class="fa-solid fa-pen"></i></button>
         </section>
-
-        <a class="profile-seller-cta" href="<?php echo BASE_URL; ?><?php echo isSeller() ? 'my-store.php' : 'seller.php'; ?>"><span class="profile-seller-icon"><i class="fa-solid fa-store"></i></span><span><small><?php echo isSeller() ? 'จัดการหน้าร้านและสินค้าของคุณ' : 'อยากเริ่มขายสินค้ากับเรา?'; ?></small><strong><?php echo isSeller() ? 'ร้านค้าของฉัน' : 'เปิดร้านกับ KitchenMate'; ?></strong><em><?php echo isSeller() ? 'แก้ไขสินค้า ตกแต่งร้าน และจัดโปรโมชันได้จากที่เดียว' : 'ใช้บัญชีเดิม สมัครได้ในไม่กี่ขั้นตอน'; ?></em></span><i class="fa-solid fa-arrow-right"></i></a>
 
         <div class="profile-layout">
             <aside class="profile-sidebar">

@@ -41,6 +41,7 @@ if ($action === 'register') {
     $username=trim($_POST['username'] ?? ''); $email=strtolower(trim($_POST['email'] ?? '')); $password=$_POST['password'] ?? '';
     $passwordConfirm=$_POST['password_confirm'] ?? '';
     $fullName=trim($_POST['full_name'] ?? ''); $phone=trim($_POST['phone'] ?? '');
+    $accountType=($_POST['account_type']??'customer')==='seller'?'seller':'customer';
     $reservedUsernames=['admin','administrator','root','system','support','staff','moderator','kitchenmart','official','null','undefined'];
     if (!preg_match('/^[A-Za-z][A-Za-z0-9]{2,29}$/',$username)) jsonResponse('error','ชื่อผู้ใช้ต้องมี 3–30 ตัว เริ่มด้วยตัวอักษรอังกฤษ และใช้ได้เฉพาะ A–Z กับตัวเลขเท่านั้น ห้ามเว้นวรรคหรือใช้อักขระพิเศษ',['field'=>'username'],422);
     if (in_array(strtolower($username),$reservedUsernames,true)) jsonResponse('error','ชื่อผู้ใช้นี้เป็นชื่อสงวนของระบบ กรุณาเลือกชื่ออื่น',['field'=>'username'],422);
@@ -55,13 +56,13 @@ if ($action === 'register') {
     if (($_POST['accept_terms'] ?? '')!=='1') jsonResponse('error','กรุณายอมรับเงื่อนไขการใช้งาน',['field'=>'accept_terms'],422);
     $stmt=$db->prepare('SELECT id FROM users WHERE username=? LIMIT 1');$stmt->execute([$username]);if($stmt->fetch())jsonResponse('error','ชื่อผู้ใช้นี้ถูกใช้งานแล้ว กรุณาเลือกชื่อผู้ใช้อื่น',['field'=>'username'],409);
     $stmt=$db->prepare('SELECT id FROM users WHERE email=? LIMIT 1');$stmt->execute([$email]);if($stmt->fetch())jsonResponse('error','อีเมลนี้ถูกใช้สมัครสมาชิกแล้ว กรุณาเข้าสู่ระบบหรือใช้อีเมลอื่น',['field'=>'email'],409);
-    try{$stmt=$db->prepare("INSERT INTO users (username,email,password_hash,full_name,phone,address,role,email_verified_at) VALUES (?,?,?,?,?,'','customer',NULL)");$stmt->execute([$username,$email,password_hash($password,PASSWORD_DEFAULT),$fullName,$phone]);}
+    try{$stmt=$db->prepare("INSERT INTO users (username,email,password_hash,full_name,phone,address,role,email_verified_at) VALUES (?,?,?,?,?,'',?,NULL)");$stmt->execute([$username,$email,password_hash($password,PASSWORD_DEFAULT),$fullName,$phone,$accountType]);}
     catch(PDOException $e){if((int)($e->errorInfo[1]??0)===1062)jsonResponse('error','ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้แล้ว กรุณาเข้าสู่ระบบหรือเลือกข้อมูลอื่น',['field'=>'username'],409);throw $e;}
     $userId=(int)$db->lastInsertId();$delivery='sent';
     try{sendVerificationEmail($db,$userId,$email,$fullName);}
     catch(Throwable $e){$delivery='failed';$db->prepare('UPDATE users SET email_verification_sent_at=NULL WHERE id=?')->execute([$userId]);}
     $redirect=BASE_URL.'check-email.php?email='.rawurlencode($email).($delivery==='failed'?'&delivery=failed':'');
-    jsonResponse('success',$delivery==='sent'?'สมัครสมาชิกแล้ว กรุณาตรวจอีเมลเพื่อยืนยันบัญชี':'สร้างบัญชีแล้ว แต่ยังส่งอีเมลไม่ได้ กรุณาตั้งค่า SMTP และกดส่งซ้ำ',['redirect'=>$redirect,'delivery'=>$delivery]);
+    jsonResponse('success',$delivery==='sent'?($accountType==='seller'?'สร้างบัญชีผู้ขายแล้ว กรุณายืนยันอีเมลก่อนกรอกข้อมูลร้าน':'สมัครสมาชิกแล้ว กรุณาตรวจอีเมลเพื่อยืนยันบัญชี'):'สร้างบัญชีแล้ว แต่ยังส่งอีเมลไม่ได้ กรุณาตั้งค่า SMTP และกดส่งซ้ำ',['redirect'=>$redirect,'delivery'=>$delivery]);
 }
 if ($action === 'login') {
     $identity=trim($_POST['username_email'] ?? ''); $password=$_POST['password'] ?? '';
@@ -97,7 +98,7 @@ if ($action === 'login') {
     $db->prepare('DELETE FROM login_attempts WHERE attempted_at<DATE_SUB(NOW(),INTERVAL 30 DAY)')->execute();
     session_regenerate_id(true); $_SESSION['user_id']=(int)$user['id']; $_SESSION['username']=$user['username'];
     $_SESSION['full_name']=$user['full_name']; $_SESSION['email']=$user['email']; $_SESSION['user_role']=$user['role'];
-    $redirect=BASE_URL.($user['role']==='admin'?'admin/index.php':'index.php');
+    $redirect=BASE_URL.($user['role']==='admin'?'admin/index.php':($user['role']==='seller'?'seller-dashboard.php':'index.php'));
     $requested=$_SESSION['redirect_url'] ?? '';unset($_SESSION['redirect_url']);
     if(is_string($requested)&&str_starts_with($requested,'/')&&!str_starts_with($requested,'//')&&($user['role']==='admin'||!str_contains($requested,'/admin/')))$redirect=$requested;
     jsonResponse('success','เข้าสู่ระบบสำเร็จ',['redirect'=>$redirect]);

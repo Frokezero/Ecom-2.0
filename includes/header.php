@@ -68,10 +68,11 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
             <div class="header-actions">
                 <?php if (isLoggedIn()): ?>
                     <div class="account-menu">
-                        <a href="<?php echo BASE_URL; ?>profile.php" class="icon-link account-trigger" aria-label="โปรไฟล์ของฉัน"><i class="fa-regular fa-user"></i><span><?php echo e($_SESSION['username']); ?></span><i class="fa-solid fa-chevron-down account-chevron"></i></a>
+                        <a href="<?php echo BASE_URL; ?><?php echo isSeller() ? 'seller-dashboard.php' : 'profile.php'; ?>" class="icon-link account-trigger" aria-label="โปรไฟล์ของฉัน"><i class="fa-regular fa-user"></i><span><?php echo e($_SESSION['username']); ?></span><i class="fa-solid fa-chevron-down account-chevron"></i></a>
                         <div class="account-dropdown">
                             <div class="account-dropdown-head"><span class="account-mini-avatar"><?php echo e(strtoupper(mb_substr(trim($_SESSION['full_name'] ?: $_SESSION['username']),0,1))); ?></span><span><strong><?php echo e($_SESSION['full_name'] ?: $_SESSION['username']); ?></strong><small><?php echo e($_SESSION['email'] ?? ''); ?></small></span></div>
-                            <a href="<?php echo BASE_URL; ?>profile.php"><i class="fa-regular fa-user"></i> ข้อมูลส่วนตัว</a>
+                            <a href="<?php echo BASE_URL; ?><?php echo isSeller() ? 'seller-dashboard.php' : 'profile.php'; ?>"><i class="fa-regular fa-user"></i> <?php echo isSeller() ? 'ศูนย์ผู้ขาย' : 'ข้อมูลส่วนตัว'; ?></a>
+                            <?php if(($_SESSION['user_role']??'')==='customer'):?>
                             <a href="<?php echo BASE_URL; ?>profile.php#address"><i class="fa-solid fa-location-dot"></i> ที่อยู่จัดส่ง</a>
                             <a href="<?php echo BASE_URL; ?>address-book.php"><i class="fa-solid fa-address-book"></i> สมุดที่อยู่</a>
                             <a href="<?php echo BASE_URL; ?>profile.php#payment"><i class="fa-regular fa-credit-card"></i> วิธีชำระเงิน</a>
@@ -79,6 +80,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
                             <a href="<?php echo BASE_URL; ?>wishlist.php"><i class="fa-regular fa-heart"></i> รายการโปรด</a>
                             <a href="<?php echo BASE_URL; ?>my-orders.php" class="account-orders-link"><i class="fa-solid fa-box"></i> คำสั่งซื้อของฉัน <i class="fa-solid fa-arrow-right"></i></a>
                             <a href="<?php echo BASE_URL; ?>my-returns.php"><i class="fa-solid fa-arrow-rotate-left"></i> การคืนสินค้า</a>
+                            <?php elseif(isSeller()):?><a href="<?php echo BASE_URL; ?>seller-dashboard.php"><i class="fa-solid fa-store"></i> ศูนย์ผู้ขาย</a><?php endif;?>
                             <a href="<?php echo BASE_URL; ?>support.php"><i class="fa-solid fa-headset"></i> ศูนย์ช่วยเหลือ</a>
                             <button type="button" onclick="secureLogout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ออกจากระบบ</button>
                         </div>
@@ -87,7 +89,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
                     <a href="<?php echo BASE_URL; ?>login.php" class="icon-link"><i class="fa-regular fa-user"></i><span>เข้าสู่ระบบ</span></a>
                 <?php endif; ?>
                 <?php if (isLoggedIn()): ?><div class="notification-menu"><button type="button" class="notification-trigger" id="notificationTrigger" aria-label="การแจ้งเตือน"><i class="fa-regular fa-bell"></i><b id="notificationBadge" hidden>0</b></button><div class="notification-dropdown" id="notificationDropdown"><header><strong>การแจ้งเตือน</strong><a href="<?php echo BASE_URL; ?>notifications.php">ดูทั้งหมด</a></header><div class="notification-preview-list" id="notificationPreviewList"><p class="notification-preview-empty">กำลังโหลด...</p></div></div></div><?php endif; ?>
-                <div class="cart-menu">
+                <?php if(!isLoggedIn()||($_SESSION['user_role']??'')==='customer'):?><div class="cart-menu">
                     <a href="<?php echo BASE_URL; ?>cart.php" class="cart-link" aria-label="ตะกร้า มี <?php echo $cart_count; ?> ชิ้น"><i class="fa-solid fa-basket-shopping"></i><span>ตะกร้า</span><b id="cartCountBadge"><?php echo $cart_count; ?></b></a>
                     <div class="cart-dropdown">
                         <header><strong>ตะกร้าสินค้าของคุณ</strong><span><?php echo $cart_count; ?> ชิ้น</span></header>
@@ -100,7 +102,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
                             <div class="cart-preview-empty"><i class="fa-solid fa-basket-shopping"></i><strong>ตะกร้ายังว่างอยู่</strong><p>เลือกของดีเข้าครัวได้เลย</p><a href="<?php echo BASE_URL; ?>products.php">เลือกซื้อสินค้า</a></div>
                         <?php endif; ?>
                     </div>
-                </div>
+                </div><?php endif;?>
                 <button class="mobile-toggle" type="button" onclick="document.getElementById('siteNav').classList.toggle('open')" aria-label="เปิดเมนู"><i class="fa-solid fa-bars"></i></button>
             </div>
         </div>

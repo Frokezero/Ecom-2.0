@@ -6,15 +6,17 @@ $token = (string)($_GET['token'] ?? '');
 $verified = false;
 $expired = false;
 $email = '';
+$accountRole = 'customer';
 
 if (preg_match('/^[a-f0-9]{64}$/', $token)) {
     $db = (new Database())->getConnection();
     if ($db) {
-        $stmt = $db->prepare('SELECT id,email,email_verification_expires_at FROM users WHERE email_verification_token_hash=? AND email_verified_at IS NULL LIMIT 1');
+        $stmt = $db->prepare('SELECT id,email,role,email_verification_expires_at FROM users WHERE email_verification_token_hash=? AND email_verified_at IS NULL LIMIT 1');
         $stmt->execute([hash('sha256', $token)]);
         $user = $stmt->fetch();
         if ($user) {
             $email = $user['email'];
+            $accountRole = $user['role'];
             if (strtotime($user['email_verification_expires_at']) < time()) {
                 $expired = true;
             } else {
@@ -37,7 +39,7 @@ require_once __DIR__ . '/includes/header.php';
             <div class="result-icon is-success"><i class="fa-solid fa-check"></i></div>
             <p class="eyebrow">ACCOUNT ACTIVATED</p>
             <h1 id="resultTitle">ยืนยันอีเมลสำเร็จแล้ว</h1>
-            <p class="result-lead">ยืนยันบัญชีสำเร็จ เริ่มเลือกซื้อสินค้าได้เลย</p>
+            <p class="result-lead"><?php echo $accountRole==='seller'?'ยืนยันบัญชีผู้ขายสำเร็จ เข้าสู่ระบบเพื่อกรอกข้อมูลร้านและส่งคำขอเปิดร้าน':'ยืนยันบัญชีผู้ซื้อสำเร็จ เริ่มเลือกซื้อสินค้าได้เลย';?></p>
             <?php if ($email): ?><div class="result-email"><i class="fa-regular fa-envelope"></i><?php echo e($email); ?></div><?php endif; ?>
             <a class="btn btn-primary result-action" href="<?php echo BASE_URL; ?>login.php"><i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ</a>
             <div class="result-perks"><span><i class="fa-solid fa-bag-shopping"></i> สั่งซื้อสะดวก</span><span><i class="fa-solid fa-truck-fast"></i> ติดตามสถานะได้</span><span><i class="fa-solid fa-star"></i> รีวิวสินค้าได้</span></div>

@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/auth_check.php';
-requireLogin();
+requireSeller();
 require_once __DIR__ . '/config/database.php';
 $db = (new Database())->getConnection();
 if (!$db) { http_response_code(503); exit('ไม่สามารถเชื่อมต่อฐานข้อมูลได้'); }
@@ -18,7 +18,7 @@ require_once __DIR__ . '/includes/header.php';
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/seller.css">
 <div class="seller-page"><div class="container">
     <nav class="seller-breadcrumb"><a href="<?php echo BASE_URL; ?>profile.php">บัญชีของฉัน</a><i class="fa-solid fa-chevron-right"></i><span>เปิดร้านกับ KitchenMate</span></nav>
-    <section class="seller-hero"><div><p class="eyebrow">สำหรับผู้ขาย</p><h1>เปิดร้านกับ KitchenMate</h1><p>สมัครด้วยบัญชีเดิม ทีมงานจะตรวจข้อมูลก่อนเปิดร้าน</p><a class="btn" href="#sellerApplication">สมัครเป็นผู้ขาย <i class="fa-solid fa-arrow-down"></i></a></div><aside><span><i class="fa-solid fa-store"></i></span><strong>จัดการร้านในบัญชีเดียว</strong><ul><li><i class="fa-solid fa-check"></i> เพิ่มสินค้าและจัดการสต็อก</li><li><i class="fa-solid fa-check"></i> จัดการคำสั่งซื้อ</li><li><i class="fa-solid fa-check"></i> ตรวจสอบยอดขาย</li></ul></aside></section>
+    <section class="seller-hero"><div><p class="eyebrow">บัญชีผู้ขาย</p><h1>เปิดร้านกับ KitchenMate</h1><p>กรอกข้อมูลร้านด้วยบัญชีผู้ขายนี้ ทีมงานจะตรวจสอบก่อนเปิดสิทธิ์ขาย</p><a class="btn" href="#sellerApplication">กรอกข้อมูลร้าน <i class="fa-solid fa-arrow-down"></i></a></div><aside><span><i class="fa-solid fa-store"></i></span><strong>บัญชีนี้ใช้สำหรับขายสินค้า</strong><ul><li><i class="fa-solid fa-check"></i> เพิ่มสินค้าและจัดการสต็อก</li><li><i class="fa-solid fa-check"></i> จัดการคำสั่งซื้อ</li><li><i class="fa-solid fa-check"></i> ตรวจสอบยอดขาย</li></ul></aside></section>
     <ol class="seller-steps"><li class="active"><b>1</b><span><strong>ข้อมูลร้าน</strong><small>บอกเราว่าคุณขายอะไร</small></span></li><li><b>2</b><span><strong>รับเงินและคืนสินค้า</strong><small>ตั้งค่าการรับเงิน</small></span></li><li><b>3</b><span><strong>ส่งคำขอ</strong><small>รอทีมงานตรวจสอบ</small></span></li></ol>
     <?php if (!$user['email_verified_at']): ?>
         <section class="seller-email-note"><i class="fa-solid fa-envelope-circle-check"></i><div><strong>ยืนยันอีเมลก่อนเริ่มสมัคร</strong><p>เพื่อความปลอดภัยของร้าน กรุณายืนยันอีเมลของบัญชีนี้ก่อนส่งคำขอเปิดร้าน</p></div><a class="btn btn-primary" href="<?php echo BASE_URL; ?>check-email.php">ไปยืนยันอีเมล</a></section>

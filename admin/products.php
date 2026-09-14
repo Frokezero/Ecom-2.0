@@ -132,7 +132,7 @@ if ($db) {
 }
 require_once __DIR__ . '/../includes/admin_header.php';
 ?>
-<header class="admin-page-header"><div><p class="eyebrow">MALL PRODUCTS</p><h1>สินค้าของเว็บไซต์</h1><p>เพิ่ม แก้ไข และจัดการสต็อกเฉพาะสินค้าที่เว็บไซต์เป็นเจ้าของ</p></div><div class="admin-actions"><a href="<?php echo BASE_URL; ?>admin/seller-products.php" class="btn btn-outline"><i class="fa-solid fa-store"></i> ไปสินค้าผู้ขาย</a><button type="button" onclick="openAddProductModal()" class="btn btn-primary"><i class="fa-solid fa-plus"></i> เพิ่มสินค้าเว็บไซต์</button></div></header>
+<header class="admin-page-header"><div><p class="eyebrow">MALL PRODUCTS</p><h1>สินค้าของเว็บไซต์</h1><p>เพิ่ม แก้ไข และจัดการสต็อกเฉพาะสินค้าที่เว็บไซต์เป็นเจ้าของ</p></div><div class="admin-actions"><a href="<?php echo BASE_URL; ?>admin/stores.php" class="btn btn-outline"><i class="fa-solid fa-store"></i> ดูสินค้าตามร้านค้า</a><button type="button" onclick="openAddProductModal()" class="btn btn-primary"><i class="fa-solid fa-plus"></i> เพิ่มสินค้าเว็บไซต์</button></div></header>
 <?php if($message): ?><div class="admin-alert success"><i class="fa-solid fa-circle-check"></i> <?php echo e($message); ?></div><?php endif; ?>
 <?php if($error): ?><div class="admin-alert error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo e($error); ?></div><?php endif; ?>
 

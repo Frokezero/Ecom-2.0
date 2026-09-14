@@ -1,0 +1,26 @@
+<?php
+$root=dirname(__DIR__);
+$read=static fn(string $path):string=>(string)file_get_contents($root.'/'.$path);
+$assert=static function(bool $condition,string $message):void{if(!$condition){fwrite(STDERR,"FAIL: $message\n");exit(1);}};
+$auth=$read('api/auth.php');
+$assert(str_contains($auth,"==='seller'?'seller':'customer'"),'registration must distinguish seller and buyer accounts');
+$assert(str_contains($auth,"\$user['role']==='seller'?'seller-dashboard.php':'index.php'"),'seller login must redirect to seller dashboard');
+$register=$read('register.php');
+$assert(str_contains($register,'name="account_type"'),'registration form must submit account type');
+$assert(is_file($root.'/seller-register.php'),'dedicated seller registration page must exist');
+$sellerApi=$read('api/seller.php');
+$assert(str_contains($sellerApi,'if (!isSeller())'),'seller application API must reject buyer accounts');
+$checkout=$read('api/checkout.php');
+$assert(str_contains($checkout,"!== 'customer'")||str_contains($checkout,"!=='customer'"),'checkout API must accept only buyer accounts');
+$cart=$read('api/cart.php');
+$assert(str_contains($cart,'isSeller() || isAdmin()'),'cart mutations must reject seller and admin accounts');
+$admin=$read('admin/sellers.php');
+$assert(str_contains($admin,'u.role="seller"'),'seller approval must require a seller account');
+$guard=$read('includes/auth_check.php');
+$assert(str_contains($guard,'function requireBuyer()'),'buyer page guard must exist');
+$functions=$read('includes/functions.php');
+$assert(str_contains($functions,'SELECT username,full_name,email,role,auth_version FROM users'),'session must refresh the current role from the database');
+$profile=$read('profile.php');
+$assert(!str_contains($profile,'profile-seller-cta'),'buyer profile must not show a seller signup banner');
+$assert(str_contains($profile,'seller-dashboard.php'),'seller must not open the buyer profile page');
+echo "Account separation tests passed\n";
