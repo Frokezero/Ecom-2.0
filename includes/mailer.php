@@ -2,7 +2,8 @@
 require_once __DIR__ . '/../config/config.php';
 
 function mailAppUrl(): string {
-    return rtrim(appConfig('APP_URL', BASE_URL), '/') . '/';
+    $configuredUrl = trim(appConfig('APP_URL', ''));
+    return rtrim($configuredUrl !== '' ? $configuredUrl : BASE_URL, '/') . '/';
 }
 
 function smtpRead($socket): string {

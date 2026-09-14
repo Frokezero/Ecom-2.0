@@ -5,12 +5,13 @@ requireAdmin();
 require_once __DIR__ . '/../config/database.php';
 $db = (new Database())->getConnection();
 
-$metrics = ['products'=>0,'low_stock'=>0,'orders'=>0,'pending'=>0,'revenue'=>0,'month_revenue'=>0,'mail_pending'=>0,'mail_dead'=>0,'mail_stale'=>0];
+$metrics = ['products'=>0,'seller_products'=>0,'low_stock'=>0,'orders'=>0,'pending'=>0,'revenue'=>0,'month_revenue'=>0,'mail_pending'=>0,'mail_dead'=>0,'mail_stale'=>0];
 $paymentCounts = ['promptpay'=>0,'cod'=>0];
 $recentOrders = [];
 if ($db) {
-    $metrics['products'] = (int)$db->query('SELECT COUNT(*) FROM products')->fetchColumn();
-    $metrics['low_stock'] = (int)$db->query('SELECT COUNT(*) FROM products WHERE stock_quantity <= 5')->fetchColumn();
+    $metrics['products'] = (int)$db->query('SELECT COUNT(*) FROM products WHERE seller_id IS NULL')->fetchColumn();
+    $metrics['seller_products'] = (int)$db->query('SELECT COUNT(*) FROM products WHERE seller_id IS NOT NULL')->fetchColumn();
+    $metrics['low_stock'] = (int)$db->query('SELECT COUNT(*) FROM products WHERE seller_id IS NULL AND stock_quantity <= 5')->fetchColumn();
     $metrics['orders'] = (int)$db->query('SELECT COUNT(*) FROM orders')->fetchColumn();
     $metrics['pending'] = (int)$db->query("SELECT COUNT(*) FROM orders WHERE order_status='pending'")->fetchColumn();
     $metrics['revenue'] = (float)$db->query("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE payment_status='paid' OR order_status='completed'")->fetchColumn();
@@ -34,8 +35,9 @@ require_once __DIR__ . '/../includes/admin_header.php';
 </section>
 
 <section class="stat-grid admin-secondary-stats" aria-label="ข้อมูลสินค้าและการชำระเงิน">
-    <article class="stat-card"><div><small>สินค้าในระบบ</small><strong><?php echo number_format($metrics['products']); ?> รายการ</strong></div><i class="fa-solid fa-boxes-stacked"></i></article>
-    <article class="stat-card <?php echo $metrics['low_stock'] ? 'warning' : ''; ?>"><div><small>สต็อกต่ำ ≤ 5 ชิ้น</small><strong><?php echo number_format($metrics['low_stock']); ?> รายการ</strong></div><i class="fa-solid fa-box-open"></i></article>
+    <article class="stat-card"><div><small>สินค้าของเว็บไซต์</small><strong><?php echo number_format($metrics['products']); ?> รายการ</strong></div><i class="fa-solid fa-boxes-stacked"></i></article>
+    <article class="stat-card"><div><small>สินค้าของผู้ขาย</small><strong><?php echo number_format($metrics['seller_products']); ?> รายการ</strong></div><i class="fa-solid fa-store"></i></article>
+    <article class="stat-card <?php echo $metrics['low_stock'] ? 'warning' : ''; ?>"><div><small>สต็อกเว็บไซต์ต่ำ ≤ 5</small><strong><?php echo number_format($metrics['low_stock']); ?> รายการ</strong></div><i class="fa-solid fa-box-open"></i></article>
     <article class="stat-card"><div><small>ชำระด้วย PromptPay</small><strong><?php echo number_format($paymentCounts['promptpay']); ?> ออเดอร์</strong></div><i class="fa-solid fa-qrcode"></i></article>
     <article class="stat-card"><div><small>เก็บเงินปลายทาง</small><strong><?php echo number_format($paymentCounts['cod']); ?> ออเดอร์</strong></div><i class="fa-solid fa-truck-ramp-box"></i></article>
 </section>

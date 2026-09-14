@@ -1,5 +1,5 @@
 <?php
-$page_title = 'สินค้าและสต็อก';
+$page_title = 'สินค้าของเว็บไซต์';
 require_once __DIR__ . '/../includes/auth_check.php';
 requireAdmin();
 require_once __DIR__ . '/../config/database.php';
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $videoUrl = null;$previousVideo=null;
         $primaryMedia = in_array(($_POST['primary_media_type'] ?? ''), ['image','video'], true) ? $_POST['primary_media_type'] : 'image';
         $imageUrl = 'assets/images/products/placeholder.svg';$previousImage=null;
-        if ($action === 'edit') { $old=$db?->prepare('SELECT image_url,video_url FROM products WHERE id=?'); if($old){$old->execute([(int)($_POST['id']??0)]);$oldMedia=$old->fetch();$previousImage=$oldMedia['image_url']??null;$previousVideo=$oldMedia['video_url']??null;$imageUrl=$previousImage ?: $imageUrl;$videoUrl=$previousVideo ?: null;} }
+        if ($action === 'edit') { $old=$db?->prepare('SELECT image_url,video_url FROM products WHERE id=? AND seller_id IS NULL'); if($old){$old->execute([(int)($_POST['id']??0)]);$oldMedia=$old->fetch();if(!$oldMedia)$error='ไม่พบสินค้าของเว็บไซต์ที่ต้องการแก้ไข';$previousImage=$oldMedia['image_url']??null;$previousVideo=$oldMedia['video_url']??null;$imageUrl=$previousImage ?: $imageUrl;$videoUrl=$previousVideo ?: null;} }
         $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
         $uploadedPaths = [];$uploadedVideo = null;
         $galleryFiles = [];
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $id=(int)($_POST['id'] ?? 0);
                     if ($id < 1) throw new RuntimeException('ไม่พบสินค้าที่ต้องการแก้ไข');
-                    $stmt=$db->prepare('UPDATE products SET category_id=?,name=?,description=?,price=?,stock_quantity=?,image_url=?,video_url=?,primary_media_type=?,is_featured=? WHERE id=?');
+                    $stmt=$db->prepare('UPDATE products SET category_id=?,name=?,description=?,price=?,stock_quantity=?,image_url=?,video_url=?,primary_media_type=?,is_featured=? WHERE id=? AND seller_id IS NULL');
                     $stmt->execute([$categoryId,$productName,$description,$price,$stock,$imageUrl,$videoUrl,$primaryMedia,$isFeatured,$id]);
                     $message='บันทึกข้อมูลสินค้าแล้ว';
                 }
@@ -105,12 +105,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($error) {foreach ($uploadedPaths as $path) deleteManagedUpload($path);if($uploadedVideo)deleteManagedVideoUpload($uploadedVideo);}
     } elseif ($action === 'delete' && $db) {
         $id=(int)($_POST['id'] ?? 0);
-        $old=$db->prepare('SELECT image_url,video_url FROM products WHERE id=?');$old->execute([$id]);$oldMedia=$old->fetch();$oldImage=$oldMedia['image_url']??null;$oldVideo=$oldMedia['video_url']??null;
+        $old=$db->prepare('SELECT image_url,video_url FROM products WHERE id=? AND seller_id IS NULL');$old->execute([$id]);$oldMedia=$old->fetch();if(!$oldMedia){$error='ไม่พบสินค้าของเว็บไซต์ที่ต้องการลบ';} $oldImage=$oldMedia['image_url']??null;$oldVideo=$oldMedia['video_url']??null;
         $gallery=$db->prepare('SELECT image_url FROM product_images WHERE product_id=?');$gallery->execute([$id]);$galleryImages=$gallery->fetchAll(PDO::FETCH_COLUMN);
-        $stmt=$db->prepare('DELETE FROM products WHERE id=?');
-        $stmt->execute([$id]);
+        $stmt=$db->prepare('DELETE FROM products WHERE id=? AND seller_id IS NULL');
+        if(!$error)$stmt->execute([$id]);
         if($stmt->rowCount()){deleteManagedUpload($oldImage);deleteManagedVideoUpload($oldVideo);foreach($galleryImages as $galleryImage)deleteManagedUpload($galleryImage);auditLog($db,'admin.product.delete','product',$id);recordSecurityEvent($db,'admin.product.delete',0,(int)$_SESSION['user_id'],['product_id'=>$id],'allowed');}
-        $message='ลบสินค้าเรียบร้อยแล้ว';
+        if(!$error)$message='ลบสินค้าเรียบร้อยแล้ว';
     }
 }
 
@@ -121,7 +121,7 @@ if (!in_array($stockFilter,['','low','available','out'],true)) $stockFilter='';
 $categories=[];$products=[];$totalProducts=0;
 if ($db) {
     $categories=$db->query('SELECT * FROM categories ORDER BY id')->fetchAll();
-    $where=' FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE 1=1';$params=[];
+    $where=' FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.seller_id IS NULL';$params=[];
     if ($q!=='') {$where.=' AND (p.name LIKE ? OR p.description LIKE ?)';$params[]="%{$q}%";$params[]="%{$q}%";}
     if ($categoryFilter>0) {$where.=' AND p.category_id=?';$params[]=$categoryFilter;}
     if ($stockFilter==='low') $where.=' AND p.stock_quantity BETWEEN 1 AND 5';
@@ -132,12 +132,12 @@ if ($db) {
 }
 require_once __DIR__ . '/../includes/admin_header.php';
 ?>
-<header class="admin-page-header"><div><p class="eyebrow">PRODUCT MANAGEMENT</p><h1>สินค้าและสต็อก</h1><p>เพิ่ม แก้ไข และตรวจสินค้าที่ต้องเติมสต็อก</p></div><div class="admin-actions"><button type="button" onclick="openAddProductModal()" class="btn btn-primary"><i class="fa-solid fa-plus"></i> เพิ่มสินค้าใหม่</button></div></header>
+<header class="admin-page-header"><div><p class="eyebrow">MALL PRODUCTS</p><h1>สินค้าของเว็บไซต์</h1><p>เพิ่ม แก้ไข และจัดการสต็อกเฉพาะสินค้าที่เว็บไซต์เป็นเจ้าของ</p></div><div class="admin-actions"><a href="<?php echo BASE_URL; ?>admin/seller-products.php" class="btn btn-outline"><i class="fa-solid fa-store"></i> ไปสินค้าผู้ขาย</a><button type="button" onclick="openAddProductModal()" class="btn btn-primary"><i class="fa-solid fa-plus"></i> เพิ่มสินค้าเว็บไซต์</button></div></header>
 <?php if($message): ?><div class="admin-alert success"><i class="fa-solid fa-circle-check"></i> <?php echo e($message); ?></div><?php endif; ?>
 <?php if($error): ?><div class="admin-alert error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo e($error); ?></div><?php endif; ?>
 
 <section class="admin-panel">
-    <header class="admin-panel-header"><div><h2>รายการสินค้า</h2><p>จัดการข้อมูลที่แสดงบนหน้าร้าน</p></div><span class="result-count"><?php echo number_format($totalProducts); ?> รายการ</span></header>
+    <header class="admin-panel-header"><div><h2>รายการสินค้าของเว็บไซต์</h2><p>รายการนี้ไม่รวมสินค้าที่ผู้ขายภายนอกเพิ่มเข้ามา</p></div><span class="result-count"><?php echo number_format($totalProducts); ?> รายการ</span></header>
     <div class="admin-toolbar"><form method="GET" class="admin-filter-form"><input type="search" name="q" value="<?php echo e($q); ?>" placeholder="ค้นหาชื่อสินค้า..."><select name="category"><option value="0">ทุกหมวดหมู่</option><?php foreach($categories as $category): ?><option value="<?php echo (int)$category['id']; ?>" <?php echo $categoryFilter===(int)$category['id']?'selected':''; ?>><?php echo e($category['name']); ?></option><?php endforeach; ?></select><select name="stock"><option value="">ทุกสถานะสต็อก</option><option value="low" <?php echo $stockFilter==='low'?'selected':''; ?>>สต็อกต่ำ 1–5</option><option value="available" <?php echo $stockFilter==='available'?'selected':''; ?>>พร้อมขาย</option><option value="out" <?php echo $stockFilter==='out'?'selected':''; ?>>สินค้าหมด</option></select><button class="btn btn-primary" type="submit"><i class="fa-solid fa-filter"></i> กรอง</button><?php if($q!==''||$categoryFilter||$stockFilter!==''): ?><a class="btn btn-outline" href="<?php echo BASE_URL; ?>admin/products.php">ล้าง</a><?php endif; ?></form></div>
     <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>สินค้า</th><th>ชื่อและรหัส</th><th class="hide-mobile">หมวดหมู่</th><th>ราคา</th><th>สต็อก</th><th>แนะนำ</th><th></th></tr></thead><tbody>
     <?php if(!$products): ?><tr><td colspan="7" class="admin-empty"><i class="fa-solid fa-box-open"></i>ไม่พบสินค้า</td></tr><?php endif; ?>
