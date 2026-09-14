@@ -25,6 +25,7 @@ function adminStatusLabel(string $status): string {
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/accessibility.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/thai-typography.css?v=3">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/sunrise-theme.css?v=2">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin-sidebar.css?v=1">
 </head>
 <body class="admin-body">
 <div class="admin-shell">
