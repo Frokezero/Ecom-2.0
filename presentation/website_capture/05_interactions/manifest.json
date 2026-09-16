@@ -1,0 +1,51 @@
+[
+  {
+    "file": "01_search.png",
+    "title": "ค้นหาสินค้า",
+    "description": "พิมพ์คำค้นในช่องค้นหาหรือเปิดผลลัพธ์การค้นหาเพื่อดูสินค้าที่ตรงคำ",
+    "role": "public",
+    "path": "products.php?q=กระทะ"
+  },
+  {
+    "file": "02_category.png",
+    "title": "กรองหมวดสินค้า",
+    "description": "เลือกหมวดจากเมนูเพื่อจำกัดรายการสินค้าที่แสดง",
+    "role": "public",
+    "path": "products.php?category=1"
+  },
+  {
+    "file": "03_sort_price.png",
+    "title": "เรียงราคาจากน้อยไปมาก",
+    "description": "ใช้ตัวเลือกเรียงลำดับในหน้าสินค้าทั้งหมด",
+    "role": "public",
+    "path": "products.php?sort=price_asc"
+  },
+  {
+    "file": "04_checkout_coupon.png",
+    "title": "หน้าต่างเลือกคูปอง",
+    "description": "เปิดตัวเลือกคูปองในหน้าชำระเงิน ตรวจเงื่อนไขก่อนใช้",
+    "role": "customer",
+    "path": "checkout.php"
+  },
+  {
+    "file": "05_checkout_cod.png",
+    "title": "ชำระเงินปลายทาง",
+    "description": "เลือกตัวเลือก COD ในหน้าชำระเงินก่อนยืนยันออเดอร์",
+    "role": "customer",
+    "path": "checkout.php"
+  },
+  {
+    "file": "06_seller_low_stock.png",
+    "title": "กรองสินค้าใกล้หมด",
+    "description": "ใช้ตัวกรองสินค้าใกล้หมดในคลังสินค้า",
+    "role": "seller",
+    "path": "seller-inventory.php?stock=low"
+  },
+  {
+    "file": "07_admin_pending.png",
+    "title": "กรองออเดอร์รอดำเนินการ",
+    "description": "เลือกสถานะรอดำเนินการในหน้าคำสั่งซื้อแอดมิน",
+    "role": "admin",
+    "path": "admin/orders.php?status=pending"
+  }
+]

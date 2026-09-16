@@ -1,0 +1,470 @@
+[
+  {
+    "section": "03_seller",
+    "file": "01_dashboard.png",
+    "path": "seller-dashboard.php",
+    "title": "แดชบอร์ดผู้ขาย",
+    "description": "ภาพรวมยอดขาย งานค้าง และทางลัดเพิ่มสินค้า",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/seller-dashboard.php"
+  },
+  {
+    "section": "03_seller",
+    "file": "02_store.png",
+    "path": "seller.php",
+    "title": "ตั้งค่าร้าน",
+    "description": "ข้อมูลร้านและสถานะบัญชีผู้ขาย",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/seller.php"
+  },
+  {
+    "section": "03_seller",
+    "file": "02_my_store.png",
+    "path": "my-store.php",
+    "title": "ร้านค้าของฉัน",
+    "description": "ข้อมูลหน้าร้าน แบนเนอร์ โปรโมชัน และการจัดการร้าน",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/my-store.php"
+  },
+  {
+    "section": "03_seller",
+    "file": "03_marketplace.png",
+    "path": "seller-marketplace.php",
+    "title": "จัดการสินค้าผู้ขาย",
+    "description": "รายการสินค้าที่ลงขายและสถานะการอนุมัติ",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/seller-marketplace.php"
+  },
+  {
+    "section": "03_seller",
+    "file": "04_inventory.png",
+    "path": "seller-inventory.php",
+    "title": "สต็อกสินค้า",
+    "description": "จำนวนคงเหลือและการปรับสต็อก",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/seller-inventory.php"
+  },
+  {
+    "section": "03_seller",
+    "file": "05_orders.png",
+    "path": "seller-orders.php",
+    "title": "คำสั่งซื้อของร้าน",
+    "description": "ออเดอร์ที่ต้องดำเนินการและสถานะการจัดส่ง",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/seller-orders.php"
+  },
+  {
+    "section": "03_seller",
+    "file": "06_wallet.png",
+    "path": "seller-wallet.php",
+    "title": "กระเป๋าเงินผู้ขาย",
+    "description": "ยอดเงิน รายการรับเงิน และการถอนเงิน",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/seller-wallet.php"
+  },
+  {
+    "section": "03_seller",
+    "file": "07_product_options.png",
+    "path": "seller-product-options.php?id=135",
+    "title": "ตัวเลือกสินค้า",
+    "description": "ตัวเลือกหรือรุ่นย่อยของสินค้าที่เลือก",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/seller-product-options.php?id=135"
+  },
+  {
+    "section": "04_admin",
+    "file": "01_dashboard.png",
+    "path": "admin/index.php",
+    "title": "แดชบอร์ดแอดมิน",
+    "description": "ตัวเลขภาพรวมและงานที่ต้องติดตาม",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/index.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "02_products.png",
+    "path": "admin/products.php",
+    "title": "สินค้าของเว็บไซต์",
+    "description": "เพิ่ม แก้ไข และตรวจรายการสินค้าหลัก",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/products.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "03_promotions.png",
+    "path": "admin/promotions.php",
+    "title": "โปรโมชันและคูปอง",
+    "description": "แคมเปญส่วนลดและคูปอง",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/promotions.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "04_mall_promotions.png",
+    "path": "admin/mall-promotions.php",
+    "title": "โปรโมชัน MALL",
+    "description": "กิจกรรมส่งเสริมการขายระดับเว็บไซต์",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/mall-promotions.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "05_orders.png",
+    "path": "admin/orders.php",
+    "title": "คำสั่งซื้อ",
+    "description": "รายการออเดอร์ทั้งหมดและตัวกรองสถานะ",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/orders.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "06_order_detail.png",
+    "path": "admin/order-detail.php?id=24",
+    "title": "รายละเอียดออเดอร์",
+    "description": "ข้อมูลออเดอร์ การชำระเงิน และการจัดส่ง",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/order-detail.php?id=24"
+  },
+  {
+    "section": "04_admin",
+    "file": "07_returns.png",
+    "path": "admin/returns.php",
+    "title": "คืนสินค้าและคืนเงิน",
+    "description": "รายการคำขอและสถานะการดำเนินการ",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/returns.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "08_support.png",
+    "path": "admin/support.php",
+    "title": "ศูนย์ช่วยเหลือลูกค้า",
+    "description": "เคสช่วยเหลือและข้อความจากลูกค้า",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/support.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "09_sellers.png",
+    "path": "admin/sellers.php",
+    "title": "คำขอผู้ขาย",
+    "description": "คำขอสมัครและการอนุมัติผู้ขาย",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/sellers.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "10_stores.png",
+    "path": "admin/stores.php",
+    "title": "ร้านค้าและสินค้า",
+    "description": "รายการร้านและสถานะร้านค้า",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/stores.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "11_store_detail.png",
+    "path": "admin/store-detail.php?id=222",
+    "title": "รายละเอียดร้าน",
+    "description": "ข้อมูลร้านและรายการสินค้าที่เกี่ยวข้อง",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/store-detail.php?id=222"
+  },
+  {
+    "section": "04_admin",
+    "file": "12_seller_products.png",
+    "path": "admin/seller-products.php",
+    "title": "ตรวจสินค้าผู้ขาย",
+    "description": "สินค้ารออนุมัติและการตรวจสอบ",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/seller-products.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "13_product_reports.png",
+    "path": "admin/product-reports.php",
+    "title": "รายงานสินค้า",
+    "description": "รายการสินค้าที่ถูกแจ้งรายงาน",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/product-reports.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "14_payouts.png",
+    "path": "admin/payouts.php",
+    "title": "ถอนเงินผู้ขาย",
+    "description": "คำขอถอนและสถานะการจ่ายเงิน",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/payouts.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "15_email_logs.png",
+    "path": "admin/email-logs.php",
+    "title": "ประวัติอีเมล",
+    "description": "สถานะการส่งอีเมลธุรกรรม",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/email-logs.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "16_security.png",
+    "path": "admin/security-center.php",
+    "title": "ศูนย์ความปลอดภัย",
+    "description": "เหตุการณ์และกฎความปลอดภัย",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/security-center.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "17_analytics.png",
+    "path": "admin/behavior-analytics.php",
+    "title": "Behavior Analytics",
+    "description": "ข้อมูลพฤติกรรมการใช้งาน",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/behavior-analytics.php"
+  },
+  {
+    "section": "04_admin",
+    "file": "18_users.png",
+    "path": "admin/users.php",
+    "title": "ผู้ใช้งานทั้งหมด",
+    "description": "รายการผู้ใช้และบทบาท",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/admin/users.php"
+  },
+  {
+    "section": "01_public",
+    "file": "01_home.png",
+    "path": "index.php",
+    "title": "หน้าแรก",
+    "description": "แบนเนอร์ เมนูค้นหา หมวดสินค้า โปรโมชัน และจุดเริ่มต้นการเลือกซื้อ",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/index.php"
+  },
+  {
+    "section": "01_public",
+    "file": "02_products.png",
+    "path": "products.php",
+    "title": "สินค้าทั้งหมด",
+    "description": "รายการสินค้า ตัวกรองหมวด ช่วงราคา และตัวเลือกการเรียง",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/products.php"
+  },
+  {
+    "section": "01_public",
+    "file": "03_product_detail.png",
+    "path": "product-detail.php?id=19",
+    "title": "รายละเอียดสินค้า",
+    "description": "ภาพ ราคา ตัวเลือก จำนวน รีวิว และปุ่มเพิ่มตะกร้า",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/product-detail.php?id=19"
+  },
+  {
+    "section": "01_public",
+    "file": "04_shop.png",
+    "path": "shop.php?id=222",
+    "title": "หน้าร้านผู้ขาย",
+    "description": "ข้อมูลร้าน รายการสินค้า และทางติดต่อผู้ขาย",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/shop.php?id=222"
+  },
+  {
+    "section": "01_public",
+    "file": "05_cart_guest.png",
+    "path": "cart.php",
+    "title": "ตะกร้าผู้เยี่ยมชม",
+    "description": "การแสดงตะกร้าก่อนเข้าสู่ระบบหรือก่อนเพิ่มสินค้า",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/cart.php"
+  },
+  {
+    "section": "01_public",
+    "file": "06_login.png",
+    "path": "login.php",
+    "title": "เข้าสู่ระบบ",
+    "description": "แบบฟอร์มชื่อผู้ใช้หรืออีเมลและรหัสผ่าน",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/login.php"
+  },
+  {
+    "section": "01_public",
+    "file": "07_register.png",
+    "path": "register.php",
+    "title": "สมัครสมาชิก",
+    "description": "แบบฟอร์มสร้างบัญชีลูกค้า",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/register.php"
+  },
+  {
+    "section": "01_public",
+    "file": "08_seller_register.png",
+    "path": "seller-register.php",
+    "title": "สมัครผู้ขาย",
+    "description": "แบบฟอร์มสร้างบัญชีผู้ขาย",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/seller-register.php"
+  },
+  {
+    "section": "01_public",
+    "file": "09_forgot_password.png",
+    "path": "forgot-password.php",
+    "title": "ลืมรหัสผ่าน",
+    "description": "แบบฟอร์มขอลิงก์ตั้งรหัสผ่านใหม่",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/forgot-password.php"
+  },
+  {
+    "section": "01_public",
+    "file": "09_check_email.png",
+    "path": "check-email.php",
+    "title": "ตรวจสอบอีเมล",
+    "description": "คำแนะนำหลังสมัครและปุ่มส่งลิงก์ยืนยันใหม่",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/check-email.php"
+  },
+  {
+    "section": "01_public",
+    "file": "10_privacy.png",
+    "path": "privacy.php",
+    "title": "นโยบายความเป็นส่วนตัว",
+    "description": "ข้อมูลนโยบายและสิทธิ์ข้อมูลส่วนบุคคล",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/privacy.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "01_profile.png",
+    "path": "profile.php",
+    "title": "โปรไฟล์ลูกค้า",
+    "description": "ข้อมูลบัญชีและการจัดการข้อมูลส่วนตัว",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/profile.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "02_address_book.png",
+    "path": "address-book.php",
+    "title": "สมุดที่อยู่",
+    "description": "ที่อยู่จัดส่งและการเพิ่มหรือแก้ไขที่อยู่",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/address-book.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "03_wishlist.png",
+    "path": "wishlist.php",
+    "title": "รายการโปรด",
+    "description": "สินค้าที่บันทึกไว้สำหรับกลับมาดู",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/wishlist.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "04_cart.png",
+    "path": "cart.php",
+    "title": "ตะกร้าสินค้า",
+    "description": "รายการในตะกร้า จำนวนสินค้า และยอดรวม",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/cart.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "05_checkout.png",
+    "path": "checkout.php",
+    "title": "ชำระเงิน",
+    "description": "ที่อยู่จัดส่ง คูปอง ยอดรวม และวิธีชำระเงิน",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/checkout.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "06_coupons.png",
+    "path": "my-coupons.php",
+    "title": "คูปองของฉัน",
+    "description": "คูปองที่รับแล้วและเงื่อนไขการใช้งาน",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/my-coupons.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "07_orders.png",
+    "path": "my-orders.php",
+    "title": "คำสั่งซื้อของฉัน",
+    "description": "ประวัติคำสั่งซื้อและสถานะ",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/my-orders.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "08_order_detail.png",
+    "path": "order-detail.php?id=24",
+    "title": "รายละเอียดคำสั่งซื้อ",
+    "description": "รายการสินค้า การชำระเงิน การจัดส่ง และสถานะ",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/order-detail.php?id=24"
+  },
+  {
+    "section": "02_customer",
+    "file": "08_order_success.png",
+    "path": "order-success.php?order_id=24",
+    "title": "หน้าสั่งซื้อสำเร็จ",
+    "description": "สรุปคำสั่งซื้อที่มีอยู่ของบัญชีหลังยืนยันรายการ",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/order-success.php?order_id=24"
+  },
+  {
+    "section": "02_customer",
+    "file": "09_receipt.png",
+    "path": "receipt.php?id=24",
+    "title": "ใบเสร็จ",
+    "description": "เอกสารคำสั่งซื้อสำหรับออเดอร์ที่เลือก",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/receipt.php?id=24"
+  },
+  {
+    "section": "02_customer",
+    "file": "10_returns.png",
+    "path": "my-returns.php",
+    "title": "คำขอคืนสินค้า",
+    "description": "ติดตามคำขอคืนและการคืนเงิน",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/my-returns.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "11_return_request.png",
+    "path": "return-request.php?order_id=24",
+    "title": "ยื่นคำขอคืนสินค้า",
+    "description": "แบบฟอร์มระบุรายการและเหตุผลการคืน",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/return-request.php?order_id=24"
+  },
+  {
+    "section": "02_customer",
+    "file": "12_notifications.png",
+    "path": "notifications.php",
+    "title": "การแจ้งเตือน",
+    "description": "รายการแจ้งเตือนของบัญชี",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/notifications.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "13_messages.png",
+    "path": "messages.php",
+    "title": "ข้อความ",
+    "description": "การสนทนากับร้านค้า",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/messages.php"
+  },
+  {
+    "section": "02_customer",
+    "file": "14_support.png",
+    "path": "support.php",
+    "title": "ศูนย์ช่วยเหลือ",
+    "description": "การส่งคำถามหรือปัญหาให้ทีมดูแล",
+    "status": "captured",
+    "final_url": "http://127.0.0.1:8000/support.php"
+  }
+]
