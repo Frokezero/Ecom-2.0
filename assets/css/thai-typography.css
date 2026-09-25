@@ -1,19 +1,143 @@
-/* Local LINE Seed Sans TH font (bundled for reliable Thai rendering without CDN). */
-@font-face{font-family:"LINE Seed Sans TH";src:url("../fonts/line-seed/LINESeedSansTH-Regular.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
-@font-face{font-family:"LINE Seed Sans TH";src:url("../fonts/line-seed/LINESeedSansTH-Bold.woff2") format("woff2");font-style:normal;font-weight:700;font-display:swap}
-@font-face{font-family:"LINE Seed Sans TH";src:url("../fonts/line-seed/LINESeedSansTH-Heavy.woff2") format("woff2");font-style:normal;font-weight:800 900;font-display:swap}
-/* Readable Thai typography shared by storefront, seller center and admin. */
-html,body,button,input,select,textarea,table{font-family:"LINE Seed Sans TH","Prompt","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif}
+/* Local LINE Seed Sans TH font (bundled for reliable Thai & English rendering). */
+/* Thin (100-300) */
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  src: url("../fonts/line-seed/LINESeedSansTH-Thin.woff2") format("woff2"),
+       url("../fonts/line-seed/LINESeedSansTH-Thin.woff") format("woff"),
+       url("../fonts/line-seed/LINESeedSansTH_Th.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+}
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  src: url("../fonts/line-seed/LINESeedSansTH-Thin.woff2") format("woff2"),
+       url("../fonts/line-seed/LINESeedSansTH-Thin.woff") format("woff");
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+}
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  src: url("../fonts/line-seed/LINESeedSansTH-Thin.woff2") format("woff2"),
+       url("../fonts/line-seed/LINESeedSansTH-Thin.woff") format("woff");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+/* Regular (400-500) */
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  src: url("../fonts/line-seed/LINESeedSansTH-Regular.woff2") format("woff2"),
+       url("../fonts/line-seed/LINESeedSansTH-Regular.woff") format("woff"),
+       url("../fonts/line-seed/LINESeedSansTH_Rg.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  src: url("../fonts/line-seed/LINESeedSansTH-Regular.woff2") format("woff2"),
+       url("../fonts/line-seed/LINESeedSansTH-Regular.woff") format("woff");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+/* Bold (600-700) */
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  src: url("../fonts/line-seed/LINESeedSansTH-Bold.woff2") format("woff2"),
+       url("../fonts/line-seed/LINESeedSansTH-Bold.woff") format("woff"),
+       url("../fonts/line-seed/LINESeedSansTH_Bd.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  src: url("../fonts/line-seed/LINESeedSansTH-Bold.woff2") format("woff2"),
+       url("../fonts/line-seed/LINESeedSansTH-Bold.woff") format("woff"),
+       url("../fonts/line-seed/LINESeedSansTH_Bd.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* ExtraBold (800) */
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  src: url("../fonts/line-seed/LINESeedSansTH-ExtraBold.woff2") format("woff2"),
+       url("../fonts/line-seed/LINESeedSansTH-ExtraBold.woff") format("woff"),
+       url("../fonts/line-seed/LINESeedSansTH_XBd.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+/* Heavy (900) */
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  src: url("../fonts/line-seed/LINESeedSansTH-Heavy.woff2") format("woff2"),
+       url("../fonts/line-seed/LINESeedSansTH-Heavy.woff") format("woff"),
+       url("../fonts/line-seed/LINESeedSansTH_He.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+
+/* Universal typography variable and root definitions */
+:root {
+  --font-line-seed: "LINE Seed Sans TH", "Prompt", "Leelawadee UI", "Noto Sans Thai", Tahoma, Arial, sans-serif;
+}
+
+/* Readable typography shared by storefront, seller center, and admin console */
+html, body, button, input, select, textarea, table, optgroup, option {
+  font-family: "LINE Seed Sans TH", "Prompt", "Leelawadee UI", "Noto Sans Thai", Tahoma, Arial, sans-serif !important;
+  font-variant-ligatures: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 html[lang="th"] body,
 html[lang="th"] button,
 html[lang="th"] input,
 html[lang="th"] select,
 html[lang="th"] textarea,
 html[lang="th"] table {
-  font-family:"LINE Seed Sans TH","Prompt","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif;
-  font-variant-ligatures:normal;
-  text-rendering:optimizeLegibility;
+  font-family: "LINE Seed Sans TH", "Prompt", "Leelawadee UI", "Noto Sans Thai", Tahoma, Arial, sans-serif !important;
+  font-variant-ligatures: normal;
+  text-rendering: optimizeLegibility;
 }
+
+/* All headings, titles, prices, cards and branding */
+h1, h2, h3, h4, h5, h6,
+.hero-title, .hero-copy h1, .section-title,
+.product-title, .seller-review-title,
+.brand-logo strong, .admin-brand strong,
+.product-price, .detail-price strong,
+.stat-card strong, .hero-feature strong,
+.quick-paths strong, .catalog-header h1,
+.filter-panel-heading strong, .empty-state h2,
+.purchase-panel h1, .footer-col h4,
+.promo-hero-slide strong, .catalog-promo-banner strong,
+.seller-hero h1, .seller-hero aside strong,
+.seller-application aside h2, .seller-form h2,
+.seller-ready h2, .seller-page-head h1,
+.seller-empty-state h2, .seller-stats strong,
+.storefront-hero h1, .shop-cover h1,
+.store-stats strong, .store-section-header h2,
+.store-customize h2, .shop-products h2,
+.shop-promo h2, .seller-product-card strong,
+.wallet-hero h1, .wallet-stats strong,
+.wallet-card h2, .payout-history article strong,
+.profile-hero-copy h1, .profile-avatar,
+.behavior-head h1, .behavior-panel h2,
+.behavior-bars .bar-label strong,
+.behavior-overview article strong,
+.case-donut strong, .confusion-wrap strong,
 html[lang="th"] h1,
 html[lang="th"] h2,
 html[lang="th"] h3,
@@ -28,10 +152,15 @@ html[lang="th"] .admin-brand strong,
 html[lang="th"] .product-price,
 html[lang="th"] .detail-price strong,
 html[lang="th"] .stat-card strong {
-  font-family:"LINE Seed Sans TH","Prompt","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif!important;
-  line-height:1.42;
-  letter-spacing:0;
+  font-family: "LINE Seed Sans TH", "Prompt", "Leelawadee UI", "Noto Sans Thai", Tahoma, Arial, sans-serif !important;
+  line-height: 1.42;
+  letter-spacing: 0;
 }
+
+p, label, td, th, a, small, span, b, strong, em, li, dt, dd {
+  font-family: "LINE Seed Sans TH", "Prompt", "Leelawadee UI", "Noto Sans Thai", Tahoma, Arial, sans-serif;
+}
+
 html[lang="th"] p,
 html[lang="th"] label,
 html[lang="th"] td,
@@ -39,12 +168,14 @@ html[lang="th"] th,
 html[lang="th"] a,
 html[lang="th"] small,
 html[lang="th"] span {
-  line-height:1.55;
+  line-height: 1.55;
 }
+
 html[lang="th"] .eyebrow {
-  line-height:1.35;
-  letter-spacing:.13em;
+  line-height: 1.35;
+  letter-spacing: .13em;
 }
+
 @media(max-width:720px){
   html[lang="th"] body{font-size:15px}
   html[lang="th"] input,html[lang="th"] select,html[lang="th"] textarea{font-size:14px}

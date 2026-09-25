@@ -15,15 +15,17 @@ function adminStatusLabel(string $status): string {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#173f32">
+    <link rel="preload" href="<?php echo BASE_URL; ?>assets/fonts/line-seed/LINESeedSansTH-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="<?php echo BASE_URL; ?>assets/fonts/line-seed/LINESeedSansTH-Bold.woff2" as="font" type="font/woff2" crossorigin>
     <title><?php echo e($admin_title); ?> - <?php echo APP_NAME; ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css?v=7">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css?v=11">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css?v=2">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notifications.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notification-hover.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/promotions.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/accessibility.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/thai-typography.css?v=3">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/thai-typography.css?v=4">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/sunrise-theme.css?v=2">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin-sidebar.css?v=1">
 </head>

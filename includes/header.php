@@ -32,9 +32,11 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
     <meta name="twitter:card" content="summary_large_image">
     <link rel="manifest" href="<?php echo BASE_URL; ?>site.webmanifest">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preload" href="<?php echo BASE_URL; ?>assets/fonts/line-seed/LINESeedSansTH-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="<?php echo BASE_URL; ?>assets/fonts/line-seed/LINESeedSansTH-Bold.woff2" as="font" type="font/woff2" crossorigin>
     <title><?php echo isset($page_title) ? e($page_title).' - '.APP_NAME : APP_NAME; ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css?v=10">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css?v=11">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/address-picker.css?v=2">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notifications.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/notification-hover.css">
@@ -45,7 +47,7 @@ $page_image=$page_image??rtrim(BASE_URL,'/').'/assets/images/products/placeholde
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/product-card-pricing.css?v=5">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/floating-product-video.css?v=1">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/floating-product-video-extra.css?v=1">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/thai-typography.css?v=3">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/thai-typography.css?v=4">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/sunrise-theme.css?v=2">
     <?php if ($current_page === 'order-detail.php'): ?><link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/order-detail.css?v=1"><?php endif; ?>
 </head>
